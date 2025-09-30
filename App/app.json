@@ -5,6 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "platforms": ["ios", "android"]
+    "platforms": ["ios", "android"],
+    "web": {
+      "bundler": "metro"
+    }
   }
 }
