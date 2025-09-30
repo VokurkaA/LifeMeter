@@ -7,31 +7,31 @@ CREATE TABLE IF NOT EXISTS unit
 
 CREATE TABLE IF NOT EXISTS set_style
 (
-    id   UUID PRIMARY KEY NOT NULL,
+    id   UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     name TEXT UNIQUE      NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS set_type
 (
-    id   UUID PRIMARY KEY NOT NULL,
+    id   UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     name TEXT UNIQUE      NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS exercise_type
 (
-    id   UUID PRIMARY KEY NOT NULL,
+    id   UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     name TEXT UNIQUE      NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS exercise_variant
 (
-    id   UUID PRIMARY KEY NOT NULL,
+    id   UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     name TEXT UNIQUE      NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS muscle
 (
-    id        UUID PRIMARY KEY NOT NULL,
+    id        UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     name      TEXT UNIQUE      NOT NULL,
     action    TEXT,
     parent_id UUID REFERENCES muscle (id),
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS muscle
 
 CREATE TABLE IF NOT EXISTS workout_template
 (
-    id          UUID PRIMARY KEY NOT NULL,
+    id          UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     user_id     TEXT             NOT NULL REFERENCES "user" (id),
     name        TEXT             NOT NULL,
     description TEXT,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS workout_template
 
 CREATE TABLE IF NOT EXISTS exercise
 (
-    id                  UUID PRIMARY KEY NOT NULL,
+    id                  UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     exercise_type_id    UUID             NOT NULL REFERENCES exercise_type (id),
     exercise_variant_id UUID             NOT NULL REFERENCES exercise_variant (id),
     UNIQUE (exercise_type_id, exercise_variant_id)
@@ -59,8 +59,8 @@ CREATE TABLE IF NOT EXISTS exercise
 
 CREATE TABLE IF NOT EXISTS template_workout_set
 (
-    id                  UUID PRIMARY KEY NOT NULL,
-    workout_template_id UUID             NOT NULL REFERENCES workout_template (id) ON DELETE CASCADE,
+    id                  UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+		workout_template_id UUID NOT NULL REFERENCES workout_template (id) ON DELETE CASCADE,
     exercise_id         UUID             NOT NULL REFERENCES exercise (id),
     seq_number          INT              NOT NULL,
     repetitions         INT CHECK (repetitions >= 0),
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS template_workout_set
 
 CREATE TABLE IF NOT EXISTS workout
 (
-    id                  UUID PRIMARY KEY NOT NULL,
+    id                  UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     user_id             TEXT             NOT NULL REFERENCES "user" (id),
     workout_template_id UUID REFERENCES workout_template (id),
     start_date          TIMESTAMP        NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS workout
 
 CREATE TABLE IF NOT EXISTS workout_set
 (
-    id             UUID PRIMARY KEY NOT NULL,
+    id             UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     workout_id     UUID             NOT NULL REFERENCES workout (id),
     exercise_id    UUID             NOT NULL REFERENCES exercise (id),
     seq_number     INT              NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS workout_set
 
 CREATE TABLE IF NOT EXISTS muscle_involvement
 (
-    id          UUID PRIMARY KEY NOT NULL,
+    id          UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     exercise_id UUID             NOT NULL REFERENCES exercise (id),
     muscle_id   UUID             NOT NULL REFERENCES muscle (id),
     involvement NUMERIC(3, 2)    NOT NULL,
