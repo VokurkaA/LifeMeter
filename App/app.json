@@ -5,9 +5,18 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
+      "android": {
+      "predictiveBackGestureEnabled": true
+    },
     "web": {
       "bundler": "metro"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
