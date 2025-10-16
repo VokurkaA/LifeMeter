@@ -7,6 +7,7 @@ import {Input} from '@/components/ui/Input';
 import {H1} from '@/components/ui/Text';
 import {useToast} from '@/components/ui/Toast';
 import {useAuth} from '@/contexts/AuthContext';
+import {useNavigation} from '@/contexts/NavigationContext';
 import {useTheme} from '@/lib/theme-provider';
 import {ScreenWrapper} from '@/navigation/ScreenWrapper';
 
@@ -18,6 +19,7 @@ function SignUp() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const {signUp} = useAuth();
+    const {clearStack} = useNavigation();
     const {toast} = useToast();
     const {isDark} = useTheme();
 
@@ -32,7 +34,7 @@ function SignUp() {
         }
         try {
             await signUp(email, password, name, true);
-            toast('Successfully signed up!', 'success', 3000);
+            clearStack(); 
         } catch (e) {
             console.error(e);
             toast('Failed to sign up', 'destructive', 5000);

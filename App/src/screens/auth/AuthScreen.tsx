@@ -1,15 +1,15 @@
 import {ThemeToggle} from "@/components/theme-toggle";
 import {Button} from "@/components/ui/Button";
-import {H1} from "@/components/ui/Text";
 import {useNavigation} from "@/contexts/NavigationContext";
 import React from "react";
 import {View} from "react-native";
+import Header from "./header";
 
 function AuthScreen() {
     const {navigate} = useNavigation();
 
     return (<View className="p-8">
-            <H1 className="m-24 text-center">Welcome</H1>
+            <Header name="Welcome"/>
             <ThemeToggle className="mb-4"/>
             <Button
                 onPress={() => navigate({

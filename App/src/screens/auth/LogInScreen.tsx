@@ -7,6 +7,7 @@ import {Input} from '@/components/ui/Input';
 import {H1} from '@/components/ui/Text';
 import {useToast} from '@/components/ui/Toast';
 import {useAuth} from '@/contexts/AuthContext';
+import {useNavigation} from '@/contexts/NavigationContext';
 import {ScreenWrapper} from '@/navigation/ScreenWrapper';
 import {useTheme} from '@/lib/theme-provider';
 
@@ -15,6 +16,7 @@ function LogIn() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const {signIn} = useAuth();
+    const {clearStack} = useNavigation();
     const {toast} = useToast();
 
     const handleLogIn = async () => {
@@ -24,7 +26,7 @@ function LogIn() {
         }
         try {
             await signIn(email, password, undefined, true);
-            toast('Successfully logged in!', 'success', 3000);
+            clearStack(); 
         } catch (e) {
             console.error(e);
             toast('Failed to log in', 'destructive', 5000);
