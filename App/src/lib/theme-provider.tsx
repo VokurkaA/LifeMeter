@@ -1,20 +1,13 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useColorScheme, View } from 'react-native';
-
-type Theme = 'light' | 'dark' | 'system';
-
-interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  isDark: boolean;
-}
+import type { Theme, ThemeContextType } from '@/types';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('system');
   const systemColorScheme = useColorScheme();
-  
+
   const isDark = theme === 'dark' || (theme === 'system' && systemColorScheme === 'dark');
 
   return (

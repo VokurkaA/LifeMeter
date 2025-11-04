@@ -1,13 +1,13 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Text, View } from 'react-native';
+import { Animated, Easing, Text, View } from 'react-native';
 
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 const toastVariants = {
-  default: 'bg-foreground',
-  destructive: 'bg-destructive',
-  success: 'bg-green-500',
-  info: 'bg-blue-500',
+  default: 'bg-foreground/90',
+  destructive: 'bg-destructive/90',
+  success: 'bg-green-500/90',
+  info: 'bg-blue-500/90',
 };
 
 interface ToastProps {
@@ -17,6 +17,7 @@ interface ToastProps {
   variant?: keyof typeof toastVariants;
   duration?: number;
   showProgress?: boolean;
+  size?: 'full' | 'narrow';
 }
 function Toast({
   id,
@@ -25,67 +26,80 @@ function Toast({
   variant = 'default',
   duration = 3000,
   showProgress = true,
+  size = 'full',
 }: ToastProps) {
   const opacity = useRef(new Animated.Value(0)).current;
   const progress = useRef(new Animated.Value(0)).current;
+
+  // Subtle timing and motion
+  const fadeInMs = 250;
+  const fadeOutMs = 250;
+  const progressDuration = Math.max(0, duration - (fadeInMs + fadeOutMs));
 
   useEffect(() => {
     Animated.sequence([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 500,
+        duration: fadeInMs,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
       Animated.timing(progress, {
         toValue: 1,
-        duration: duration - 1000,
+        duration: progressDuration,
         useNativeDriver: false,
       }),
       Animated.timing(opacity, {
         toValue: 0,
-        duration: 500,
+        duration: fadeOutMs,
+        easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }),
     ]).start(() => onHide(id));
-  }, [duration]);
+  }, [duration, id, onHide, opacity, progress, fadeInMs, fadeOutMs, progressDuration]);
+
+  const isNarrow = size === 'narrow';
 
   return (
     <Animated.View
       className={`
-        ${toastVariants[variant]}
-        m-2 mb-1 p-4 rounded-lg shadow-md transform transition-all
+      ${toastVariants[variant]}
+      m-2 mb-1 p-3 rounded-md shadow-sm border border-black/10 dark:border-white/10
       `}
       style={{
-        opacity,
-        transform: [
-          {
-            translateY: opacity.interpolate({
-              inputRange: [0, 1],
-              outputRange: [-20, 0],
-            }),
-          },
-        ],
+      opacity,
+      transform: [
+        {
+        translateY: opacity.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-6, 0],
+        }),
+        },
+      ],
+      alignSelf: isNarrow ? 'center' : 'flex-start',
+      // maxWidth: isNarrow ? 420 : undefined,
       }}
     >
-      <Text className="font-semibold text-left text-background">{message}</Text>
+      <Text className={`${isNarrow ? 'text-center' : 'text-left'} font-medium text-background/90`}>{message}</Text>
       {showProgress && (
-        <View className="mt-2 rounded">
-          <Animated.View
-            className="bg-white dark:bg-black h-2 opacity-30 rounded"
-            style={{
-              width: progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: ['0%', '100%'],
-              }),
-            }}
-          />
-        </View>
+      <View className="mt-2 rounded">
+        <Animated.View
+        className="h-1.5 bg-white/60 dark:bg-white/30 rounded-full"
+        style={{
+          width: progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: ['0%', '100%'],
+          }),
+        }}
+        />
+      </View>
       )}
     </Animated.View>
   );
 }
 
 type ToastVariant = keyof typeof toastVariants;
+type ToastSize = 'full' | 'narrow';
 
 interface ToastMessage {
   id: number;
@@ -94,6 +108,7 @@ interface ToastMessage {
   duration?: number;
   position?: string;
   showProgress?: boolean;
+  size?: ToastSize;
 }
 interface ToastContextProps {
   toast: (
@@ -101,7 +116,8 @@ interface ToastContextProps {
     variant?: keyof typeof toastVariants,
     duration?: number,
     position?: 'top' | 'bottom',
-    showProgress?: boolean
+    showProgress?: boolean,
+    size?: ToastSize
   ) => void;
   removeToast: (id: number) => void;
 }
@@ -122,7 +138,8 @@ function ToastProvider({
     variant: ToastVariant = 'default',
     duration: number = 3000,
     position: 'top' | 'bottom' = 'top',
-    showProgress: boolean = true
+    showProgress: boolean = true,
+    size: ToastSize = 'full'
   ) => {
     setMessages(prev => [
       ...prev,
@@ -133,6 +150,7 @@ function ToastProvider({
         duration,
         position,
         showProgress,
+        size,
       },
     ]);
   };
@@ -158,6 +176,7 @@ function ToastProvider({
             variant={message.variant}
             duration={message.duration}
             showProgress={message.showProgress}
+            size={message.size}
             onHide={removeToast}
           />
         ))}
@@ -174,4 +193,5 @@ function useToast() {
   return context;
 }
 
-export { ToastProvider, ToastVariant, Toast, toastVariants, useToast };
+export { Toast, ToastProvider, ToastVariant, toastVariants, useToast };
+

@@ -23,6 +23,10 @@ module.exports = {
         "destructive-foreground": "hsl(var(--destructive-foreground))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
+        "input-border": "hsl(var(--input-border))",
+        "input-foreground": "hsl(var(--input-foreground))",
+        "input-placeholder": "hsl(var(--input-placeholder))",
+        "input-label": "hsl(var(--input-label))", 
         ring: "hsl(var(--ring))",
       },
       borderRadius: {

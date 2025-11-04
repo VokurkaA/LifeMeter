@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native';
 
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 function Card({
   className,
@@ -109,11 +109,7 @@ function SimpleCard({
 }
 
 export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-  SimpleCard,
+  Card, CardContent, CardDescription, CardFooter, CardHeader,
+  CardTitle, SimpleCard
 };
+

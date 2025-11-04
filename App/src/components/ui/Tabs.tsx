@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface TabsContextProps {
   activeTab: string;
@@ -95,4 +95,5 @@ function TabsContent({ value, className, ...props }: TabsContentProps) {
   return null;
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent };
+export { Tabs, TabsContent, TabsList, TabsTrigger };
+

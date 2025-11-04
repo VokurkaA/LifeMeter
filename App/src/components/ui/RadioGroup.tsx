@@ -2,8 +2,8 @@ import { Circle, CircleDot } from 'lucide-react-native';
 import { createContext, useContext, useState } from 'react';
 import { Text, TouchableOpacity, useColorScheme } from 'react-native';
 
-import { cn } from '../lib/utils';
-import { theme } from '../styles/theme';
+import { cn } from '@/lib/utils';
+import { theme } from '../../styles/theme';
 
 interface RadioGroupContextType {
   value: string;

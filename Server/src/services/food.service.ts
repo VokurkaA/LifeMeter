@@ -1,6 +1,6 @@
-import {pool} from "@/config/db.config.js";
-import type {PaginationProps} from "@/middleware/pagination.js";
-import type {BrandedFood, CompleteNutrient, Food, FoodCategory, FoodDetail, Portion} from "@/types/food.type.js";
+import { pool } from "@/config/db.config.js";
+import type { PaginationProps } from "@/middleware/pagination.js";
+import type { BrandedFood, CompleteNutrient, Food, FoodCategory, FoodDetail, Portion } from "@/types/food.type";
 
 /**
  * Result shape for paginated food lists.
@@ -56,14 +56,12 @@ class FoodService {
                 SELECT id, food_category_id, description
                 FROM food
                 WHERE id = $1
-            `,
-            category: `
+            `, category: `
                 SELECT fc.id, name
                 FROM food_category fc
                          JOIN food f ON f.food_category_id = fc.id
                 WHERE f.id = $1
-            `,
-            brandedFood: `
+            `, brandedFood: `
                 SELECT bf.id,
                        bf.brand_owner,
                        bf.brand_name,
@@ -71,16 +69,14 @@ class FoodService {
                        bf.gtin_upc,
                        bf.ingredients
                 FROM branded_food bf
-                JOIN food f ON f.branded_food_id = bf.id
+                         JOIN food f ON f.branded_food_id = bf.id
                 WHERE f.id = $1
-            `,
-            portions: `
+            `, portions: `
                 SELECT id, food_id, gram_weight, portion_amount, portion_unit, modifier
                 FROM portion
                 WHERE food_id = $1
                 ORDER BY id
-            `,
-            nutrients: `
+            `, nutrients: `
                 SELECT n.name, n.unit, n.nutrient_nbr, nv.amount
                 FROM nutrient_value nv
                          JOIN nutrient n ON nv.nutrient_id = n.id
@@ -144,7 +140,7 @@ class FoodService {
         const dataQuery = `
             SELECT f.id
             FROM food f
-            JOIN branded_food bf ON f.branded_food_id = bf.id
+                     JOIN branded_food bf ON f.branded_food_id = bf.id
             WHERE bf.gtin_upc = $1
         `;
         const row = (await pool.query<{ id: number }>(dataQuery, [gtin])).rows[0];

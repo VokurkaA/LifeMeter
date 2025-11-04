@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, type View } from 'react-native';
 
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 function Skeleton({
   className,

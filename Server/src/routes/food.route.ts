@@ -1,9 +1,10 @@
-import {Hono} from "hono";
-import {requireAuth} from "@/middleware/requireAuth.js";
-import {getPagination, makePaginationResult, pagination, type PaginationProps,} from "@/middleware/pagination.js";
-import {foodService} from "@/services/food.service.js";
+import { Hono } from "hono";
+import { requireAuth } from "@/middleware/requireAuth.js";
+import { getPagination, makePaginationResult, pagination, type PaginationProps, } from "@/middleware/pagination.js";
+import { foodService } from "@/services/food.service";
+import type { AuthSession, AuthUser } from "@/types/auth.types";
 
-export const foodRouter = new Hono<{ Variables: { user: unknown | null; session: unknown | null } }>();
+export const foodRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
 foodRouter.use("*", requireAuth());
 

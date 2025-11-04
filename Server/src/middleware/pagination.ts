@@ -1,5 +1,5 @@
-import type {Context, Next} from "hono"
-import {paginationConfig} from "@/config/pagination.config.js";
+import type { Context, Next } from "hono"
+import { paginationConfig } from "@/config/pagination.config.js";
 
 export type PaginationProps = {
     page: number

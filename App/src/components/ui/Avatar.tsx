@@ -1,7 +1,7 @@
 import { forwardRef, useState } from 'react';
 import { Image, Text, View } from 'react-native';
 
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 const Avatar = forwardRef<
   React.ElementRef<typeof View>,
@@ -24,9 +24,18 @@ const AvatarImage = forwardRef<
 >(({ className, ...props }, ref) => {
   const [hasError, setHasError] = useState(false);
 
-  if (hasError) {
+  const src = props.source as any;
+  const hasValidSource =
+    !!src &&
+    typeof src === 'object' &&
+    !Array.isArray(src) &&
+    typeof src.uri === 'string' &&
+    src.uri.trim().length > 0;
+
+  if (!hasValidSource || hasError) {
     return null;
   }
+
   return (
     <Image
       ref={ref}
@@ -57,4 +66,5 @@ const AvatarFallback = forwardRef<
 ));
 AvatarFallback.displayName = 'AvatarFallback';
 
-export { Avatar, AvatarImage, AvatarFallback };
+export { Avatar, AvatarFallback, AvatarImage };
+

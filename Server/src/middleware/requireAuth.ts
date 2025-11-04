@@ -1,4 +1,4 @@
-import type {Context, Next} from "hono";
+import type { Context, Next } from "hono";
 
 /**
  * Ensures a user is authenticated (c.get("user") not null).
