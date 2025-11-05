@@ -22,13 +22,13 @@ function Skeleton({
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, [fadeAnim]);
 
   return (
     <Animated.View
-      className={cn('bg-muted rounded-md', className)}
+      className={cn('rounded-md bg-muted', className)}
       style={[{ opacity: fadeAnim }]}
       {...props}
     />

@@ -1,31 +1,29 @@
+import type React from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
 import { Text, TouchableOpacity } from 'react-native';
 
 import { cn } from '@/lib/utils';
 
-const buttonVariants = cva(
-  'flex flex-row items-center justify-center rounded-md',
-  {
-    variants: {
-      variant: {
-        default: 'bg-primary',
-        secondary: 'bg-secondary',
-        destructive: 'bg-destructive',
-        ghost: 'bg-slate-700',
-        link: 'text-primary underline-offset-4',
-      },
-      size: {
-        default: 'h-10 px-4',
-        sm: 'h-8 px-2',
-        lg: 'h-12 px-8',
-      },
+const buttonVariants = cva('flex flex-row items-center justify-center rounded-md', {
+  variants: {
+    variant: {
+      default: 'bg-primary',
+      secondary: 'bg-secondary',
+      destructive: 'bg-destructive',
+      ghost: 'bg-slate-700',
+      link: 'text-primary underline-offset-4',
     },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
+    size: {
+      default: 'h-10 px-4',
+      sm: 'h-8 px-2',
+      lg: 'h-12 px-8',
     },
-  }
-);
+  },
+  defaultVariants: {
+    variant: 'default',
+    size: 'default',
+  },
+});
 
 const buttonTextVariants = cva('text-center font-medium', {
   variants: {
@@ -53,30 +51,36 @@ interface ButtonProps
     VariantProps<typeof buttonVariants> {
   label: string;
   labelClasses?: string;
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
 }
+
 function Button({
   label,
   labelClasses,
   className,
   variant,
   size,
+  icon,
+  iconPosition = 'left',
   ...props
 }: ButtonProps) {
+  const computedLabelClasses = cn(
+    labelClasses,
+    icon ? (iconPosition === 'left' ? 'ml-2' : 'mr-2') : undefined,
+  );
+
   return (
-    <TouchableOpacity
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    >
-      <Text
-        className={cn(
-          buttonTextVariants({ variant, size, className: labelClasses })
-        )}
-      >
+    <TouchableOpacity className={cn(buttonVariants({ variant, size, className }))} {...props}>
+      {icon && iconPosition === 'left' ? icon : null}
+
+      <Text className={cn(buttonTextVariants({ variant, size, className: computedLabelClasses }))}>
         {label}
       </Text>
+
+      {icon && iconPosition === 'right' ? icon : null}
     </TouchableOpacity>
   );
 }
 
 export { Button, buttonTextVariants, buttonVariants };
-

@@ -71,7 +71,7 @@ sleepRouter.get("/", async (c) => {
 
 sleepRouter.get("/:id", async (c) => {
     const userId: string = c.get("user")!.id;
-    const sleepEntryId = c.req.param("id");
+    const sleepEntryId = decodeURIComponent(c.req.param("id"));
 
     try {
         const entry = await sleepService.getSleepEntry(userId, sleepEntryId);
@@ -85,7 +85,7 @@ sleepRouter.get("/:id", async (c) => {
 
 sleepRouter.patch("/:id", async (c) => {
     const userId: string = c.get("user")!.id;
-    const sleepEntryId = c.req.param("id");
+    const sleepEntryId = decodeURIComponent(c.req.param("id"));
     const body = await c.req.json().catch(() => ({} as any));
 
     try {
@@ -109,7 +109,7 @@ sleepRouter.patch("/:id", async (c) => {
 
 sleepRouter.delete("/:id", async (c) => {
     const userId: string = c.get("user")!.id;
-    const sleepEntryId = c.req.param("id");
+    const sleepEntryId = decodeURIComponent(c.req.param("id"));
 
     try {
         await sleepService.deleteSleepEntry(userId, sleepEntryId);

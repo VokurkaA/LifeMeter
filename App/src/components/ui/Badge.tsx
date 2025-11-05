@@ -17,7 +17,7 @@ const badgeVariants = cva(
     defaultVariants: {
       variant: 'default',
     },
-  }
+  },
 );
 
 const badgeTextVariants = cva('font-medium text-center text-xs', {
@@ -40,18 +40,10 @@ export interface BadgeProps
   label: string;
   labelClasses?: string;
 }
-function Badge({
-  label,
-  labelClasses,
-  className,
-  variant,
-  ...props
-}: BadgeProps) {
+function Badge({ label, labelClasses, className, variant, ...props }: BadgeProps) {
   return (
     <View className={cn(badgeVariants({ variant }), className)} {...props}>
-      <Text className={cn(badgeTextVariants({ variant }), labelClasses)}>
-        {label}
-      </Text>
+      <Text className={cn(badgeTextVariants({ variant }), labelClasses)}>{label}</Text>
     </View>
   );
 }

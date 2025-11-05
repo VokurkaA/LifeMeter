@@ -64,35 +64,37 @@ function Toast({
     <Animated.View
       className={`
       ${toastVariants[variant]}
-      m-2 mb-1 p-3 rounded-md shadow-sm border border-black/10 dark:border-white/10
+      m-2 mb-1 rounded-md border border-black/10 p-3 shadow-sm dark:border-white/10
       `}
       style={{
-      opacity,
-      transform: [
-        {
-        translateY: opacity.interpolate({
-          inputRange: [0, 1],
-          outputRange: [-6, 0],
-        }),
-        },
-      ],
-      alignSelf: isNarrow ? 'center' : 'flex-start',
-      // maxWidth: isNarrow ? 420 : undefined,
+        opacity,
+        transform: [
+          {
+            translateY: opacity.interpolate({
+              inputRange: [0, 1],
+              outputRange: [-6, 0],
+            }),
+          },
+        ],
+        alignSelf: isNarrow ? 'center' : 'flex-start',
+        // maxWidth: isNarrow ? 420 : undefined,
       }}
     >
-      <Text className={`${isNarrow ? 'text-center' : 'text-left'} font-medium text-background/90`}>{message}</Text>
+      <Text className={`${isNarrow ? 'text-center' : 'text-left'} font-medium text-background/90`}>
+        {message}
+      </Text>
       {showProgress && (
-      <View className="mt-2 rounded">
-        <Animated.View
-        className="h-1.5 bg-white/60 dark:bg-white/30 rounded-full"
-        style={{
-          width: progress.interpolate({
-          inputRange: [0, 1],
-          outputRange: ['0%', '100%'],
-          }),
-        }}
-        />
-      </View>
+        <View className="mt-2 rounded">
+          <Animated.View
+            className="h-1.5 rounded-full bg-white/60 dark:bg-white/30"
+            style={{
+              width: progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0%', '100%'],
+              }),
+            }}
+          />
+        </View>
       )}
     </Animated.View>
   );
@@ -117,7 +119,7 @@ interface ToastContextProps {
     duration?: number,
     position?: 'top' | 'bottom',
     showProgress?: boolean,
-    size?: ToastSize
+    size?: ToastSize,
   ) => void;
   removeToast: (id: number) => void;
 }
@@ -139,9 +141,9 @@ function ToastProvider({
     duration: number = 3000,
     position: 'top' | 'bottom' = 'top',
     showProgress: boolean = true,
-    size: ToastSize = 'full'
+    size: ToastSize = 'full',
   ) => {
-    setMessages(prev => [
+    setMessages((prev) => [
       ...prev,
       {
         id: Date.now(),
@@ -156,7 +158,7 @@ function ToastProvider({
   };
 
   const removeToast = (id: number) => {
-    setMessages(prev => prev.filter(message => message.id !== id));
+    setMessages((prev) => prev.filter((message) => message.id !== id));
   };
 
   return (
@@ -168,7 +170,7 @@ function ToastProvider({
           'bottom-0': position === 'bottom',
         })}
       >
-        {messages.map(message => (
+        {messages.map((message) => (
           <Toast
             key={message.id}
             id={message.id}
@@ -194,4 +196,3 @@ function useToast() {
 }
 
 export { Toast, ToastProvider, ToastVariant, toastVariants, useToast };
-

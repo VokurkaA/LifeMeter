@@ -1,4 +1,3 @@
-
 export const theme = {
   light: {
     background: 'hsl(0 0% 99%)',

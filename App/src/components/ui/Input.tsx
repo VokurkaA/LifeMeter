@@ -6,10 +6,9 @@ import { Text } from './Text';
 import { cn } from '@/lib/utils';
 
 type ReturnFocus = (() => void) | { current: TextInput | null };
-type InputKind = 'name' | 'email' | 'password' | 'confirmPassword';
+type InputKind = 'name' | 'email' | 'password' | 'confirmPassword' | 'date' | 'time' | 'datetime';
 
-export interface InputProps
-  extends React.ComponentPropsWithoutRef<typeof TextInput> {
+export interface InputProps extends React.ComponentPropsWithoutRef<typeof TextInput> {
   label?: string;
   labelClasses?: string;
   inputClasses?: string;
@@ -74,6 +73,48 @@ const typeDefaults: Record<InputKind, Partial<React.ComponentPropsWithoutRef<typ
     accessibilityLabel: 'Confirm password',
     passwordRules: 'minlength: 6;',
   },
+  date: {
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    spellCheck: false,
+    keyboardType: 'numbers-and-punctuation',
+    textContentType: 'none',
+    autoComplete: 'off',
+    returnKeyType: 'next',
+    enablesReturnKeyAutomatically: true,
+    importantForAutofill: 'yes',
+    accessibilityLabel: 'Date',
+    placeholder: 'YYYY-MM-DD',
+    blurOnSubmit: false,
+  },
+  time: {
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    spellCheck: false,
+    keyboardType: 'numbers-and-punctuation',
+    textContentType: 'none',
+    autoComplete: 'off',
+    returnKeyType: 'next',
+    enablesReturnKeyAutomatically: true,
+    importantForAutofill: 'yes',
+    accessibilityLabel: 'Time',
+    placeholder: 'HH:mm',
+    blurOnSubmit: false,
+  },
+  datetime: {
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    spellCheck: false,
+    keyboardType: 'numbers-and-punctuation',
+    textContentType: 'none',
+    autoComplete: 'off',
+    returnKeyType: 'next',
+    enablesReturnKeyAutomatically: true,
+    importantForAutofill: 'yes',
+    accessibilityLabel: 'Date and time',
+    placeholder: 'YYYY-MM-DD HH:mm',
+    blurOnSubmit: false,
+  },
 };
 
 const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
@@ -89,12 +130,12 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
       accessibilityLabel,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPasswordType = type === 'password' || type === 'confirmPassword';
 
-    const handleSubmitEditing: typeof onSubmitEditing = e => {
+    const handleSubmitEditing: typeof onSubmitEditing = (e) => {
       onSubmitEditing?.(e);
       if (typeof onReturnFocus === 'function') {
         onReturnFocus();
@@ -105,8 +146,11 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
 
     const defaults = type ? typeDefaults[type] : {};
     // Merge defaults with incoming props; incoming props win.
-    const mergedProps = { ...defaults, ...props } as React.ComponentPropsWithoutRef<typeof TextInput>;
-    const mergedA11yLabel = accessibilityLabel ?? label ?? (defaults.accessibilityLabel as string | undefined);
+    const mergedProps = { ...defaults, ...props } as React.ComponentPropsWithoutRef<
+      typeof TextInput
+    >;
+    const mergedA11yLabel =
+      accessibilityLabel ?? label ?? (defaults.accessibilityLabel as string | undefined);
 
     return (
       <View className={cn('flex flex-col gap-1.5', className)}>
@@ -117,30 +161,36 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
             ref={ref}
             className={cn(
               inputClasses,
-              'border border-input-border text-input-foreground placeholder:text-input-placeholder py-2.5 px-4 rounded-lg',
-              isPasswordType && 'pr-10'
+              'rounded-lg border border-input-border px-4 py-2.5 text-input-foreground placeholder:text-input-placeholder',
+              isPasswordType && 'pr-10',
             )}
             {...mergedProps}
             accessibilityLabel={mergedA11yLabel}
             onSubmitEditing={handleSubmitEditing}
-            secureTextEntry={isPasswordType ? !showPassword : (mergedProps.secureTextEntry as boolean | undefined)}
+            secureTextEntry={
+              isPasswordType ? !showPassword : (mergedProps.secureTextEntry as boolean | undefined)
+            }
           />
 
           {isPasswordType && (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-              onPress={() => setShowPassword(prev => !prev)}
+              onPress={() => setShowPassword((prev) => !prev)}
               hitSlop={8}
-              className="absolute top-0 bottom-0 justify-center right-3"
+              className="absolute bottom-0 right-3 top-0 justify-center"
             >
-              {showPassword ? <EyeOff size={20} color="#8E8E93" /> : <Eye size={20} color="#8E8E93" />}
+              {showPassword ? (
+                <EyeOff size={20} color="#8E8E93" />
+              ) : (
+                <Eye size={20} color="#8E8E93" />
+              )}
             </Pressable>
           )}
         </View>
       </View>
     );
-  }
+  },
 );
 
 Input.displayName = 'Input';

@@ -1,10 +1,10 @@
-const { getDefaultConfig } = require("expo/metro-config");
+const { getDefaultConfig } = require('expo/metro-config');
 const { withNativeWind } = require('nativewind/metro');
 
 const config = getDefaultConfig(__dirname);
 
 config.resolver.assetExts.push('wasm');
- 
+
 config.server.enhanceMiddleware = (middleware) => {
   return (req, res, next) => {
     res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
@@ -13,7 +13,7 @@ config.server.enhanceMiddleware = (middleware) => {
   };
 };
 
-module.exports = withNativeWind(config, { 
+module.exports = withNativeWind(config, {
   input: './src/styles/global.css',
-  configPath: './tailwind.config.js'
+  configPath: './tailwind.config.js',
 });

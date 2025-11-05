@@ -45,8 +45,8 @@ CREATE TABLE IF NOT EXISTS workout_template
     name        TEXT             NOT NULL,
     description TEXT,
     label       TEXT[],
-    created_at  TIMESTAMP        NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMP        NOT NULL DEFAULT NOW()
+    created_at  TIMESTAMPTZ        NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ        NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS exercise
@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS workout
     id                  UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     user_id             TEXT             NOT NULL REFERENCES "user" (id),
     workout_template_id UUID REFERENCES workout_template (id),
-    start_date          TIMESTAMP        NOT NULL,
-    end_date            TIMESTAMP,
+    start_date          TIMESTAMPTZ        NOT NULL,
+    end_date            TIMESTAMPTZ,
     label               TEXT[],
     notes               TEXT
 );

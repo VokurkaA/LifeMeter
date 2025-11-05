@@ -9,40 +9,29 @@ interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof View> {
   labelClasses?: string;
   checkboxClasses?: string;
 }
-function Checkbox({
-  label,
-  labelClasses,
-  checkboxClasses,
-  className,
-  ...props
-}: CheckboxProps) {
+function Checkbox({ label, labelClasses, checkboxClasses, className, ...props }: CheckboxProps) {
   const [isChecked, setChecked] = useState(false);
 
   const toggleCheckbox = () => {
-    setChecked(prev => !prev);
+    setChecked((prev) => !prev);
   };
 
   return (
-    <View
-      className={cn('flex flex-row items-center gap-2', className)}
-      {...props}
-    >
+    <View className={cn('flex flex-row items-center gap-2', className)} {...props}>
       <TouchableOpacity onPress={toggleCheckbox}>
         <View
           className={cn(
-            'w-4 h-4 border border-gray-700 rounded bg-background flex justify-center items-center',
+            'flex h-4 w-4 items-center justify-center rounded border border-gray-700 bg-background',
             {
               'bg-foreground': isChecked,
             },
-            checkboxClasses
+            checkboxClasses,
           )}
         >
-          {isChecked && <Text className="text-background text-xs">✓</Text>}
+          {isChecked && <Text className="text-xs text-background">✓</Text>}
         </View>
       </TouchableOpacity>
-      {label && (
-        <Text className={cn('text-primary', labelClasses)}>{label}</Text>
-      )}
+      {label && <Text className={cn('text-primary', labelClasses)}>{label}</Text>}
     </View>
   );
 }

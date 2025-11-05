@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const sessionPromise = authService.getSession();
         const result = await Promise.race([
           sessionPromise,
-          new Promise<'timeout'>(res => setTimeout(() => res('timeout'), BOOT_WAIT_MS)),
+          new Promise<'timeout'>((res) => setTimeout(() => res('timeout'), BOOT_WAIT_MS)),
         ]);
 
         if (result === 'timeout') {
@@ -99,7 +99,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signIn = async (email: string, password: string, callbackURL?: string, rememberMe?: boolean) => {
+  const signIn = async (
+    email: string,
+    password: string,
+    callbackURL?: string,
+    rememberMe?: boolean,
+  ) => {
     setLoading(true);
     try {
       await authService.signIn(email, password, callbackURL, rememberMe);
@@ -154,11 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshSession,
   };
 
-  return (
-    <AuthContext.Provider value={authValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

@@ -1,28 +1,28 @@
-import Footer from "@/components/Footer";
+import 'react-native-gesture-handler';
+import '@/styles/global.css';
+import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { ToastProvider } from "@/components/ui/Toast";
-import { AuthProvider, useAuth } from "@/contexts/useAuth";
+import HomeScreen from '@/screens/app/Home.screen';
+import NutritionScreen from '@/screens/app/Nutrition.screen';
+import TrainingScreen from '@/screens/app/Training.screen';
+import LoginScreen from '@/screens/onboarding/Login.screen';
+import SigninScreen from '@/screens/onboarding/Signin.screen';
+import TitleScreen from '@/screens/onboarding/Title.screen';
+import { ToastProvider } from '@/components/ui/Toast';
+import { AuthProvider, useAuth } from '@/contexts/useAuth';
 import { StoreProvider } from '@/contexts/useStore';
 import { ThemeProvider, useTheme } from '@/lib/theme-provider';
 import { useExitConfirmBackHandler } from '@/navigation/back-handler';
 import { navigationRef } from '@/navigation/navigation';
-import HomeScreen from '@/screens/app/Home.screen';
-import NutritionScreen from '@/screens/app/Nutrition.screen';
-import SleepScreen from '@/screens/app/Sleep.screen';
-import TrainingScreen from '@/screens/app/Training.screen';
-import LoginScreen from '@/screens/onboarding/Login.screen';
-import SigninScreen from '@/screens/onboarding/Signin.screen';
-import TitleScreen from "@/screens/onboarding/Title.screen";
-import "@/styles/global.css";
 import { AppStackParamList, OnboardingStackParamList } from '@/types';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { registerRootComponent } from 'expo';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { ActivityIndicator, View } from "react-native";
-import 'react-native-gesture-handler';
+import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SleepScreen from './screens/app/sleep/Index.screen';
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -38,13 +38,13 @@ function Root() {
   useExitConfirmBackHandler(enableExitConfirm);
 
   return (
-    <SafeAreaView className='flex-1 bg-background'>
+    <SafeAreaView className="flex-1 bg-background">
       <NavigationContainer
         ref={navigationRef}
         onStateChange={() => setCurrentRouteName(navigationRef.getCurrentRoute()?.name)}
       >
         {loading ? (
-          <View className="items-center justify-center flex-1">
+          <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" />
           </View>
         ) : !user ? (
@@ -77,7 +77,7 @@ function Root() {
                       CommonActions.reset({
                         index: 0,
                         routes: [{ name: 'Home' as never }],
-                      })
+                      }),
                     );
                   }
                 },
@@ -88,7 +88,7 @@ function Root() {
               <AppStack.Screen name="Nutrition" component={NutritionScreen} />
               <AppStack.Screen name="Sleep" component={SleepScreen} />
             </AppStack.Navigator>
-            <Footer />
+            <Footer current={currentRouteName} />
           </View>
         )}
       </NavigationContainer>
@@ -98,16 +98,17 @@ function Root() {
 }
 
 export default function App() {
-  return (<ThemeProvider>
-    <AuthProvider>
-      <StoreProvider>
-        <ToastProvider>
-          <Root />
-        </ToastProvider>
-      </StoreProvider>
-    </AuthProvider>
-  </ThemeProvider>);
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <StoreProvider>
+          <ToastProvider>
+            <Root />
+          </ToastProvider>
+        </StoreProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }
 
 registerRootComponent(App);
-

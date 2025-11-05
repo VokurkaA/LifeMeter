@@ -20,42 +20,25 @@ function Tabs({ defaultValue, children }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultValue);
 
   return (
-    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
-      {children}
-    </TabsContext.Provider>
+    <TabsContext.Provider value={{ activeTab, setActiveTab }}>{children}</TabsContext.Provider>
   );
 }
 
-function TabsList({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof View>) {
-  return (
-    <View
-      className={cn('flex flex-row justify-center', className)}
-      {...props}
-    />
-  );
+function TabsList({ className, ...props }: React.ComponentPropsWithoutRef<typeof View>) {
+  return <View className={cn('flex flex-row justify-center', className)} {...props} />;
 }
 
-interface TabsTriggerProps
-  extends React.ComponentPropsWithoutRef<typeof TouchableOpacity> {
+interface TabsTriggerProps extends React.ComponentPropsWithoutRef<typeof TouchableOpacity> {
   value: string;
   title: string;
   textClasses?: string;
 }
-function TabsTrigger({
-  value,
-  title,
-  className,
-  textClasses,
-  ...props
-}: TabsTriggerProps) {
+function TabsTrigger({ value, title, className, textClasses, ...props }: TabsTriggerProps) {
   const { activeTab, setActiveTab } = useContext(TabsContext);
 
   return (
     <TouchableOpacity
-      className={cn('px-8 py-3 rounded-md w-1/2 bg-muted', {
+      className={cn('w-1/2 rounded-md bg-muted px-8 py-3', {
         'bg-foreground': activeTab === value,
         className,
       })}
@@ -64,9 +47,9 @@ function TabsTrigger({
     >
       <Text
         className={cn(
-          'font-medium text-center text-muted-foreground',
+          'text-center font-medium text-muted-foreground',
           { 'text-background': activeTab === value },
-          textClasses
+          textClasses,
         )}
       >
         {title}
@@ -84,10 +67,7 @@ function TabsContent({ value, className, ...props }: TabsContentProps) {
   if (value === activeTab)
     return (
       <View
-        className={cn(
-          'border border-border mt-2 px-4 py-4 rounded-xl',
-          className
-        )}
+        className={cn('mt-2 rounded-xl border border-border px-4 py-4', className)}
         {...props}
       />
     );
@@ -96,4 +76,3 @@ function TabsContent({ value, className, ...props }: TabsContentProps) {
 }
 
 export { Tabs, TabsContent, TabsList, TabsTrigger };
-

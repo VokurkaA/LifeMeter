@@ -2,7 +2,7 @@ import { fetchWithTimeout } from '@/lib/net';
 import { Session, User } from '@/types';
 
 class AuthService {
-  private appUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  private appUrl = process.env.EXPO_PUBLIC_API_URL;
 
   async signUp(
     email: string,
@@ -83,6 +83,7 @@ class AuthService {
       return await response.json();
     });
   }
+
   async signOut(): Promise<void> {
     const response = await fetch(this.appUrl + '/api/auth/sign-out', {
       method: 'POST',
@@ -277,14 +278,15 @@ class AuthService {
     }
 
     const response = await fetch(
-      this.appUrl + `/api/auth/reset-password/${token}${params.toString() ? "?" + params.toString() : ""}`,
+      this.appUrl +
+        `/api/auth/reset-password/${token}${params.toString() ? '?' + params.toString() : ''}`,
       {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include', // keep consistent
-      }
+      },
     );
 
     if (!response.ok) {
@@ -316,17 +318,19 @@ class AuthService {
     return await response.json();
   }
 
-  async listSessions(): Promise<{
-    id: string;
-    expiresAt: string;
-    token: string;
-    createdAt: string;
-    updatedAt: string;
-    ipAddress: string;
-    userAgent: string;
-    userId: string;
-    impersonatedBy: string;
-  }[]> {
+  async listSessions(): Promise<
+    {
+      id: string;
+      expiresAt: string;
+      token: string;
+      createdAt: string;
+      updatedAt: string;
+      ipAddress: string;
+      userAgent: string;
+      userId: string;
+      impersonatedBy: string;
+    }[]
+  > {
     const response = await fetch(this.appUrl + '/api/auth/list-sessions', {
       method: 'GET',
       headers: {

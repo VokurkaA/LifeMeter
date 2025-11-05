@@ -9,9 +9,7 @@ interface RadioGroupContextType {
   value: string;
   setValue: (value: string) => void;
 }
-const RadioGroupContext = createContext<RadioGroupContextType | undefined>(
-  undefined
-);
+const RadioGroupContext = createContext<RadioGroupContextType | undefined>(undefined);
 
 interface RadioGroupProps {
   defaultValue: string;
@@ -21,25 +19,16 @@ function RadioGroup({ defaultValue, children }: RadioGroupProps) {
   const [value, setValue] = useState<string>(defaultValue);
 
   return (
-    <RadioGroupContext.Provider value={{ value, setValue }}>
-      {children}
-    </RadioGroupContext.Provider>
+    <RadioGroupContext.Provider value={{ value, setValue }}>{children}</RadioGroupContext.Provider>
   );
 }
 
-interface RadioGroupItemProps
-  extends React.ComponentPropsWithoutRef<typeof TouchableOpacity> {
+interface RadioGroupItemProps extends React.ComponentPropsWithoutRef<typeof TouchableOpacity> {
   value: string;
   label?: string;
   labelClasses?: string;
 }
-function RadioGroupItem({
-  value,
-  className,
-  label,
-  labelClasses,
-  ...props
-}: RadioGroupItemProps) {
+function RadioGroupItem({ value, className, label, labelClasses, ...props }: RadioGroupItemProps) {
   const context = useContext(RadioGroupContext);
   if (!context) {
     throw new Error('RadioGroupItem must be used within a RadioGroup');
@@ -60,15 +49,12 @@ function RadioGroupItem({
       ) : (
         <Circle color={currentTheme.foreground} />
       )}
-      {label && (
-        <Text className={cn('text-primary', labelClasses)}>{label}</Text>
-      )}
+      {label && <Text className={cn('text-primary', labelClasses)}>{label}</Text>}
     </TouchableOpacity>
   );
 }
 
-interface RadioGroupLabelProps
-  extends React.ComponentPropsWithoutRef<typeof TouchableOpacity> {
+interface RadioGroupLabelProps extends React.ComponentPropsWithoutRef<typeof TouchableOpacity> {
   value: string;
 }
 function RadioGroupLabel({ value, className, ...props }: RadioGroupLabelProps) {
@@ -78,13 +64,7 @@ function RadioGroupLabel({ value, className, ...props }: RadioGroupLabelProps) {
   }
   const { setValue } = context;
 
-  return (
-    <TouchableOpacity
-      className={className}
-      onPress={() => setValue(value)}
-      {...props}
-    />
-  );
+  return <TouchableOpacity className={className} onPress={() => setValue(value)} {...props} />;
 }
 
 export { RadioGroup, RadioGroupItem, RadioGroupLabel };

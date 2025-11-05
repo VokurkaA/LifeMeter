@@ -4,32 +4,40 @@ import Svg, { Path, SvgProps } from 'react-native-svg';
 
 cssInterop(Svg, { className: 'style' });
 
-type Props = Omit<SvgProps, 'width' | 'height' | 'fill'> & {
-  size?: number;       // fallback if no className sizing provided
-  className?: string;  // Tailwind classes (e.g., "h-6 w-6 text-white")
-  fill?: string;       // optional explicit fill color (overrides currentColor)
+type Props = Omit<SvgProps, 'width' | 'height'> & {
+  size?: number;
+  className?: string;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
 };
 
 export default function HomeIcon({
   size = 24,
   className,
   fill,
+  stroke,
+  strokeWidth = 2,
   ...rest
 }: Props) {
   const sizeProps = className ? {} : { width: size, height: size };
+  const isOutline = !fill || fill === 'none';
+  const strokeValue = stroke ?? 'currentColor';
   const fillValue = fill ?? 'currentColor';
 
   return (
     <Svg
-      viewBox="0 -960 960 960"
+      viewBox="0 0 48 54"
       className={className ?? 'h-6 w-6 text-foreground'}
-      fill="none"
       {...sizeProps}
       {...rest}
     >
       <Path
-        fill={fillValue}
-        d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"
+        d="M6 48H15V30H33V48H42V21L24 7.5L6 21V48ZM0 54V18L24 0L48 18V54H27V36H21V54H0Z"
+        fill={isOutline ? 'none' : fillValue}
+        stroke={isOutline ? strokeValue : 'none'}
+        strokeWidth={isOutline ? strokeWidth : undefined}
+        vectorEffect="non-scaling-stroke"
       />
     </Svg>
   );
