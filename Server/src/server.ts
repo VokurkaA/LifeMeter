@@ -29,7 +29,7 @@ app.use("*", async (c: any, next: any) => {
 app.use("/api/*", cors({
     origin: (origin: string) => {
         if (!origin) return "";
-        const allowed = new Set(["http://localhost:3000", "http://localhost:3001", "exp://10.181.102.1:8080", "exp://10.181.102.1:8081",]);
+        const allowed = new Set(["https://localhost:3000", "https://localhost:3001", "exp://10.181.102.1:8080", "exp://10.181.102.1:8081",]);
         return allowed.has(origin) ? origin : "";
     },
     allowHeaders: ["Content-Type", "Authorization"],
@@ -45,7 +45,7 @@ app.on(["POST", "GET"], "/api/auth/*", (c: { req: { raw: any; }; }) => {
 
 export function startServer(port = process.env.PORT) {
     console.log(`Server listening on :${port}`);
-    console.log(`App running at http://localhost:${port}/api`);
+    console.log(`App running at https://localhost:${port}/api`);
     Bun.serve({
         port, fetch: app.fetch,
     });

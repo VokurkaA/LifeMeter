@@ -42,7 +42,7 @@ const endpoints: Endpoint[] = [
 
 export default function AuthEndpointsTester() {
   const API_BASE =
-    (process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000") + "/api/auth";
+    (process.env.NEXT_PUBLIC_SERVER_URL || "https://localhost:3000") + "/api/auth";
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<Endpoint>(endpoints[0]);
   const [body, setBody] = useState(
@@ -112,17 +112,17 @@ export default function AuthEndpointsTester() {
   }
 
   return (
-    <div className="w-full border rounded-md p-4 space-y-4">
-      <h3 className="font-medium text-sm">Better Auth Endpoint Tester</h3>
+    <div className="w-full p-4 space-y-4 border rounded-md">
+      <h3 className="text-sm font-medium">Better Auth Endpoint Tester</h3>
       <div className="flex flex-col gap-2 md:flex-row">
         <input
-          className="border rounded px-2 py-1 text-sm w-full md:w-60"
+          className="w-full px-2 py-1 text-sm border rounded md:w-60"
           placeholder="Filter endpoints..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
         <select
-            className="border rounded px-2 py-1 text-sm flex-1"
+            className="flex-1 px-2 py-1 text-sm border rounded"
             value={selected.path + "|" + selected.method}
             onChange={(e) => {
               const [path, methodRaw] = e.target.value.split("|");
@@ -143,12 +143,12 @@ export default function AuthEndpointsTester() {
         <button
           onClick={send}
           disabled={loading}
-          className="px-3 py-1 rounded text-sm border bg-primary text-primary-foreground disabled:opacity-50"
+          className="px-3 py-1 text-sm border rounded bg-primary text-primary-foreground disabled:opacity-50"
         >
           {loading ? "Sending..." : "Send"}
         </button>
       </div>
-      <div className="text-xs text-muted-foreground break-all">
+      <div className="text-xs break-all text-muted-foreground">
         <span className="font-mono">{selected.method}</span>{" "}
         <span className="font-mono">{API_BASE + selected.path}</span>
       </div>
@@ -156,7 +156,7 @@ export default function AuthEndpointsTester() {
         <div className="space-y-1">
           <label className="text-xs font-medium">Request Body (JSON)</label>
           <textarea
-            className="w-full border rounded p-2 font-mono text-xs min-h-32"
+            className="w-full p-2 font-mono text-xs border rounded min-h-32"
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
@@ -169,12 +169,12 @@ export default function AuthEndpointsTester() {
           </div>
         )}
         {error && (
-          <pre className="text-xs bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 p-2 rounded overflow-auto max-h-48">
+          <pre className="p-2 overflow-auto text-xs text-red-600 rounded bg-red-50 dark:bg-red-950/30 dark:text-red-400 max-h-48">
             {error}
           </pre>
         )}
         {response !== null && !error && (
-          <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-64">
+          <pre className="p-2 overflow-auto text-xs rounded bg-muted max-h-64">
             {typeof response === "string"
               ? response
               : JSON.stringify(response, null, 2)}
