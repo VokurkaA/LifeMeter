@@ -45,7 +45,7 @@ app.on(["POST", "GET"], "/api/auth/*", (c: { req: { raw: any; }; }) => {
 
 export function startServer(port = process.env.PORT) {
     console.log(`Server listening on :${port}`);
-    console.log(`App running at http://localhost:${port}`);
+    console.log(`App running at http://localhost:${port}/api`);
     Bun.serve({
         port, fetch: app.fetch,
     });

@@ -7,8 +7,8 @@
     "api"
   ],
   "scripts": {
-    "start:api": "cd api && bun run start",
-    "dev:api": "cd api && bun dev",
+    "start:api": "cd Server && bun run start",
+    "dev:api": "cd Server && bun dev",
     "dev:web": "cd webui && npm run dev",
     "start:web": "cd webui && npm run start",
     "build:web": "cd webui && npm run build"
