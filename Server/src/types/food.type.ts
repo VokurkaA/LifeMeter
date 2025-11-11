@@ -43,6 +43,7 @@ export interface Portion {
 }
 
 export interface CompleteNutrient {
+    food_id: number;
     name: string;
     unit: string;
     nutrient_nbr: number;
@@ -55,4 +56,33 @@ export interface FoodDetail {
     brandedFood: BrandedFood | null;
     portions: Portion[];
     nutrients: CompleteNutrient[];
+}
+
+export interface UserMeal {
+    id: string;
+    user_id: string;
+    eaten_at: string;
+    name: string;
+}
+
+export interface UserFood {
+    id: string;
+    user_meal_id: string;
+    food_id: number;
+    total_grams: number;
+    quantity: number;
+    portion_id?: number;
+    description?: string;
+}
+
+
+
+export interface FullUserFood {
+    userFood: UserFood
+    foodDetail: FoodDetail;
+}
+
+export interface FullUserMeal {
+    userMeal: UserMeal;
+    userFoods: FullUserFood[];
 }

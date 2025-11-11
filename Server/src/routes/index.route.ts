@@ -1,7 +1,7 @@
-import { Hono } from 'hono'
-import { foodRouter } from "./food.route";
-import { sleepRouter } from './sleep.route';
-import type { AuthSession, AuthUser } from "@/types/auth.types";
+import {Hono} from 'hono'
+import {foodRouter} from "./food.route";
+import {userRouter} from "@/routes/user/user.route";
+import type {AuthSession, AuthUser} from "@/types/auth.types";
 
 export const router = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
@@ -37,4 +37,4 @@ router.get("/routes", (c) => {
 });
 
 router.route("/food", foodRouter);
-router.route("/sleep", sleepRouter);
+router.route('/user', userRouter)

@@ -1,10 +1,7 @@
-import { pool } from "@/config/db.config.js";
-import type { PaginationProps } from "@/middleware/pagination.js";
-import type { BrandedFood, CompleteNutrient, Food, FoodCategory, FoodDetail, Portion } from "@/types/food.type";
+import {pool} from "@/config/db.config.js";
+import type {PaginationProps} from "@/middleware/pagination.js";
+import type {Food, FoodDetail, FullUserFood, FullUserMeal, UserFood, UserMeal,} from "@/types/food.type";
 
-/**
- * Result shape for paginated food lists.
- */
 export interface PaginatedFoodResult {
     rows: Food[];
     total: number;
@@ -14,21 +11,11 @@ interface CountRow {
     total: string;
 }
 
-/**
- * Service handling food related database operations.
- */
 class FoodService {
-    /**
-     * Return paginated list of all food items.
-     * @param paginationProps Pagination settings (limit, offset)
-     * @returns Promise with rows and total count
-     */
     async getAllFood(paginationProps: PaginationProps): Promise<PaginatedFoodResult> {
         const {limit, offset} = paginationProps;
-        const countQuery = `
-            SELECT COUNT(id)::text AS total
-            FROM food
-        `;
+        const countQuery = `SELECT COUNT(id)::text AS total
+                            FROM food`;
         const dataQuery = `
             SELECT id, branded_food_id, food_category_id, description
             FROM food
@@ -36,86 +23,17 @@ class FoodService {
             LIMIT $1 OFFSET $2
         `;
         const [countResult, dataResult] = await Promise.all([pool.query<CountRow>(countQuery), pool.query<Food>(dataQuery, [limit, offset])]);
-        const total = this.parseTotal(countResult.rows[0]?.total);
-        return {rows: dataResult.rows, total};
+        return {rows: dataResult.rows, total: this.parseTotal(countResult.rows[0]?.total)};
     }
 
-    /**
-     * Fetch a single food with associated (optional) category, branded info, portions and nutrients.
-     * Throws if food not found.
-     * @param id Positive integer food ID
-     * @returns Detailed food record
-     */
-    async getFoodById(id: number): Promise<FoodDetail> {
-        if (!Number.isInteger(id) || id <= 0) {
-            throw new Error("Invalid id");
-        }
-
-        const queries = {
-            food: `
-                SELECT id, food_category_id, description
-                FROM food
-                WHERE id = $1
-            `, category: `
-                SELECT fc.id, name
-                FROM food_category fc
-                         JOIN food f ON f.food_category_id = fc.id
-                WHERE f.id = $1
-            `, brandedFood: `
-                SELECT bf.id,
-                       bf.brand_owner,
-                       bf.brand_name,
-                       bf.subbrand_name,
-                       bf.gtin_upc,
-                       bf.ingredients
-                FROM branded_food bf
-                         JOIN food f ON f.branded_food_id = bf.id
-                WHERE f.id = $1
-            `, portions: `
-                SELECT id, food_id, gram_weight, portion_amount, portion_unit, modifier
-                FROM portion
-                WHERE food_id = $1
-                ORDER BY id
-            `, nutrients: `
-                SELECT n.name, n.unit, n.nutrient_nbr, nv.amount
-                FROM nutrient_value nv
-                         JOIN nutrient n ON nv.nutrient_id = n.id
-                WHERE nv.food_id = $1
-                ORDER BY n.nutrient_nbr
-            `
-        } as const;
-
-        const [foodResult, categoryResult, brandedFoodResult, portionsResult, nutrientsResult] = await Promise.all([pool.query<Food>(queries.food, [id]), pool.query<FoodCategory>(queries.category, [id]), pool.query<BrandedFood>(queries.brandedFood, [id]), pool.query<Portion>(queries.portions, [id]), pool.query<CompleteNutrient>(queries.nutrients, [id])]);
-
-        const food = foodResult.rows[0];
-        if (!food) throw new Error("Food not found");
-
-        return {
-            food,
-            category: categoryResult.rows[0] ?? null,
-            brandedFood: brandedFoodResult.rows[0] ?? null,
-            portions: portionsResult.rows,
-            nutrients: nutrientsResult.rows
-        };
-    }
-
-    /**
-     * Search foods by (partial, case-insensitive) description with pagination.
-     * Returns empty list if the provided name trims to empty.
-     * @param name Raw search string
-     * @param paginationProps Pagination settings
-     * @returns Paginated result
-     */
     async getFoodByName(name: string, paginationProps: PaginationProps): Promise<PaginatedFoodResult> {
         const trimmed = name.trim();
         if (!trimmed) return {rows: [], total: 0};
 
         const searchTerm = `%${trimmed}%`;
-        const countQuery = `
-            SELECT COUNT(id)::text AS total
-            FROM food
-            WHERE description ILIKE $1
-        `;
+        const countQuery = `SELECT COUNT(id)::text AS total
+                            FROM food
+                            WHERE description ILIKE $1`;
         const dataQuery = `
             SELECT id, branded_food_id, food_category_id, description
             FROM food
@@ -126,33 +44,137 @@ class FoodService {
 
         const [countResult, dataResult] = await Promise.all([pool.query<CountRow>(countQuery, [searchTerm]), pool.query<Food>(dataQuery, [searchTerm, paginationProps.limit, paginationProps.offset])]);
 
-        const total = this.parseTotal(countResult.rows[0]?.total);
-        return {rows: dataResult.rows, total};
+        return {rows: dataResult.rows, total: this.parseTotal(countResult.rows[0]?.total)};
     }
 
-    /**
-     * Find food by its GTIN (from branded_food table). Returns full detail.
-     * Throws if not found.
-     * @param gtin GTIN / UPC code (exact match)
-     * @returns Detailed food record
-     */
+    async getFoodById(id: number): Promise<FoodDetail> {
+        if (!id || !Number.isInteger(id)) throw new Error("Invalid foodId");
+
+        const rows = await this.getFoodDetails([id]);
+        if (rows.length === 0) throw new Error("Food not found");
+
+        return rows[0];
+    }
+
     async getFoodByGtin(gtin: string): Promise<FoodDetail> {
-        const dataQuery = `
+        const query = `
             SELECT f.id
             FROM food f
                      JOIN branded_food bf ON f.branded_food_id = bf.id
             WHERE bf.gtin_upc = $1
         `;
-        const row = (await pool.query<{ id: number }>(dataQuery, [gtin])).rows[0];
-        if (!row) throw new Error("Food not found");
-        return this.getFoodById(row.id);
+        const res = await pool.query<{ id: number }>(query, [gtin]);
+        if (res.rows.length === 0) throw new Error("Food not found");
+
+        return this.getFoodById(res.rows[0].id);
     }
 
-    /**
-     * Safe parse of COUNT(*) text result to number.
-     * @param value Text count
-     * @returns Parsed integer (>=0)
-     */
+    async getUserMealById(userId: string, userMealId: string): Promise<FullUserMeal> {
+        const mealQuery = `
+            SELECT id, user_id, eaten_at, name
+            FROM user_meal
+            WHERE user_id = $1
+              AND id = $2
+        `;
+        const foodQuery = `
+            SELECT id, user_meal_id, food_id, total_grams, quantity, portion_id, description
+            FROM user_food
+            WHERE user_meal_id = $1
+        `;
+        const [mealResult, foodResult] = await Promise.all([pool.query<UserMeal>(mealQuery, [userId, userMealId]), pool.query<UserFood>(foodQuery, [userMealId])]);
+        if (mealResult.rows.length === 0) throw new Error("Meal not found");
+
+        const foodIds = [...new Set(foodResult.rows.map(uf => uf.food_id))];
+        if (foodIds.length === 0) return {userMeal: mealResult.rows[0], userFoods: []};
+
+        const foodDetails: FoodDetail[] = await this.getFoodDetails(foodIds);
+
+        const foodMap = new Map<number, FoodDetail>();
+        foodDetails.forEach(detail => foodMap.set(detail.food.id, detail));
+
+        const fullUserFoods: FullUserFood[] = foodResult.rows.map(uf => {
+            const detail = foodMap.get(uf.food_id);
+            if (!detail) throw new Error(`Data integrity error: Food ${uf.food_id} missing`);
+            return {userFood: uf, foodDetail: detail};
+        });
+
+        return {userMeal: mealResult.rows[0], userFoods: fullUserFoods};
+    }
+
+    async getAllUserMeals(userId: string): Promise<{ userMeal: UserMeal; userFoods: UserFood[] }[]> {
+        const query = `
+            SELECT to_jsonb(um.*)                as "userMeal",
+                   COALESCE(f.data, '[]'::jsonb) as "userFoods"
+            FROM user_meal um
+                     LEFT JOIN LATERAL (
+                SELECT jsonb_agg(uf.* ORDER BY uf.id) as data
+                FROM user_food uf
+                WHERE uf.user_meal_id = um.id
+                ) f ON true
+            WHERE um.user_id = $1
+            ORDER BY um.eaten_at DESC
+        `;
+
+        const result = await pool.query<{ userMeal: UserMeal; userFoods: UserFood[] }>(query, [userId]);
+        return result.rows;
+    }
+
+    async addUserFood(userId: string, userFoods: UserFood[], mealName: string, eatenAt: string) {
+        const mealQuery = `
+            INSERT INTO user_meal (user_id, eaten_at, name)
+            VALUES ($1, $2, $3)
+            RETURNING id
+        `
+        const foodValues = (mealId: string) => {
+            return (userFoods.map(f => `
+                (${mealId}, ${f.food_id}, ${f.total_grams}, ${f.quantity}, ${f.portion_id}, ${f.description})
+                `));
+        }
+        // const foodQuery = () => {
+        //     `
+        //         INSERT INTO user_food (user_meal_id, food_id, total_grams, quantity, portion_id, description)
+        //         VALUES (${userFoods.map(uf =>)})
+        //     `
+        // }
+        const mealId = await pool.query(mealQuery, [userId, eatenAt, mealName]);
+    }
+
+    private async getFoodDetails(foodIds: number[]): Promise<FoodDetail[]> {
+        const query = `
+            SELECT json_build_object(
+                           'food', to_jsonb(f.*),
+                           'category', CASE WHEN fc.id IS NOT NULL THEN to_jsonb(fc.*) ELSE 'null'::jsonb END,
+                           'brandedFood', CASE WHEN bf.id IS NOT NULL THEN to_jsonb(bf.*) ELSE 'null'::jsonb END,
+                           'portions', COALESCE(portions_agg.data, '[]'::jsonb),
+                           'nutrients', COALESCE(nutrients_agg.data, '[]'::jsonb)
+                   ) as detail
+            FROM food f
+                     LEFT JOIN food_category fc ON f.food_category_id = fc.id
+                     LEFT JOIN branded_food bf ON f.branded_food_id = bf.id
+                     LEFT JOIN LATERAL (
+                SELECT jsonb_agg(p.* ORDER BY p.id) as data
+                FROM portion p
+                WHERE p.food_id = f.id
+                ) portions_agg ON true
+                     LEFT JOIN LATERAL (
+                SELECT jsonb_agg(json_build_object(
+                                         'food_id', nv.food_id,
+                                         'name', n.name,
+                                         'unit', n.unit,
+                                         'nutrient_nbr', n.nutrient_nbr,
+                                         'amount', nv.amount
+                                 ) ORDER BY n.nutrient_nbr) as data
+                FROM nutrient_value nv
+                         JOIN nutrient n ON nv.nutrient_id = n.id
+                WHERE nv.food_id = f.id
+                ) nutrients_agg ON true
+            WHERE f.id = ANY ($1::int[])
+        `;
+
+        const result = await pool.query<{ detail: FoodDetail }>(query, [foodIds]);
+        return result.rows.map(r => r.detail);
+    }
+
     private parseTotal(value?: string): number {
         const num = parseInt(value ?? "0", 10);
         return Number.isNaN(num) || num < 0 ? 0 : num;

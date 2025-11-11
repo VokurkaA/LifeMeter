@@ -1,13 +1,13 @@
-import { Hono } from "hono";
-import type { AuthSession, AuthUser } from "@/types/auth.types";
-import { requireAuth } from "@/middleware/requireAuth";
-import { sleepService } from "@/services/sleep.service";
+import {Hono} from "hono";
+import type {AuthSession, AuthUser} from "@/types/auth.types";
+import {requireAuth} from "@/middleware/requireAuth";
+import {sleepService} from "@/services/sleep.service";
 
-export const sleepRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
+export const userSleepRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
-sleepRouter.use("*", requireAuth());
+userSleepRouter.use("*", requireAuth());
 
-sleepRouter.post("/start", async (c) => {
+userSleepRouter.post("/start", async (c) => {
     const body = await c.req.json().catch(() => ({} as any));
 
     const userId: string = c.get("user")!.id;
@@ -23,7 +23,7 @@ sleepRouter.post("/start", async (c) => {
     }
 });
 
-sleepRouter.post("/end", async (c) => {
+userSleepRouter.post("/end", async (c) => {
     const body = await c.req.json().catch(() => ({} as any));
 
     const userId: string = c.get("user")!.id;
@@ -39,7 +39,7 @@ sleepRouter.post("/end", async (c) => {
     }
 });
 
-sleepRouter.post("/new", async (c) => {
+userSleepRouter.post("/new", async (c) => {
     const body = await c.req.json().catch(() => ({} as any));
 
     const userId: string = c.get("user")!.id;
@@ -57,7 +57,7 @@ sleepRouter.post("/new", async (c) => {
     }
 });
 
-sleepRouter.get("/", async (c) => {
+userSleepRouter.get("/", async (c) => {
     const userId: string = c.get("user")!.id;
 
     try {
@@ -69,7 +69,7 @@ sleepRouter.get("/", async (c) => {
     }
 });
 
-sleepRouter.get("/:id", async (c) => {
+userSleepRouter.get("/:id", async (c) => {
     const userId: string = c.get("user")!.id;
     const sleepEntryId = decodeURIComponent(c.req.param("id"));
 
@@ -83,19 +83,15 @@ sleepRouter.get("/:id", async (c) => {
     }
 });
 
-sleepRouter.patch("/:id", async (c) => {
+userSleepRouter.patch("/:id", async (c) => {
     const userId: string = c.get("user")!.id;
     const sleepEntryId = decodeURIComponent(c.req.param("id"));
     const body = await c.req.json().catch(() => ({} as any));
 
     try {
-        // Merge partial PATCH body with existing record, since service expects all fields.
         const existing = await sleepService.getSleepEntry(userId, sleepEntryId);
-
         const startAt: string = body?.startAt ?? (existing.sleep_start as unknown as string);
-
         const endAt: string | null = (Object.prototype.hasOwnProperty.call(body, "endAt") ? body.endAt : existing.sleep_end) ?? null;
-
         const note: string | null = (Object.prototype.hasOwnProperty.call(body, "note") ? body.note : existing.note) ?? null;
 
         const updated = await sleepService.alterSleepEntry(userId, sleepEntryId, startAt, endAt, note);
@@ -107,7 +103,7 @@ sleepRouter.patch("/:id", async (c) => {
     }
 });
 
-sleepRouter.delete("/:id", async (c) => {
+userSleepRouter.delete("/:id", async (c) => {
     const userId: string = c.get("user")!.id;
     const sleepEntryId = decodeURIComponent(c.req.param("id"));
 

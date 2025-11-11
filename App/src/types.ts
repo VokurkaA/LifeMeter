@@ -31,12 +31,7 @@ export interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, name?: string, rememberMe?: boolean) => Promise<void>;
-  signIn: (
-    email: string,
-    password: string,
-    callbackURL?: string,
-    rememberMe?: boolean,
-  ) => Promise<void>;
+  signIn: (email: string, password: string, callbackURL?: string, rememberMe?: boolean,) => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -47,10 +42,9 @@ export interface StoreContextType {
   startSleep: () => Promise<void>;
   endSleep: () => Promise<void>;
   createSleepSession: (startAt: string, endAt?: string, note?: string) => Promise<void>;
-  editSleepSession: (
-    id: string,
-    patch: { startAt?: string; endAt?: string | null; note?: string | null },
-  ) => Promise<void>;
+  editSleepSession: (id: string, patch: {
+    startAt?: string; endAt?: string | null; note?: string | null
+  },) => Promise<void>;
   deleteSleepSession: (id: string) => Promise<void>;
   refreshSleepSessions: () => Promise<void>;
 }
@@ -76,23 +70,23 @@ export interface ThemeContextType {
 export type Theme = 'light' | 'dark' | 'system';
 
 export type OnboardingStackParamList = {
-  Title: undefined;
-  SignUp: undefined;
-  Login: undefined;
+  Title: undefined; SignUp: undefined; Login: undefined;
 };
 
 export type AppStackParamList = {
-  Home: undefined;
-  Training: undefined;
-  Nutrition: undefined;
-  Sleep: undefined;
+  Home: undefined; Training: undefined; Nutrition: undefined; Sleep: undefined;
 };
 
 export type SleepSession = {
-  id: string;
-  userId: string;
-  startAt: string;
-  endAt: string | null;
-  note: string | null;
+  id: string; userId: string; startAt: string; endAt: string | null; note: string | null;
 };
+
+export type PaginationResult = {
+  page: number
+  prevPage: number | null
+  nextPage: number | null
+  totalPages: number
+  totalRecords: number
+}
+
 export type RootParamList = OnboardingStackParamList & AppStackParamList;

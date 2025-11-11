@@ -1,3 +1,3 @@
 export const paginationConfig = {
-    limit: 1000,
+    limit: 100,
 }
