@@ -1,0 +1,20 @@
+{
+  "name": "lifemeter",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web",
+    "api"
+  ],
+  "scripts": {
+    "start:api": "cd api && bun run start",
+    "dev:api": "cd api && bun dev",
+    "dev:web": "cd webui && npm run dev",
+    "start:web": "cd webui && npm run start",
+    "build:web": "cd webui && npm run build"
+  },
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1"
+  }
+}
