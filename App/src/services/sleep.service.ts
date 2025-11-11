@@ -10,7 +10,7 @@ type ServerSleepEntry = {
 };
 
 class SleepService {
-  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? '') + '/api/user/sleep';
+  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:3000') + '/api/user/sleep';
 
   async startSleepSession(startAt?: string, note?: string): Promise<SleepSession> {
     return request<ServerSleepEntry>(this.baseUrl + '/start', {

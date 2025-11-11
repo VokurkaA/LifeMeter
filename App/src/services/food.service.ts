@@ -3,7 +3,7 @@ import type {Food, FoodDetail} from "@/types/food.types";
 import type {PaginationResult} from "@/types";
 
 class FoodService {
-  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? '') + '/api/food';
+  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:3000') + '/api/food';
 
   async getAllFood(page?: number): Promise<{ data: Food[], pagination: PaginationResult }> {
     const url = this.baseUrl + (page ? `?page=${encodeURIComponent(String(page))}` : '');

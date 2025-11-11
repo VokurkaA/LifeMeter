@@ -10,7 +10,7 @@ const plugins = [admin(), lastLoginMethod({
 
 export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET,
-    baseURL: `https://localhost:${process.env.PORT}`,
+    baseURL: process.env.BASE_URL || `https://localhost:${process.env.PORT}`,
     database: pool,
     emailAndPassword: {
         enabled: true,

@@ -29,7 +29,12 @@ app.use("*", async (c: any, next: any) => {
 app.use("/api/*", cors({
     origin: (origin: string) => {
         if (!origin) return "";
-        const allowed = new Set(["https://localhost:3000", "https://localhost:3001", "exp://10.181.102.1:8080", "exp://10.181.102.1:8081",]);
+        const fallback = ["https://localhost:3000", "https://localhost:3001", "exp://10.181.102.1:8080", "exp://10.181.102.1:8081"];
+        const allowed = new Set(
+            (process.env.CORS_ORIGINS || fallback.join(","))
+                .split(",")
+                .map((s) => s.trim())
+        );
         return allowed.has(origin) ? origin : "";
     },
     allowHeaders: ["Content-Type", "Authorization"],
