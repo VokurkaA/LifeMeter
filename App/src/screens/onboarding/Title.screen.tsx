@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { H1 } from '@/components/ui/Text';
-import { OnboardingStackParamList } from '@/types';
+import { OnboardingStackParamList } from '@/types/types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { View } from 'react-native';
 

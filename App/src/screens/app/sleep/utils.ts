@@ -1,5 +1,5 @@
 import { Time } from '@/lib/Time';
-import { SleepSession } from '@/types';
+import { SleepSession } from '@/types/types';
 
 export function minutesSinceMidnight(d: Date) {
   return d.getHours() * 60 + d.getMinutes();

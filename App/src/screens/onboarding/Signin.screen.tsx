@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { H1 } from '@/components/ui/Text';
 import { useAuth } from '@/contexts/useAuth';
-import { OnboardingStackParamList } from '@/types';
+import { OnboardingStackParamList } from '@/types/types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, TextInput, View } from 'react-native';

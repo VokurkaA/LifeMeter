@@ -1,5 +1,5 @@
 import {request} from '@/lib/net';
-import type {SleepSession} from '@/types.ts';
+import type {SleepSession} from '@/types/types';
 
 type SleepPatch = {
   startAt?: string; endAt?: string | null; note?: string | null;
@@ -10,7 +10,7 @@ type ServerSleepEntry = {
 };
 
 class SleepService {
-  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:3000') + '/api/user/sleep';
+  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/sleep';
 
   async startSleepSession(startAt?: string, note?: string): Promise<SleepSession> {
     return request<ServerSleepEntry>(this.baseUrl + '/start', {

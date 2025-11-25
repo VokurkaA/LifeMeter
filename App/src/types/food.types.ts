@@ -57,3 +57,50 @@ export interface FoodDetail {
   portions: Portion[];
   nutrients: CompleteNutrient[];
 }
+
+export type UserMeal = {
+  id: string;
+  user_id: string;
+  eaten_at: string;
+  name: string;
+};
+
+export type UserFood = {
+  id: string;
+  user_meal_id: string;
+  food_id: number;
+  total_grams: number;
+  quantity: number;
+  portion_id?: number;
+  description?: string;
+};
+
+export type FullUserFood = {
+  userFood: UserFood;
+  foodDetail: FoodDetail;
+};
+
+export type FullUserMeal = {
+  userMeal: UserMeal;
+  userFoods: FullUserFood[];
+};
+
+export type MealItemInput = {
+  food_id: number;
+  total_grams: number;
+  quantity?: number;
+  portion_id?: number | null;
+  description?: string | null;
+};
+
+export type CreateMealInput = {
+  name: string;
+  eaten_at?: string;
+  items: MealItemInput[];
+};
+
+export type UpdateMealInput = {
+  name?: string;
+  eaten_at?: string;
+  items?: MealItemInput[];
+};

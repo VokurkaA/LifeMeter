@@ -1,30 +1,55 @@
 import {request} from '@/lib/net';
-import type {Food, FoodDetail} from "@/types/food.types";
-import type {PaginationResult} from "@/types";
+import type {CreateMealInput, Food, FoodDetail, FullUserMeal, UpdateMealInput, UserFood, UserMeal} from "@/types/food.types";
+import type {PaginationResult} from "@/types/types";
 
 class FoodService {
-  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://localhost:3000') + '/api/food';
+  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api';
 
   async getAllFood(page?: number): Promise<{ data: Food[], pagination: PaginationResult }> {
-    const url = this.baseUrl + (page ? `?page=${encodeURIComponent(String(page))}` : '');
+    const url = this.baseUrl + "/food" + (page ? `?page=${encodeURIComponent(String(page))}` : '');
     return request(url, { method: 'GET' });
   }
 
   async getFoodByName(searchText: string, page?: number): Promise<{ data: Food[], pagination: PaginationResult }> {
     const params = new URLSearchParams({ name: searchText });
     if (page) params.set('page', String(page));
-    const url = `${this.baseUrl}/search?${params.toString()}`;
+    const url = `${this.baseUrl}/food/search?${params.toString()}`;
     return request(url, { method: 'GET' });
   }
 
   async getFoodByGtin(gtin: string): Promise<{ data: Food[], pagination: PaginationResult }> {
-    const url = `${this.baseUrl}/search?gtin=${encodeURIComponent(gtin)}`;
+    const url = `${this.baseUrl}/food/search?gtin=${encodeURIComponent(gtin)}`;
     return request(url, { method: 'GET' });
   }
 
   async getFoodById(id: number): Promise<FoodDetail> {
-    const url = `${this.baseUrl}/${encodeURIComponent(String(id))}`;
+    const url = `${this.baseUrl}/food/${encodeURIComponent(String(id))}`;
     return request(url, { method: 'GET' });
+  }
+
+  async getAllUserMeals(): Promise<{ userMeal: UserMeal; userFoods: UserFood[] }[]> {
+    const url = this.baseUrl + "/user/food";
+    return request(url, { method: 'GET' });
+  }
+
+  async getUserMealById(id: string): Promise<FullUserMeal> {
+    const url = `${this.baseUrl}/user/food/${encodeURIComponent(id)}`;
+    return request(url, { method: 'GET' });
+  }
+
+  async addUserMeal(data: CreateMealInput): Promise<{ meal: UserMeal; food: UserFood[] }> {
+    const url = this.baseUrl + "/user/food";
+    return request(url, { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async editUserMeal(id: string, data: UpdateMealInput): Promise<FullUserMeal> {
+    const url = `${this.baseUrl}/user/food/${encodeURIComponent(id)}`;
+    return request(url, { method: 'PATCH', body: JSON.stringify(data) });
+  }
+
+  async deleteUserMeal(id: string): Promise<void> {
+    const url = `${this.baseUrl}/user/food/${encodeURIComponent(id)}`;
+    await request(url, { method: 'DELETE' });
   }
 }
 

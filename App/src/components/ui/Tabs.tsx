@@ -25,7 +25,7 @@ function Tabs({ defaultValue, children }: TabsProps) {
 }
 
 function TabsList({ className, ...props }: React.ComponentPropsWithoutRef<typeof View>) {
-  return <View className={cn('flex flex-row justify-center', className)} {...props} />;
+  return <View className={cn('flex flex-row justify-center gap-4', className)} {...props} />;
 }
 
 interface TabsTriggerProps extends React.ComponentPropsWithoutRef<typeof TouchableOpacity> {

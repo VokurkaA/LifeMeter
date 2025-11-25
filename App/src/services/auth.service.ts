@@ -1,8 +1,8 @@
 import {fetchWithTimeout, request} from '@/lib/net';
-import {Session, User} from '@/types';
+import {Session, User} from '@/types/types';
 
 class AuthService {
-  private appUrl = process.env.EXPO_PUBLIC_API_URL || 'https://localhost:3000';
+  private appUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
   async signUp(email: string, password: string, name?: string, rememberMe?: boolean,): Promise<void> {
     await request<void>(this.appUrl + '/api/auth/sign-up/email', {

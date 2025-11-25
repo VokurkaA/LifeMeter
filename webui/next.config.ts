@@ -1,13 +1,17 @@
 import type { NextConfig } from "next";
 
-const API_ORIGIN = process.env.NEXT_PUBLIC_SERVER_URL || "https://localhost:3000";
-
+// Proxy all /api requests to the hosted Server backend
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return API_ORIGIN
-      ? [{ source: "/api/:path*", destination: `${API_ORIGIN}/api/:path*` }]
-      : [];
-  },
+  reactCompiler: true,
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: "/api/:path*",
+  //       destination:
+  //         "https://server-production-282f.up.railway.app/api/:path*",
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;

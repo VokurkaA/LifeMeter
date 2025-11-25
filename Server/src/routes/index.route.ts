@@ -6,35 +6,87 @@ import type {AuthSession, AuthUser} from "@/types/auth.types";
 export const router = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
 router.get("/", (c) => {
-    return c.json({status: "ok", timestamp: new Date().toISOString(), message: "API is healthy"});
+    return c.json({ status: "ok", timestamp: new Date().toISOString(), message: "API is healthy" });
 });
 
 router.get("/routes", (c) => {
     const base = "/api";
 
     const structured = {
-        base, resources: {
+        base,
+        resources: {
             root: {
-                requiresAuth: false, endpoints: {
-                    GET: [{path: `${base}/`}]
-                }
-            }, food: {
-                base: `${base}/food`, requiresAuth: true, endpoints: {
-                    GET: [{path: `${base}/food`}, {path: `${base}/food/search`}, {path: `${base}/food/:id`}]
-                }
-            }, sleep: {
-                base: `${base}/sleep`, requiresAuth: true, endpoints: {
-                    POST: [{path: `${base}/sleep/start`}, {path: `${base}/sleep/end`}, {path: `${base}/sleep/new`}],
-                    GET: [{path: `${base}/sleep`}, {path: `${base}/sleep/:id`}],
-                    PATCH: [{path: `${base}/sleep/:id`}],
-                    DELETE: [{path: `${base}/sleep/:id`}]
-                }
-            }
-        }
-    };
+                requiresAuth: false,
+                endpoints: {
+                    GET: [{ path: `${base}/` }],
+                },
+            },
+            routes: {
+                requiresAuth: false,
+                endpoints: {
+                    GET: [{ path: `${base}/routes` }],
+                },
+            },
+            auth: {
+                base: `${base}/auth`,
+                requiresAuth: false,
+                note: "Proxied to better-auth handler",
+                endpoints: {
+                    GET: [{ path: `${base}/auth/*` }],
+                    POST: [{ path: `${base}/auth/*` }],
+                },
+            },
+            food: {
+                base: `${base}/food`,
+                requiresAuth: true,
+                endpoints: {
+                    GET: [
+                        { path: `${base}/food` },
+                        { path: `${base}/food/search`, query: ["name?", "gtin?"] },
+                        { path: `${base}/food/:id` },
+                    ],
+                },
+            },
+            user: {
+                base: `${base}/user`,
+                requiresAuth: true,
+                endpoints: {
+                    GET: [{ path: `${base}/user` }],
+                },
+            },
+            userFood: {
+                base: `${base}/user/food`,
+                requiresAuth: true,
+                endpoints: {
+                    GET: [{ path: `${base}/user/food` }],
+                    POST: [{ path: `${base}/user/food` }],
+                    GET_ID: [{ path: `${base}/user/food/:id` }],
+                    PATCH: [{ path: `${base}/user/food/:id` }],
+                    DELETE: [{ path: `${base}/user/food/:id` }],
+                },
+            },
+            userSleep: {
+                base: `${base}/user/sleep`,
+                requiresAuth: true,
+                endpoints: {
+                    POST: [
+                        { path: `${base}/user/sleep/start` },
+                        { path: `${base}/user/sleep/end` },
+                        { path: `${base}/user/sleep/new` },
+                    ],
+                    GET: [
+                        { path: `${base}/user/sleep` },
+                        { path: `${base}/user/sleep/:id` },
+                    ],
+                    PATCH: [{ path: `${base}/user/sleep/:id` }],
+                    DELETE: [{ path: `${base}/user/sleep/:id` }],
+                },
+            },
+        },
+    } as const;
 
     return c.json(structured);
 });
 
 router.route("/food", foodRouter);
-router.route('/user', userRouter)
+router.route("/user", userRouter);

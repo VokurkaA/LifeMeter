@@ -1,20 +1,34 @@
-import { SleepSession, StoreContextType } from '@/types';
+import { SleepSession, StoreContextType } from '@/types/types';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { sleepService } from '@/services/sleep.service';
+import { foodService } from '@/services/food.service';
+import type {
+  CreateMealInput,
+  FullUserMeal,
+  UpdateMealInput,
+  UserFood,
+  UserMeal,
+} from '@/types/food.types';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<any> = ({ children }) => {
   const [sleepSessions, setSleepSessions] = useState<SleepSession[]>([]);
+  const [userMeals, setUserMeals] = useState<{ userMeal: UserMeal; userFoods: UserFood[] }[]>([]);
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const sessions: SleepSession[] = await sleepService.getAllSleepSessions();
-        if (active) setSleepSessions(sessions);
+        const [sessions, meals] = await Promise.all([
+          sleepService.getAllSleepSessions(),
+          foodService.getAllUserMeals(),
+        ]);
+        if (!active) return;
+        setSleepSessions(sessions);
+        setUserMeals(meals);
       } catch (e) {
-        console.error('Failed to initialize sleep sessions', e);
+        console.error('Failed to initialize store', e);
       }
     })();
     return () => {
@@ -92,8 +106,49 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     }
   }, []);
 
+  const refreshUserMeals = useCallback(async () => {
+    try {
+      const meals = await foodService.getAllUserMeals();
+      setUserMeals(meals);
+    } catch (e) {
+      console.error('Failed to refresh user meals', e);
+    }
+  }, []);
+
+  const createUserMeal = useCallback(async (data: CreateMealInput) => {
+    try {
+      const created = await foodService.addUserMeal(data); // { meal, food }
+      setUserMeals((prev) => [{ userMeal: created.meal, userFoods: created.food }, ...prev]);
+    } catch (e) {
+      console.error('Failed to create user meal', e);
+    }
+  }, []);
+
+  const editUserMeal = useCallback(async (id: string, data: UpdateMealInput) => {
+    try {
+      const updated: FullUserMeal = await foodService.editUserMeal(id, data);
+      const summary = {
+        userMeal: updated.userMeal,
+        userFoods: updated.userFoods.map((uf) => uf.userFood),
+      };
+      setUserMeals((prev) => prev.map((m) => (m.userMeal.id === id ? summary : m)));
+    } catch (e) {
+      console.error('Failed to edit user meal', e);
+    }
+  }, []);
+
+  const deleteUserMeal = useCallback(async (id: string) => {
+    try {
+      await foodService.deleteUserMeal(id);
+      setUserMeals((prev) => prev.filter((m) => m.userMeal.id !== id));
+    } catch (e) {
+      console.error('Failed to delete user meal', e);
+    }
+  }, []);
+
   const storeValue: StoreContextType = useMemo(
     () => ({
+      // Sleep
       sleepSessions,
       startSleep,
       endSleep,
@@ -102,8 +157,16 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       deleteSleepSession,
       ongoingSleepSession,
       refreshSleepSessions,
+
+      // Meals
+      userMeals,
+      refreshUserMeals,
+      createUserMeal,
+      editUserMeal,
+      deleteUserMeal,
     }),
     [
+      // Sleep deps
       sleepSessions,
       startSleep,
       endSleep,
@@ -112,6 +175,12 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       deleteSleepSession,
       ongoingSleepSession,
       refreshSleepSessions,
+      // Meals deps
+      userMeals,
+      refreshUserMeals,
+      createUserMeal,
+      editUserMeal,
+      deleteUserMeal,
     ],
   );
 

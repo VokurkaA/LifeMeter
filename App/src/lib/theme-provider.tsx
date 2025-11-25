@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useColorScheme, View } from 'react-native';
-import type { Theme, ThemeContextType } from '@/types';
+import type { Theme, ThemeContextType } from '@/types/types';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 

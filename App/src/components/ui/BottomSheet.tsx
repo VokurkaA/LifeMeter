@@ -8,11 +8,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 
 import { cn } from '@/lib/utils';
-import { H1, H2, H3, Text } from './Text';
+import { H2, Text } from './Text';
 import { useTheme } from '@/lib/theme-provider';
 
 type Ctx = {
@@ -142,11 +142,7 @@ function BottomSheetContent({
       safeAreaInsets={{ bottom: true } as any}
     >
       <View
-        className={cn(
-          // Panel styling to match app design
-          'rounded-t-2xl border border-border bg-card px-4 pb-6 pt-3',
-          className,
-        )}
+        className={cn('rounded-t-2xl border border-border bg-card p-4', className)}
         style={{ minHeight: minH, maxHeight: maxH }}
         {...rest}
       >
@@ -161,7 +157,7 @@ function BottomSheetHeader({ className, ...props }: React.ComponentPropsWithoutR
 }
 
 function BottomSheetTitle({ className, ...props }: React.ComponentPropsWithoutRef<typeof Text>) {
-  return <H2 className={cn('text-foreground', className)} {...props} />;
+  return <H2 className={cn('text-foreground mb-4', className)} {...props} />;
 }
 
 function BottomSheetDescription({

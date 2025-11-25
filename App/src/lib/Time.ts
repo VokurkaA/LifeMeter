@@ -253,6 +253,25 @@ export class Time {
     return new Time(new Date());
   }
 
+  static isSameDay(a: DateInput, b: DateInput, opts?: { assumeUTC?: boolean }) {
+    const da = toDate(a, opts);
+    const db = toDate(b, opts);
+    if (!Number.isFinite(da.getTime()) || !Number.isFinite(db.getTime())) return false;
+    if (opts?.assumeUTC) {
+      return (
+        da.getUTCFullYear() === db.getUTCFullYear() &&
+        da.getUTCMonth() === db.getUTCMonth() &&
+        da.getUTCDate() === db.getUTCDate()
+      );
+    } else {
+      return (
+        da.getFullYear() === db.getFullYear() &&
+        da.getMonth() === db.getMonth() &&
+        da.getDate() === db.getDate()
+      );
+    }
+  }
+
   static from(input: DateInput, opts?: { numericUnit?: 'ms' | 's'; assumeUTC?: boolean }) {
     return new Time(input, opts);
   }

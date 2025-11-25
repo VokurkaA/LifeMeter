@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { useStore } from '@/contexts/useStore';
-import { View, Keyboard } from 'react-native';
-import { SleepSession } from '@/types';
+import { Keyboard, View } from 'react-native';
+import { SleepSession } from '@/types/types';
 import { Time } from '@/lib/Time';
 import EditIcon from '@/components/icons/edit';
 import { Input } from '@/components/ui/Input';
@@ -10,10 +10,10 @@ import { useToast } from '@/components/ui/Toast';
 import {
   BottomSheet,
   BottomSheetContent,
-  BottomSheetHeader,
-  BottomSheetTitle,
   BottomSheetDescription,
   BottomSheetFooter,
+  BottomSheetHeader,
+  BottomSheetTitle,
   BottomSheetTrigger,
 } from '@/components/ui/BottomSheet';
 

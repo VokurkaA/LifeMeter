@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## API proxy
+
+All requests to `/api/*` are proxied to your hosted backend:
+
+```
+https://server-production-282f.up.railway.app/api/*
+```
+
+This is configured via Next.js `rewrites()` in `next.config.ts`, so the browser talks to the same origin while Next proxies the request and preserves cookies.
+
 ## Getting Started
 
 First, run the development server:
@@ -14,7 +24,7 @@ pnpm dev
 bun dev
 ```
 
-Open [https://localhost:3000](https://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

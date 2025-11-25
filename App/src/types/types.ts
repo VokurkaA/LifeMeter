@@ -1,3 +1,5 @@
+import { UserMeal, UserFood, CreateMealInput, UpdateMealInput } from "./food.types";
+
 export interface User {
   id: string;
   name: string;
@@ -47,6 +49,12 @@ export interface StoreContextType {
   },) => Promise<void>;
   deleteSleepSession: (id: string) => Promise<void>;
   refreshSleepSessions: () => Promise<void>;
+
+  userMeals: { userMeal: UserMeal; userFoods: UserFood[] }[];
+  refreshUserMeals: () => Promise<void>;
+  createUserMeal: (data: CreateMealInput) => Promise<void>;
+  editUserMeal: (id: string, data: UpdateMealInput) => Promise<void>;
+  deleteUserMeal: (id: string) => Promise<void>;
 }
 
 export interface NavigationItem {

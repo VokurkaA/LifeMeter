@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/Card';
 import { H1, Text } from '@/components/ui/Text';
 import { useStore } from '@/contexts/useStore';
-import { SleepSession } from '@/types';
+import { SleepSession } from '@/types/types';
 import { Time } from '@/lib/Time';
 import DeleteIcon from '@/components/icons/delete';
 import { useToast } from '@/components/ui/Toast';

@@ -34,8 +34,8 @@ if (process.env.USE_CORS == "true") {
       origin: (origin: string) => {
         if (!origin) return "";
         const fallback = [
-          "https://localhost:3000",
-          "https://localhost:3001",
+          "http://localhost:3000",
+          "http://localhost:3001",
           "exp://10.181.102.1:8080",
           "exp://10.181.102.1:8081",
         ];
@@ -55,13 +55,19 @@ if (process.env.USE_CORS == "true") {
   );
 }
 
-app.on(["POST", "GET"], "/api/auth/*", (c: { req: { raw: any } }) => {
-  return auth.handler(c.req.raw);
+app.all("/api/auth/*", async (c) => {
+  const headers = new Headers(c.req.raw.headers);
+  if (!headers.get("origin")) {
+    const u = new URL(c.req.url);
+    headers.set("origin", `${u.protocol}//${u.host}`);
+  }
+  const req = new Request(c.req.raw, { headers });
+  return auth.handler(req);
 });
 
 export function startServer(port = process.env.PORT) {
   console.log(`Server listening on :${port}`);
-  console.log(`App running at https://localhost:${port}/api`);
+  console.log(`App running at http://localhost:${port}/api`);
   Bun.serve({
     port,
     fetch: app.fetch,

@@ -55,7 +55,7 @@ foodRouter.get("/:id", async (c) => {
     }
     try {
         const data = await foodService.getFoodById(id);
-        return c.json({data});
+        return c.json(data);
     } catch (e: unknown) {
         if (e instanceof Error && e.message.includes("Food not found")) {
             return c.json({error: e.message}, 404);
