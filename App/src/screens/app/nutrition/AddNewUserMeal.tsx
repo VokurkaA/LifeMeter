@@ -188,7 +188,7 @@ export default function AddNewUserMeal({
         />
 
         <View className="gap-2">
-          <Card>
+          <Card className="z-50">
             <Select
               title="Food name"
               placeholder="Search to filter..."
