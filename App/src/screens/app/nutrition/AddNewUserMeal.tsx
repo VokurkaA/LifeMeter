@@ -160,12 +160,13 @@ export default function AddNewUserMeal({
       setFoodSearchText('');
       setMealName('');
       setMealDescription('');
+      setOpen(false);
     });
   };
 
   return (
     <KeyboardAvoidingView>
-      <ScrollView contentContainerClassName="gap-4 pb-20 pt-4">
+      <ScrollView className="gap-4 pb-20 pt-4">
         <Input
           label="Meal name"
           placeholder="Eg. Oats with peanut butter"
@@ -253,8 +254,8 @@ export default function AddNewUserMeal({
             )}
           </Card>
           <ScrollView>
-            {newFoodsDetail.map((f) => (
-              <Card key={f.food.id}>
+            {newFoodsDetail.map((f, i) => (
+              <Card key={i}>
                 <CardHeader>
                   <Text className="text-lg font-bold">{f.food.description}</Text>
                 </CardHeader>
@@ -273,7 +274,6 @@ export default function AddNewUserMeal({
             label="Add meal"
             onPress={() => {
               addUserMeal();
-              setOpen(false);
             }}
           />
         </View>
