@@ -1,19 +1,6 @@
 import type { Context, Next } from "hono"
 import { paginationConfig } from "@/config/pagination.config.js";
-
-export type PaginationProps = {
-    page: number
-    limit: number
-    offset: number
-}
-
-export type PaginationResult = {
-    page: number
-    prevPage: number | null
-    nextPage: number | null
-    totalPages: number
-    totalRecords: number
-}
+import type { PaginationProps, PaginationResult } from "@/types/pagination.types";
 
 const PAGINATION_SYMBOL = Symbol.for("pagination")
 const limit = paginationConfig.limit;

@@ -96,7 +96,7 @@ export function Select({
             <Pressable
               key={variant.value}
               onPress={() => handleOnSelect(variant)}
-              className="py-2 border-b border-input-border last:border-0"
+              className="border-b border-input-border py-2 last:border-0"
             >
               <Text>{variant.label}</Text>
             </Pressable>

@@ -9,24 +9,29 @@ import type {
   UserFood,
   UserMeal,
 } from '@/types/food.types';
+import { workoutService } from '@/services/workout.service';
+import { FullWorkout } from '@/types/workout.types';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<any> = ({ children }) => {
   const [sleepSessions, setSleepSessions] = useState<SleepSession[]>([]);
   const [userMeals, setUserMeals] = useState<{ userMeal: UserMeal; userFoods: UserFood[] }[]>([]);
+  const [userWorkouts, setUserWorkouts] = useState<FullWorkout[]>([]);
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const [sessions, meals] = await Promise.all([
+        const [sessions, meals, workouts] = await Promise.all([
           sleepService.getAllSleepSessions(),
           foodService.getAllUserMeals(),
+          workoutService.getAllUserWorkouts(),
         ]);
         if (!active) return;
         setSleepSessions(sessions);
         setUserMeals(meals);
+        setUserWorkouts(workouts);
       } catch (e) {
         console.error('Failed to initialize store', e);
       }
@@ -146,6 +151,42 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     }
   }, []);
 
+  const refreshUserWorkouts = useCallback(async () => {
+    try {
+      const workouts = await workoutService.getAllUserWorkouts();
+      setUserWorkouts(workouts);
+    } catch (e) {
+      console.error('Failed to refresh user workouts', e);
+    }
+  }, []);
+
+  const createUserWorkout = useCallback(async (data: FullWorkout) => {
+    try {
+      const created = await workoutService.addUserWorkout(data);
+      setUserWorkouts((prev) => [created, ...prev]);
+    } catch (e) {
+      console.error('Failed to create user workout', e);
+    }
+  }, []);
+
+  const editUserWorkout = useCallback(async (id: string, data: FullWorkout) => {
+    try {
+      const updated = await workoutService.editUserWorkout(id, data);
+      setUserWorkouts((prev) => prev.map((w) => (w.id === id ? updated : w)));
+    } catch (e) {
+      console.error('Failed to edit user workout', e);
+    }
+  }, []);
+
+  const deleteUserWorkout = useCallback(async (id: string) => {
+    try {
+      await workoutService.deleteUserWorkout(id);
+      setUserWorkouts((prev) => prev.filter((w) => w.id !== id));
+    } catch (e) {
+      console.error('Failed to delete user workout', e);
+    }
+  }, []);
+
   const storeValue: StoreContextType = useMemo(
     () => ({
       // Sleep
@@ -164,6 +205,13 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       createUserMeal,
       editUserMeal,
       deleteUserMeal,
+
+      // Workouts
+      userWorkouts,
+      refreshUserWorkouts,
+      createUserWorkout,
+      editUserWorkout,
+      deleteUserWorkout,
     }),
     [
       // Sleep deps
@@ -181,6 +229,12 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       createUserMeal,
       editUserMeal,
       deleteUserMeal,
+      // Workouts deps
+      userWorkouts,
+      refreshUserWorkouts,
+      createUserWorkout,
+      editUserWorkout,
+      deleteUserWorkout,
     ],
   );
 
