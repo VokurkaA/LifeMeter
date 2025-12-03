@@ -308,7 +308,7 @@ class WorkoutService {
             SELECT id,
                    name,
                    gram_conversion_factor::float as gram_conversion_factor
-            FROM unit
+            FROM weight_unit
             ORDER BY id;
         `;
         const result = await pool.query(query);
