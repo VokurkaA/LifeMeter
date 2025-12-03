@@ -21,7 +21,7 @@ export const pool = new Pool({
 });
 
 pool.on('error', (err: any) => {
-    console.error('Unexpected error on idle client', err);
+    logger.error('Unexpected error on idle client', err);
     process.exit(-1);
 });
 
@@ -30,6 +30,6 @@ pool.on('error', (err: any) => {
         await pool.query('SELECT 1');
         logger.log('Database connection successful');
     } catch (error) {
-        logger.error('Error executing query', error);
+        logger.critical('Error executing query', error);
     }
 })();

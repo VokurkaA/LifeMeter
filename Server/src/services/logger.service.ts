@@ -1,4 +1,5 @@
-import {loggerConfig, type LogLevel} from "@/config/logger.config";
+import {loggerConfig} from "@/config/logger.config";
+import type {LogLevel} from "@/types/config.types";
 import {appendFile, mkdir} from "node:fs/promises";
 import path from "node:path";
 
@@ -31,7 +32,7 @@ class LoggerService {
         this.write("log", message, meta);
     }
 
-    info(message: string, meta?: any) { // Alias for log
+    info(message: string, meta?: any) {
         this.write("log", message, meta);
     }
 
