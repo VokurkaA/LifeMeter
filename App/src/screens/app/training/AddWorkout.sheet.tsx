@@ -3,13 +3,25 @@ import { Button } from '@/components/ui/Button';
 import { useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Exercise, type SetStyle, SetType, WeightUnit, WorkoutSet } from '@/types/workout.types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import {
+  Exercise,
+  FullWorkout,
+  type SetStyle,
+  SetType,
+  WeightUnit,
+  WorkoutSet,
+} from '@/types/workout.types';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
 import { workoutService } from '@/services/workout.service';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { View } from 'react-native';
+import { Text } from '@/components/ui/Text';
+import { useStore } from '@/contexts/useStore';
+import { useAuth } from '@/contexts/useAuth';
 
 export default function AddWorkoutSheet() {
+  const { createUserWorkout } = useStore();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -65,6 +77,20 @@ export default function AddWorkoutSheet() {
     });
   }, []);
 
+  const resetNewExercise = () => {
+    setIsCreatingNewSet(false);
+    setSelectedExercise(undefined);
+    setExerciseWeight(undefined);
+    setExerciseWeightUnit(undefined);
+    setRepetitions(undefined);
+    setRir(undefined);
+    setRestTime(undefined);
+    setNewExerciseNotes(undefined);
+    setSetStyle(undefined);
+    setSetType(undefined);
+    setNewExerciseSearch(undefined);
+  };
+
   return (
     <BottomSheet open={open} onOpenChange={setOpen}>
       <BottomSheetTrigger asChild>
@@ -88,7 +114,14 @@ export default function AddWorkoutSheet() {
           />
           {isCreatingNewSet ? (
             <Card>
-              <CardContent className="mt-4 flex flex-col gap-4">
+              <CardHeader>
+                <CardTitle>
+                  {selectedExercise
+                    ? `New Exercise - ${selectedExercise.variant} ${selectedExercise.type}`
+                    : 'Create a new exercise'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
                 <Select
                   withSearchbar
                   title="Select an exercise"
@@ -124,19 +157,94 @@ export default function AddWorkoutSheet() {
                     }}
                   />
                 </View>
+                <View className="flex flex-row gap-2">
+                  <Input
+                    className="flex-1"
+                    label="Repetitions"
+                    keyboardType="numeric"
+                    value={repetitions ? String(repetitions) : undefined}
+                    onChangeText={(val) => setRepetitions(Number(val))}
+                  />
+                  <Input
+                    className="flex-1"
+                    label="RIR"
+                    keyboardType="numeric"
+                    value={rir ? String(rir) : undefined}
+                    onChangeText={(val) => setRir(Number(val))}
+                  />
+                </View>
                 <Input
-                  label="Repetitions"
+                  label="Rest time (seconds)"
                   keyboardType="numeric"
-                  value={repetitions ? String(repetitions) : undefined}
-                  onChangeText={(val) => setRepetitions(Number(val))}
+                  value={restTime}
+                  onChangeText={setRestTime}
                 />
+                <View className="flex flex-row gap-2">
+                  <Select
+                    className="flex-1"
+                    title="Set type"
+                    variants={setTypes.map((t) => ({
+                      label: t.name,
+                      value: String(t.id),
+                    }))}
+                    value={setType ? String(setType.id) : undefined}
+                    onSelect={(val) => {
+                      const selected = setTypes.find((t) => String(t.id) === val.value);
+                      setSetType(selected);
+                    }}
+                  />
+
+                  <Select
+                    title="Set style"
+                    className="flex-1"
+                    variants={setStyles.map((s) => ({
+                      label: s.name,
+                      value: String(s.id),
+                    }))}
+                    value={setStyle ? String(setStyle.id) : undefined}
+                    onSelect={(val) => {
+                      const selected = setStyles.find((s) => String(s.id) === val.value);
+                      setSetStyle(selected);
+                    }}
+                  />
+                </View>
                 <Input
-                  label="RIR"
-                  keyboardType="numeric"
-                  value={rir ? String(rir) : undefined}
-                  onChangeText={(val) => setRir(Number(val))}
+                  label="Exercise notes"
+                  value={newExerciseNotes}
+                  onChangeText={setNewExerciseNotes}
                 />
               </CardContent>
+              <CardFooter>
+                <Button label="Cancel" variant="destructive" onPress={() => resetNewExercise()} />
+                <Button
+                  label="Add Exercise"
+                  onPress={() => {
+                    if (!selectedExercise || !repetitions) return;
+
+                    setWorkoutSets((val) => [
+                      ...val,
+                      {
+                        id: '-',
+                        workoutId: '-',
+                        exerciseId: selectedExercise.id,
+                        seqNumber: val.length,
+                        weight: exerciseWeight,
+                        weightUnitId: exerciseWeightUnit
+                          ? String(exerciseWeightUnit.id)
+                          : undefined,
+                        repetitions,
+                        rir,
+                        restTime: restTime ? Number(restTime) : undefined,
+                        notes: newExerciseNotes,
+                        styleId: setStyle ? String(setStyle.id) : undefined,
+                        setTypeId: setType ? String(setType.id) : undefined,
+                      },
+                    ]);
+
+                    resetNewExercise();
+                  }}
+                />
+              </CardFooter>
             </Card>
           ) : (
             <Button
@@ -145,13 +253,67 @@ export default function AddWorkoutSheet() {
               onPress={() => setIsCreatingNewSet(true)}
             />
           )}
-          {workoutSets.map((s) => (
-            <Card key={s.id}>
-              <CardHeader>
-                <CardTitle>{}</CardTitle>
-              </CardHeader>
-            </Card>
-          ))}
+          {workoutSets ? (
+            workoutSets.map((s) => {
+              const ex = exercises.find((e) => e.id === s.exerciseId);
+
+              return (
+                <Card key={s.seqNumber}>
+                  <CardHeader>
+                    <CardTitle>{ex ? `${ex.variant} ${ex.type}` : ''}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="gap-1">
+                    {s.weight !== undefined && (
+                      <Text>
+                        Weight: {s.weight}{' '}
+                        {s.weightUnitId
+                          ? weightOptions.find((w) => String(w.id) === s.weightUnitId)?.name
+                          : ''}
+                      </Text>
+                    )}
+                    <Text>Reps: {s.repetitions}</Text>
+                    {s.rir !== undefined && <Text>RIR: {s.rir}</Text>}
+                    {s.restTime !== undefined && <Text>Rest: {s.restTime}s</Text>}
+                    {s.notes && <Text>Notes: {s.notes}</Text>}
+                  </CardContent>
+
+                  <CardFooter>{s.exerciseId}</CardFooter>
+                </Card>
+              );
+            })
+          ) : (
+            <Text>No sets added</Text>
+          )}
+          <Button
+            className="mt-6"
+            label="Save workout"
+            onPress={async () => {
+              if (!workoutName.trim()) return;
+              const payload: FullWorkout = {
+                id: '-',
+                userId: user?.id || '',
+                startDate: new Date().toISOString(),
+                endDate: undefined,
+                label: [workoutName],
+                notes: workoutNotes,
+                sets: workoutSets.map((s) => ({
+                  ...s,
+                  id: s.id || '-',
+                  workoutId: '-',
+                  weightUnitId: s.weightUnitId ?? undefined,
+                  styleId: s.styleId ?? undefined,
+                  setTypeId: s.setTypeId ?? undefined,
+                })),
+              };
+              await createUserWorkout(payload);
+
+              setWorkoutName('');
+              setWorkoutNotes('');
+              setWorkoutSets([]);
+              resetNewExercise();
+              setOpen(false);
+            }}
+          />
         </ScrollView>
       </BottomSheetContent>
     </BottomSheet>
