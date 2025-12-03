@@ -15,14 +15,39 @@ import type {
   WorkoutSet,
 } from '@/types/workout.types';
 
+function parseRestTime(input: string | number | null | undefined): number | undefined {
+  if (input === null || input === undefined) return undefined;
+  if (typeof input === 'number') return input;
+
+  const secondsMatch = input.match(/^(\d+)(?:\s*seconds?)?$/);
+  if (secondsMatch) return parseInt(secondsMatch[1], 10);
+
+  const hmsMatch = input.match(/^(?:(\d+):)?(\d{1,2}):(\d{2})$/);
+  if (hmsMatch) {
+    const h = parseInt(hmsMatch[1] || '0', 10);
+    const m = parseInt(hmsMatch[2], 10);
+    const s = parseInt(hmsMatch[3], 10);
+    return h * 3600 + m * 60 + s;
+  }
+
+  const parsed = parseFloat(input);
+  return isNaN(parsed) ? undefined : parsed;
+}
+
+function formatRestTime(seconds: number | undefined): string | null {
+  if (seconds === undefined || seconds === null) return null;
+  return `${Math.floor(seconds)} seconds`;
+}
+
 class WorkoutService {
   private baseUrl =
     (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/workout';
   private templateUrl =
     (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/template/workout';
   private basicUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/workout';
+
   async getAllUserWorkouts(): Promise<FullWorkout[]> {
-    return request<ServerPaginatedResponse<ServerFullWorkout>>(this.baseUrl + '/').then((res) =>
+    return request<ServerPaginatedResponse<ServerFullWorkout>>(this.baseUrl).then((res) =>
       res.rows.map(this.toClientWorkout),
     );
   }
@@ -43,7 +68,7 @@ class WorkoutService {
       sets: fullWorkout.sets.map(this.toServerWorkoutSet),
     };
 
-    return request<ServerFullWorkout>(this.baseUrl + '/', {
+    return request<ServerFullWorkout>(this.baseUrl, {
       method: 'POST',
       body: JSON.stringify(body),
     }).then(this.toClientWorkout);
@@ -93,7 +118,7 @@ class WorkoutService {
       sets: fullWorkoutTemplate.sets.map(this.toServerTemplateSet),
     };
 
-    return request<ServerFullWorkoutTemplate>(this.templateUrl + '/', {
+    return request<ServerFullWorkoutTemplate>(this.templateUrl, {
       method: 'POST',
       body: JSON.stringify(body),
     }).then(this.toClientTemplate);
@@ -124,24 +149,23 @@ class WorkoutService {
 
   async getExercises(): Promise<Exercise[]> {
     return await request<Exercise[]>(`${this.basicUrl}/exercises`, {
-      method: 'GET'
-    })
-
+      method: 'GET',
+    });
   }
   async getWeightOptions(): Promise<WeightUnit[]> {
     return await request<WeightUnit[]>(`${this.basicUrl}/weight-options`, {
-      method: 'GET'
-    })
+      method: 'GET',
+    });
   }
   async getSetStyles(): Promise<SetStyle[]> {
     return await request<SetStyle[]>(`${this.basicUrl}/set-styles`, {
-      method: 'GET'
-    })
+      method: 'GET',
+    });
   }
   async getSetTypes(): Promise<SetType[]> {
     return await request<SetType[]>(`${this.basicUrl}/set-types`, {
-      method: 'GET'
-    })
+      method: 'GET',
+    });
   }
 
   private toClientWorkout = (serverData: ServerFullWorkout): FullWorkout => {
@@ -165,7 +189,7 @@ class WorkoutService {
             weightUnitId: s.weight_unit_id ?? undefined,
             repetitions: s.repetitions,
             rir: s.rir ?? undefined,
-            restTime: s.rest_time ?? undefined,
+            restTime: parseRestTime(s.rest_time),
             notes: s.notes ?? undefined,
             styleId: s.style_id ?? undefined,
             setTypeId: s.set_type_id ?? undefined,
@@ -191,7 +215,7 @@ class WorkoutService {
             seqNumber: s.seq_number,
             repetitions: s.repetitions ?? undefined,
             rir: s.rir ?? undefined,
-            restTime: s.rest_time ?? undefined,
+            restTime: parseRestTime(s.rest_time),
             notes: s.notes ?? undefined,
             styleId: s.style_id ?? undefined,
             setTypeId: s.set_type_id ?? undefined,
@@ -207,7 +231,7 @@ class WorkoutService {
     weight_unit_id: set.weightUnitId ?? null,
     repetitions: set.repetitions,
     rir: set.rir ?? null,
-    rest_time: set.restTime ?? null,
+    rest_time: formatRestTime(set.restTime),
     notes: set.notes ?? null,
     style_id: set.styleId ?? null,
     set_type_id: set.setTypeId ?? null,
@@ -218,7 +242,7 @@ class WorkoutService {
     seq_number: set.seqNumber,
     repetitions: set.repetitions ?? null,
     rir: set.rir ?? null,
-    rest_time: set.restTime ?? null,
+    rest_time: formatRestTime(set.restTime),
     notes: set.notes ?? null,
     style_id: set.styleId ?? null,
     set_type_id: set.setTypeId ?? null,

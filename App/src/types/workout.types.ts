@@ -60,7 +60,7 @@ export interface InputTemplateWorkoutSet {
   seq_number: number;
   repetitions?: number | null;
   rir?: number | null;
-  rest_time?: number | null;
+  rest_time?: string | null;
   notes?: string | null;
   style_id?: string | null;
   set_type_id?: string | null;
@@ -73,7 +73,7 @@ export interface InputWorkoutSet {
   weight_unit_id?: string | null;
   repetitions: number;
   rir?: number | null;
-  rest_time?: number | null;
+  rest_time?: string | null;
   notes?: string | null;
   style_id?: string | null;
   set_type_id?: string | null;
@@ -93,7 +93,7 @@ export type ServerWorkoutSet = {
   weight_unit_id?: string | null;
   repetitions: number;
   rir?: number | null;
-  rest_time?: number | null;
+  rest_time?: string | null;
   notes?: string | null;
   style_id?: string | null;
   set_type_id?: string | null;
@@ -106,7 +106,7 @@ export type ServerTemplateSet = {
   seq_number: number;
   repetitions?: number | null;
   rir?: number | null;
-  rest_time?: number | null;
+  rest_time?: string | null;
   notes?: string | null;
   style_id?: string | null;
   set_type_id?: string | null;

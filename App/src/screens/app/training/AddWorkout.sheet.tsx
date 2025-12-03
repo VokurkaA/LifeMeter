@@ -18,10 +18,13 @@ import { View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { useStore } from '@/contexts/useStore';
 import { useAuth } from '@/contexts/useAuth';
+import { Time } from '@/lib/Time';
+import { useToast } from '@/components/ui/Toast';
 
 export default function AddWorkoutSheet() {
   const { createUserWorkout } = useStore();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -263,7 +266,7 @@ export default function AddWorkoutSheet() {
                     <CardTitle>{ex ? `${ex.variant} ${ex.type}` : ''}</CardTitle>
                   </CardHeader>
                   <CardContent className="gap-1">
-                    {s.weight !== undefined && (
+                    {s.weight && (
                       <Text>
                         Weight: {s.weight}{' '}
                         {s.weightUnitId
@@ -272,12 +275,16 @@ export default function AddWorkoutSheet() {
                       </Text>
                     )}
                     <Text>Reps: {s.repetitions}</Text>
-                    {s.rir !== undefined && <Text>RIR: {s.rir}</Text>}
-                    {s.restTime !== undefined && <Text>Rest: {s.restTime}s</Text>}
+                    {s.rir && <Text>RIR: {s.rir}</Text>}
+                    {s.restTime && (
+                      <Text>Rest: {Time.formatDurationMs(s.restTime * 1000, 'mm:ss')}</Text>
+                    )}
                     {s.notes && <Text>Notes: {s.notes}</Text>}
                   </CardContent>
 
-                  <CardFooter>{s.exerciseId}</CardFooter>
+                  <CardFooter>
+                    <Text className="text-muted-foreground">set {s.seqNumber}</Text>
+                  </CardFooter>
                 </Card>
               );
             })
@@ -288,7 +295,10 @@ export default function AddWorkoutSheet() {
             className="mt-6"
             label="Save workout"
             onPress={async () => {
-              if (!workoutName.trim()) return;
+              if (!workoutName.trim()) {
+                toast('Please input workout name', 'destructive', 2000, 'top', false, 'narrow');
+                return;
+              }
               const payload: FullWorkout = {
                 id: '-',
                 userId: user?.id || '',
