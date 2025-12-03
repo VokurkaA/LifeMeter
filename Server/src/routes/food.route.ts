@@ -1,9 +1,9 @@
-import {Hono} from "hono";
-import {requireAuth} from "@/middleware/requireAuth.js";
-import {getPagination, makePaginationResult, pagination,} from "@/middleware/pagination.js";
-import {foodService} from "@/services/food.service";
-import type {AuthSession, AuthUser} from "@/types/auth.types";
-import type {PaginationProps} from "@/types/pagination.types";
+import { Hono } from "hono";
+import { requireAuth } from "@/middleware/requireAuth.js";
+import { getPagination, makePaginationResult, pagination, type PaginationProps, } from "@/middleware/pagination.js";
+import { foodService } from "@/services/food.service";
+import type { AuthSession, AuthUser } from "@/types/auth.types";
+import {logger} from "@/services/logger.service";
 
 export const foodRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
@@ -22,9 +22,14 @@ foodRouter.get("/search", pagination(), async (c) => {
     }
 
     if (rawName) {
-        const decoded = decodeURIComponent(rawName);
-        const {rows, total} = await foodService.getFoodByName(decoded, paginationProps);
-        return c.json({data: rows, pagination: makePaginationResult(total, c)});
+        try {
+            const decoded = decodeURIComponent(rawName);
+            const {rows, total} = await foodService.getFoodByName(decoded, paginationProps);
+            return c.json({data: rows, pagination: makePaginationResult(total, c)});
+        } catch (e: any) {
+            logger.error(`Failed to search food by name: ${rawName}`, e);
+            return c.json({error: "Internal server error"}, 500);
+        }
     }
 
     if (!gtin) {
@@ -38,14 +43,20 @@ foodRouter.get("/search", pagination(), async (c) => {
         if (e instanceof Error && e.message.includes("Food not found")) {
             return c.json({error: e.message}, 404);
         }
+        logger.error(`Failed to search food by GTIN: ${gtin}`, e);
         return c.json({error: "Internal server error"}, 500);
     }
 });
 
 foodRouter.get("/", pagination(), async (c) => {
-    const paginationProps: PaginationProps = getPagination(c);
-    const {rows, total} = await foodService.getAllFood(paginationProps);
-    return c.json({data: rows, pagination: makePaginationResult(total, c)});
+    try {
+        const paginationProps: PaginationProps = getPagination(c);
+        const {rows, total} = await foodService.getAllFood(paginationProps);
+        return c.json({data: rows, pagination: makePaginationResult(total, c)});
+    } catch (e: any) {
+        logger.error("Failed to fetch all foods", e);
+        return c.json({error: "Internal server error"}, 500);
+    }
 });
 
 foodRouter.get("/:id", async (c) => {
@@ -61,6 +72,7 @@ foodRouter.get("/:id", async (c) => {
         if (e instanceof Error && e.message.includes("Food not found")) {
             return c.json({error: e.message}, 404);
         }
+        logger.error(`Failed to get food by ID: ${id}`, e);
         return c.json({error: "Internal server error"}, 500);
     }
 });

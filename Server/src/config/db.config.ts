@@ -1,4 +1,5 @@
-import { Pool } from 'pg';
+import {Pool} from 'pg';
+import {logger} from "@/services/logger.service";
 
 export const config = {
     user: process.env.DB_USER,
@@ -20,15 +21,15 @@ export const pool = new Pool({
 });
 
 pool.on('error', (err: any) => {
-    console.error('Unexpected error on idle client', err);
+    logger.error('Unexpected error on idle client', err);
     process.exit(-1);
 });
 
 (async () => {
     try {
         await pool.query('SELECT 1');
-        console.log('Database connection successful');
+        logger.log('Database connection successful');
     } catch (error) {
-        console.error('Error executing query', error);
+        logger.critical('Error executing query', error);
     }
 })();

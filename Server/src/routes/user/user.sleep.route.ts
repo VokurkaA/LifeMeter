@@ -1,6 +1,7 @@
 import {Hono} from "hono";
 import type {AuthSession, AuthUser} from "@/types/auth.types";
 import {sleepService} from "@/services/sleep.service";
+import {logger} from "@/services/logger.service";
 
 export const userSleepRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
@@ -16,6 +17,7 @@ userSleepRouter.post("/start", async (c) => {
         return c.json(entry, 201);
     } catch (e: any) {
         const message = e?.message || "Failed to start sleep";
+        logger.error("Error starting sleep", e);
         return c.json({error: message}, 400);
     }
 });
@@ -32,6 +34,7 @@ userSleepRouter.post("/end", async (c) => {
     } catch (e: any) {
         const msg = e?.message || "Failed to end sleep";
         const status = /no active sleep entry/i.test(msg) ? 400 : 500;
+        if (status === 500) logger.error("Error ending sleep", e);
         return c.json({error: msg}, status);
     }
 });
@@ -50,6 +53,7 @@ userSleepRouter.post("/new", async (c) => {
     } catch (e: any) {
         const msg = e?.message || "Failed to create sleep entry";
         const status = /earlier than/i.test(msg) ? 400 : 500;
+        if (status === 500) logger.error("Error creating new sleep entry", e);
         return c.json({error: msg}, status);
     }
 });
@@ -62,6 +66,7 @@ userSleepRouter.get("/", async (c) => {
         return c.json(entries, 200);
     } catch (e: any) {
         const msg = e?.message || "Failed to fetch sleep entries";
+        logger.error("Error fetching sleep entries", e);
         return c.json({error: msg}, 500);
     }
 });
@@ -76,6 +81,7 @@ userSleepRouter.get("/:id", async (c) => {
     } catch (e: any) {
         const msg = e?.message || "Failed to fetch sleep entry";
         const status = /not found/i.test(msg) ? 404 : 500;
+        if (status === 500) logger.error(`Error fetching sleep entry ${sleepEntryId}`, e);
         return c.json({error: msg}, status);
     }
 });
@@ -96,6 +102,7 @@ userSleepRouter.patch("/:id", async (c) => {
     } catch (e: any) {
         const msg = e?.message || "Failed to update sleep entry";
         const status = /not found/i.test(msg) ? 404 : /earlier than/i.test(msg) ? 400 : 500;
+        if (status === 500) logger.error(`Error updating sleep entry ${sleepEntryId}`, e);
         return c.json({error: msg}, status);
     }
 });
@@ -110,6 +117,7 @@ userSleepRouter.delete("/:id", async (c) => {
     } catch (e: any) {
         const msg = e?.message || "Failed to delete sleep entry";
         const status = /not found/i.test(msg) ? 404 : 500;
+        if (status === 500) logger.error(`Error deleting sleep entry ${sleepEntryId}`, e);
         return c.json({error: msg}, status);
     }
 });
