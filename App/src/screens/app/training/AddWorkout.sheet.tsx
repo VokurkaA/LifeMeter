@@ -62,7 +62,14 @@ export default function AddWorkoutSheet({ open, onOpenChange, workout }: AddWork
 
   const [newExerciseSearch, setNewExerciseSearch] = useState<string | undefined>();
 
-  // Sync state when opening or when the passed workout changes
+  const toSafeIsoString = (dateStr?: string) => {
+    try {
+      return dateStr ? new Date(dateStr).toISOString() : new Date().toISOString();
+    } catch (e) {
+      return new Date().toISOString();
+    }
+  };
+
   useEffect(() => {
     if (open) {
       if (workout) {
@@ -130,7 +137,7 @@ export default function AddWorkoutSheet({ open, onOpenChange, workout }: AddWork
     const payload: FullWorkout = {
       id: workout?.id || '-',
       userId: user?.id || '',
-      startDate: workout?.startDate || new Date().toISOString(),
+      startDate: toSafeIsoString(workout?.startDate),
       endDate: finish ? new Date().toISOString() : undefined,
       label: [workoutName],
       notes: workoutNotes,
@@ -138,9 +145,10 @@ export default function AddWorkoutSheet({ open, onOpenChange, workout }: AddWork
         ...s,
         id: s.id || '-',
         workoutId: workout?.id || '-',
-        weightUnitId: s.weightUnitId ?? undefined,
-        styleId: s.styleId ?? undefined,
-        setTypeId: s.setTypeId ?? undefined,
+        repetitions: Math.floor(s.repetitions),
+        weightUnitId: s.weightUnitId ? String(s.weightUnitId) : undefined,
+        styleId: s.styleId ? String(s.styleId) : undefined,
+        setTypeId: s.setTypeId ? String(s.setTypeId) : undefined,
       })),
     };
 
@@ -160,8 +168,16 @@ export default function AddWorkoutSheet({ open, onOpenChange, workout }: AddWork
         toast('Workout started', 'default', 2000, 'top', false, 'narrow');
       }
       onOpenChange(false);
-    } catch (e) {
-      toast('Failed to save workout', 'destructive', 2000, 'top', false, 'narrow');
+    } catch (e: any) {
+      console.error('Save error:', e);
+      toast(
+        `Failed to save: ${e?.message || 'Unknown error'}`,
+        'destructive',
+        2000,
+        'top',
+        false,
+        'narrow',
+      );
     }
   };
 
@@ -234,7 +250,7 @@ export default function AddWorkoutSheet({ open, onOpenChange, workout }: AddWork
                     label="Repetitions"
                     keyboardType="numeric"
                     value={repetitions ? String(repetitions) : undefined}
-                    onChangeText={(val) => setRepetitions(Number(val))}
+                    onChangeText={(val) => setRepetitions(Math.floor(Number(val)))}
                   />
                   <Input
                     className="flex-1"
@@ -303,7 +319,7 @@ export default function AddWorkoutSheet({ open, onOpenChange, workout }: AddWork
                         weightUnitId: exerciseWeightUnit
                           ? String(exerciseWeightUnit.id)
                           : undefined,
-                        repetitions,
+                        repetitions: Math.floor(repetitions),
                         rir,
                         restTime: restTime,
                         notes: newExerciseNotes,
