@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS unit
+CREATE TABLE IF NOT EXISTS weight_unit
 (
     id                     SERIAL PRIMARY KEY,
     name                   TEXT UNIQUE NOT NULL,

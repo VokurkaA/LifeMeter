@@ -2,6 +2,7 @@ import {Hono} from 'hono'
 import {foodRouter} from "./food.route";
 import {userRouter} from "@/routes/user/user.route";
 import type {AuthSession, AuthUser} from "@/types/auth.types";
+import {workoutRouter} from "@/routes/workout.route";
 
 export const router = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
@@ -82,6 +83,28 @@ router.get("/routes", (c) => {
                     DELETE: [{ path: `${base}/user/sleep/:id` }],
                 },
             },
+            userWorkout: {
+                base: `${base}/user/workout`,
+                requiresAuth: true,
+                endpoints: {
+                    GET: [{ path: `${base}/user/workout` }],
+                    POST: [{ path: `${base}/user/workout` }],
+                    GET_ID: [{ path: `${base}/user/workout/:id` }],
+                    PATCH: [{ path: `${base}/user/workout/:id` }],
+                    DELETE: [{ path: `${base}/user/workout/:id` }],
+                },
+            },
+            userWorkoutTemplate: {
+                base: `${base}/user/template/workout`,
+                requiresAuth: true,
+                endpoints: {
+                    GET: [{ path: `${base}/user/template/workout` }],
+                    POST: [{ path: `${base}/user/template/workout` }],
+                    GET_ID: [{ path: `${base}/user/template/workout/:id` }],
+                    PATCH: [{ path: `${base}/user/template/workout/:id` }],
+                    DELETE: [{ path: `${base}/user/template/workout/:id` }],
+                },
+            },
         },
     } as const;
 
@@ -90,3 +113,4 @@ router.get("/routes", (c) => {
 
 router.route("/food", foodRouter);
 router.route("/user", userRouter);
+router.route('/workout', workoutRouter)

@@ -1,7 +1,7 @@
 import {pool} from "@/config/db.config.js";
-import type {PaginationProps} from "@/middleware/pagination.js";
 import type {Food, FoodDetail, FullUserFood, FullUserMeal, UserFood, UserMeal,} from "@/types/food.type";
 import {mealUpdateSchema} from "@/schemas/user.food.schema";
+import type {PaginationProps} from "@/types/pagination.types";
 
 export interface PaginatedFoodResult {
     rows: Food[];
@@ -135,7 +135,8 @@ class FoodService {
         let paramIndex = 1;
 
         for (const food of userFoods) {
-            const placeholders = [`$${paramIndex++}`, // user_meal_id
+            const placeholders = [
+                `$${paramIndex++}`, // user_meal_id
                 `$${paramIndex++}`, // food_id
                 `$${paramIndex++}`, // total_grams
                 `$${paramIndex++}`, // quantity
@@ -147,8 +148,7 @@ class FoodService {
             values.push(meal.id, food.food_id, food.total_grams, food.quantity, food.portion_id ?? null, food.description ?? null);
         }
 
-        const foodQuery = `INSERT INTO user_food (user_meal_id, food_id, total_grams, quantity, portion_id, description) VALUES
-        ${valuePlaceholders.join(', ')} 
+        const foodQuery = `INSERT INTO user_food (user_meal_id, food_id, total_grams, quantity, portion_id, description) VALUES ${valuePlaceholders.join(', ')} 
                            RETURNING id, user_meal_id, food_id, total_grams, quantity, portion_id, description`;
         const foods = await pool.query<UserFood>(foodQuery, values);
         return {meal, food: foods.rows};
@@ -223,7 +223,7 @@ class FoodService {
 
                 const insertQuery = `
                     INSERT INTO user_food (user_meal_id, food_id, total_grams, quantity, portion_id, description) VALUES
-                    ${placeholders.join(", ")}
+                        ${placeholders.join(", ")}
                 `;
                 await pool.query(insertQuery, values);
             }

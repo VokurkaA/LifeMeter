@@ -1,12 +1,9 @@
 import {Hono} from "hono";
 import type {AuthSession, AuthUser} from "@/types/auth.types";
-import {requireAuth} from "@/middleware/requireAuth";
 import {sleepService} from "@/services/sleep.service";
 import {logger} from "@/services/logger.service";
 
 export const userSleepRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
-
-userSleepRouter.use("*", requireAuth());
 
 userSleepRouter.post("/start", async (c) => {
     const body = await c.req.json().catch(() => ({} as any));

@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import HomeScreen from '@/screens/app/Home.screen';
 import NutritionScreen from '@/screens/app/nutrition/Index.screen';
-import TrainingScreen from '@/screens/app/Training.screen';
+import TrainingScreen from './screens/app/training/index.screen';
 import LoginScreen from '@/screens/onboarding/Login.screen';
 import SigninScreen from '@/screens/onboarding/Signin.screen';
 import TitleScreen from '@/screens/onboarding/Title.screen';
@@ -44,7 +44,7 @@ function Root() {
         onStateChange={() => setCurrentRouteName(navigationRef.getCurrentRoute()?.name)}
       >
         {loading ? (
-          <View className="flex-1 items-center justify-center">
+          <View className="items-center justify-center flex-1">
             <ActivityIndicator size="large" />
           </View>
         ) : !user ? (

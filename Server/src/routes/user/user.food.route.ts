@@ -1,6 +1,5 @@
 import {Hono} from "hono";
 import type {AuthSession, AuthUser} from "@/types/auth.types";
-import {requireAuth} from "@/middleware/requireAuth";
 import {pagination} from "@/middleware/pagination";
 import {foodService} from "@/services/food.service";
 import {mealBodySchema, mealUpdateSchema} from "@/schemas/user.food.schema";
@@ -8,8 +7,6 @@ import type {UserFood} from "@/types/food.type";
 import {logger} from "@/services/logger.service";
 
 export const userFoodRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
-
-userFoodRouter.use("*", requireAuth());
 
 userFoodRouter.patch('/:id', async (c) => {
     const user = c.get("user")!;
