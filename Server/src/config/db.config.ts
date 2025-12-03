@@ -1,4 +1,5 @@
-import { Pool } from 'pg';
+import {Pool} from 'pg';
+import {logger} from "@/services/logger.service";
 
 export const config = {
     user: process.env.DB_USER,
@@ -27,8 +28,8 @@ pool.on('error', (err: any) => {
 (async () => {
     try {
         await pool.query('SELECT 1');
-        console.log('Database connection successful');
+        logger.log('Database connection successful');
     } catch (error) {
-        console.error('Error executing query', error);
+        logger.error('Error executing query', error);
     }
 })();

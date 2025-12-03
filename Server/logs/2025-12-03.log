@@ -1,0 +1,19 @@
+[2025-12-03T01:54:13.722Z] LOG   Server listening on :3000
+[2025-12-03T01:54:13.731Z] LOG   App running at http://localhost:3000/api
+[2025-12-03T01:54:46.814Z] LOG   Server listening on :3000
+[2025-12-03T01:54:46.814Z] LOG   App running at http://localhost:3000/api
+[2025-12-03T01:54:58.006Z] LOG   Server listening on :3000
+[2025-12-03T01:54:58.006Z] LOG   App running at http://localhost:3000/api
+[2025-12-03T01:54:58.022Z] LOG   Database connection successful
+[2025-12-03T01:54:58.914Z] LOG   Server listening on :3000
+[2025-12-03T01:54:58.914Z] LOG   App running at http://localhost:3000/api
+[2025-12-03T01:54:58.926Z] LOG   Database connection successful
+[2025-12-03T01:55:27.321Z] LOG   App running at http://localhost:3000/api
+[2025-12-03T01:55:27.321Z] LOG   Server listening on :3000
+[2025-12-03T01:55:27.337Z] LOG   Database connection successful
+[2025-12-03T01:55:44.105Z] LOG   Server listening on :3000
+[2025-12-03T01:55:44.105Z] LOG   App running at http://localhost:3000/api
+[2025-12-03T01:55:44.122Z] LOG   Database connection successful
+[2025-12-03T01:56:17.725Z] LOG   Server listening on :3000
+[2025-12-03T01:56:17.725Z] LOG   App running at http://localhost:3000/api
+[2025-12-03T01:56:17.738Z] LOG   Database connection successful
