@@ -11,6 +11,7 @@ import type {
 } from '@/types/food.types';
 import { workoutService } from '@/services/workout.service';
 import { FullWorkout } from '@/types/workout.types';
+import { useAuth } from '@/contexts/useAuth';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -19,7 +20,15 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
   const [userMeals, setUserMeals] = useState<{ userMeal: UserMeal; userFoods: UserFood[] }[]>([]);
   const [userWorkouts, setUserWorkouts] = useState<FullWorkout[]>([]);
 
+  const { user } = useAuth();
+
   useEffect(() => {
+    if (!user) {
+      setSleepSessions([]);
+      setUserMeals([]);
+      setUserWorkouts([]);
+      return;
+    }
     let active = true;
     (async () => {
       try {
@@ -39,7 +48,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [user]);
 
   const startSleep = useCallback(async () => {
     try {

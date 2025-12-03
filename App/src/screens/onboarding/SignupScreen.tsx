@@ -7,7 +7,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, TextInput, View } from 'react-native';
 
-export default function SignUpScreen({
+export default function SignupScreen({
   navigation,
 }: NativeStackScreenProps<OnboardingStackParamList, 'SignUp'>) {
   const { signUp } = useAuth();
@@ -16,7 +16,7 @@ export default function SignUpScreen({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  // Focus refs
+
   const nameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
