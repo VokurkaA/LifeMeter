@@ -15,30 +15,6 @@ import type {
   WorkoutSet,
 } from '@/types/workout.types';
 
-function parseRestTime(input: string | number | null | undefined): number | undefined {
-  if (input === null || input === undefined) return undefined;
-  if (typeof input === 'number') return input;
-
-  const secondsMatch = input.match(/^(\d+)(?:\s*seconds?)?$/);
-  if (secondsMatch) return parseInt(secondsMatch[1], 10);
-
-  const hmsMatch = input.match(/^(?:(\d+):)?(\d{1,2}):(\d{2})$/);
-  if (hmsMatch) {
-    const h = parseInt(hmsMatch[1] || '0', 10);
-    const m = parseInt(hmsMatch[2], 10);
-    const s = parseInt(hmsMatch[3], 10);
-    return h * 3600 + m * 60 + s;
-  }
-
-  const parsed = parseFloat(input);
-  return isNaN(parsed) ? undefined : parsed;
-}
-
-function formatRestTime(seconds: number | undefined): string | null {
-  if (seconds === undefined || seconds === null) return null;
-  return `${Math.floor(seconds)} seconds`;
-}
-
 class WorkoutService {
   private baseUrl =
     (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/workout';
@@ -186,10 +162,10 @@ class WorkoutService {
             exerciseId: s.exercise_id,
             seqNumber: s.seq_number,
             weight: s.weight ?? undefined,
-            weightUnitId: s.weight_unit_id ?? undefined,
+            weightUnitId: s.weight_unit_id ? String(s.weight_unit_id) : undefined,
             repetitions: s.repetitions,
             rir: s.rir ?? undefined,
-            restTime: parseRestTime(s.rest_time),
+            restTime: s.rest_time ?? undefined,
             notes: s.notes ?? undefined,
             styleId: s.style_id ?? undefined,
             setTypeId: s.set_type_id ?? undefined,
@@ -215,7 +191,7 @@ class WorkoutService {
             seqNumber: s.seq_number,
             repetitions: s.repetitions ?? undefined,
             rir: s.rir ?? undefined,
-            restTime: parseRestTime(s.rest_time),
+            restTime: s.rest_time ?? undefined,
             notes: s.notes ?? undefined,
             styleId: s.style_id ?? undefined,
             setTypeId: s.set_type_id ?? undefined,
@@ -228,10 +204,10 @@ class WorkoutService {
     exercise_id: set.exerciseId,
     seq_number: set.seqNumber,
     weight: set.weight ?? null,
-    weight_unit_id: set.weightUnitId ?? null,
+    weight_unit_id: set.weightUnitId ? Number(set.weightUnitId) : null,
     repetitions: set.repetitions,
     rir: set.rir ?? null,
-    rest_time: formatRestTime(set.restTime),
+    rest_time: set.restTime ?? null,
     notes: set.notes ?? null,
     style_id: set.styleId ?? null,
     set_type_id: set.setTypeId ?? null,
@@ -242,7 +218,7 @@ class WorkoutService {
     seq_number: set.seqNumber,
     repetitions: set.repetitions ?? null,
     rir: set.rir ?? null,
-    rest_time: formatRestTime(set.restTime),
+    rest_time: set.restTime ?? null,
     notes: set.notes ?? null,
     style_id: set.styleId ?? null,
     set_type_id: set.setTypeId ?? null,

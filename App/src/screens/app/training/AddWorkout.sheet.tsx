@@ -22,6 +22,12 @@ import { Time } from '@/lib/Time';
 import { useToast } from '@/components/ui/Toast';
 
 export default function AddWorkoutSheet() {
+  const parseRestTimeForDisplay = (val: string | undefined): number | undefined => {
+    if (!val) return undefined;
+    const num = parseFloat(val);
+    return isNaN(num) ? undefined : num;
+  };
+
   const { createUserWorkout } = useStore();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -237,7 +243,7 @@ export default function AddWorkoutSheet() {
                           : undefined,
                         repetitions,
                         rir,
-                        restTime: restTime ? Number(restTime) : undefined,
+                        restTime: restTime,
                         notes: newExerciseNotes,
                         styleId: setStyle ? String(setStyle.id) : undefined,
                         setTypeId: setType ? String(setType.id) : undefined,
@@ -259,6 +265,7 @@ export default function AddWorkoutSheet() {
           {workoutSets ? (
             workoutSets.map((s) => {
               const ex = exercises.find((e) => e.id === s.exerciseId);
+              const restTimeVal = parseRestTimeForDisplay(s.restTime);
 
               return (
                 <Card key={s.seqNumber}>
@@ -276,8 +283,8 @@ export default function AddWorkoutSheet() {
                     )}
                     <Text>Reps: {s.repetitions}</Text>
                     {s.rir && <Text>RIR: {s.rir}</Text>}
-                    {s.restTime && (
-                      <Text>Rest: {Time.formatDurationMs(s.restTime * 1000, 'mm:ss')}</Text>
+                    {restTimeVal !== undefined && (
+                      <Text>Rest: {Time.formatDurationMs(restTimeVal * 1000, 'mm:ss')}</Text>
                     )}
                     {s.notes && <Text>Notes: {s.notes}</Text>}
                   </CardContent>

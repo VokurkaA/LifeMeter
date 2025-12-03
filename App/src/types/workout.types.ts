@@ -7,11 +7,12 @@ export interface WorkoutSet {
   weightUnitId?: string;
   repetitions: number;
   rir?: number;
-  restTime?: number;
+  restTime?: string;
   notes?: string;
   styleId?: string;
   setTypeId?: string;
 }
+
 export interface TemplateWorkoutSet {
   id: string;
   workoutTemplateId: string;
@@ -19,7 +20,7 @@ export interface TemplateWorkoutSet {
   seqNumber: number;
   repetitions?: number;
   rir?: number;
-  restTime?: number;
+  restTime?: string;
   notes?: string;
   styleId?: string;
   setTypeId?: string;
@@ -90,7 +91,7 @@ export type ServerWorkoutSet = {
   exercise_id: string;
   seq_number: number;
   weight?: number | null;
-  weight_unit_id?: string | null;
+  weight_unit_id?: number | null;
   repetitions: number;
   rir?: number | null;
   rest_time?: string | null;
