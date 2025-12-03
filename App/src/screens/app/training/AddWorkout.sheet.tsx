@@ -1,4 +1,4 @@
-import { BottomSheet, BottomSheetContent, BottomSheetTrigger } from '@/components/ui/BottomSheet';
+import { BottomSheet, BottomSheetContent } from '@/components/ui/BottomSheet';
 import { Button } from '@/components/ui/Button';
 import { useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/Input';
@@ -21,17 +21,22 @@ import { useAuth } from '@/contexts/useAuth';
 import { Time } from '@/lib/Time';
 import { useToast } from '@/components/ui/Toast';
 
-export default function AddWorkoutSheet() {
+interface AddWorkoutSheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  workout?: FullWorkout | null;
+}
+
+export default function AddWorkoutSheet({ open, onOpenChange, workout }: AddWorkoutSheetProps) {
   const parseRestTimeForDisplay = (val: string | undefined): number | undefined => {
     if (!val) return undefined;
     const num = parseFloat(val);
     return isNaN(num) ? undefined : num;
   };
 
-  const { createUserWorkout } = useStore();
+  const { createUserWorkout, editUserWorkout } = useStore();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [weightOptions, setWeightOptions] = useState<WeightUnit[]>([]);
@@ -56,6 +61,22 @@ export default function AddWorkoutSheet() {
   const [setType, setSetType] = useState<SetType | undefined>();
 
   const [newExerciseSearch, setNewExerciseSearch] = useState<string | undefined>();
+
+  // Sync state when opening or when the passed workout changes
+  useEffect(() => {
+    if (open) {
+      if (workout) {
+        setWorkoutName(workout.label?.[0] || '');
+        setWorkoutNotes(workout.notes || '');
+        setWorkoutSets(workout.sets || []);
+      } else {
+        setWorkoutName('');
+        setWorkoutNotes('');
+        setWorkoutSets([]);
+        resetNewExercise();
+      }
+    }
+  }, [open, workout]);
 
   const filteredExerciseOptions = useMemo(() => {
     return newExerciseSearch
@@ -100,11 +121,52 @@ export default function AddWorkoutSheet() {
     setNewExerciseSearch(undefined);
   };
 
+  const handleSave = async (finish: boolean = false) => {
+    if (!workoutName.trim()) {
+      toast('Please input workout name', 'destructive', 2000, 'top', false, 'narrow');
+      return;
+    }
+
+    const payload: FullWorkout = {
+      id: workout?.id || '-',
+      userId: user?.id || '',
+      startDate: workout?.startDate || new Date().toISOString(),
+      endDate: finish ? new Date().toISOString() : undefined,
+      label: [workoutName],
+      notes: workoutNotes,
+      sets: workoutSets.map((s) => ({
+        ...s,
+        id: s.id || '-',
+        workoutId: workout?.id || '-',
+        weightUnitId: s.weightUnitId ?? undefined,
+        styleId: s.styleId ?? undefined,
+        setTypeId: s.setTypeId ?? undefined,
+      })),
+    };
+
+    try {
+      if (workout?.id) {
+        await editUserWorkout(workout.id, payload);
+        toast(
+          finish ? 'Workout finished' : 'Workout saved',
+          'default',
+          2000,
+          'top',
+          false,
+          'narrow',
+        );
+      } else {
+        await createUserWorkout(payload);
+        toast('Workout started', 'default', 2000, 'top', false, 'narrow');
+      }
+      onOpenChange(false);
+    } catch (e) {
+      toast('Failed to save workout', 'destructive', 2000, 'top', false, 'narrow');
+    }
+  };
+
   return (
-    <BottomSheet open={open} onOpenChange={setOpen}>
-      <BottomSheetTrigger asChild>
-        <Button label="Add a workout" onPress={() => setOpen(true)} />
-      </BottomSheetTrigger>
+    <BottomSheet open={open} onOpenChange={onOpenChange}>
       <BottomSheetContent minHeightRatio={0.9}>
         <ScrollView className="">
           <Input
@@ -234,7 +296,7 @@ export default function AddWorkoutSheet() {
                       ...val,
                       {
                         id: '-',
-                        workoutId: '-',
+                        workoutId: workout?.id || '-',
                         exerciseId: selectedExercise.id,
                         seqNumber: val.length,
                         weight: exerciseWeight,
@@ -262,13 +324,13 @@ export default function AddWorkoutSheet() {
               onPress={() => setIsCreatingNewSet(true)}
             />
           )}
-          {workoutSets ? (
-            workoutSets.map((s) => {
+          {workoutSets.length > 0 ? (
+            workoutSets.map((s, idx) => {
               const ex = exercises.find((e) => e.id === s.exerciseId);
               const restTimeVal = parseRestTimeForDisplay(s.restTime);
 
               return (
-                <Card key={s.seqNumber}>
+                <Card key={idx} className="mb-2">
                   <CardHeader>
                     <CardTitle>{ex ? `${ex.variant} ${ex.type}` : ''}</CardTitle>
                   </CardHeader>
@@ -288,7 +350,6 @@ export default function AddWorkoutSheet() {
                     )}
                     {s.notes && <Text>Notes: {s.notes}</Text>}
                   </CardContent>
-
                   <CardFooter>
                     <Text className="text-muted-foreground">set {s.seqNumber}</Text>
                   </CardFooter>
@@ -296,41 +357,22 @@ export default function AddWorkoutSheet() {
               );
             })
           ) : (
-            <Text>No sets added</Text>
+            <Text className="my-4 text-center text-muted-foreground">No sets added</Text>
           )}
-          <Button
-            className="mt-6"
-            label="Save workout"
-            onPress={async () => {
-              if (!workoutName.trim()) {
-                toast('Please input workout name', 'destructive', 2000, 'top', false, 'narrow');
-                return;
-              }
-              const payload: FullWorkout = {
-                id: '-',
-                userId: user?.id || '',
-                startDate: new Date().toISOString(),
-                endDate: undefined,
-                label: [workoutName],
-                notes: workoutNotes,
-                sets: workoutSets.map((s) => ({
-                  ...s,
-                  id: s.id || '-',
-                  workoutId: '-',
-                  weightUnitId: s.weightUnitId ?? undefined,
-                  styleId: s.styleId ?? undefined,
-                  setTypeId: s.setTypeId ?? undefined,
-                })),
-              };
-              await createUserWorkout(payload);
 
-              setWorkoutName('');
-              setWorkoutNotes('');
-              setWorkoutSets([]);
-              resetNewExercise();
-              setOpen(false);
-            }}
-          />
+          <View className="mt-6 flex gap-2">
+            <Button
+              label={workout ? 'Save changes' : 'Start workout'}
+              onPress={() => handleSave(false)}
+            />
+            {workout && (
+              <Button
+                label="Finish Workout"
+                variant="destructive"
+                onPress={() => handleSave(true)}
+              />
+            )}
+          </View>
         </ScrollView>
       </BottomSheetContent>
     </BottomSheet>

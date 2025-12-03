@@ -164,8 +164,10 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     try {
       const created = await workoutService.addUserWorkout(data);
       setUserWorkouts((prev) => [created, ...prev]);
+      return created; // Return the created workout
     } catch (e) {
       console.error('Failed to create user workout', e);
+      return undefined;
     }
   }, []);
 
@@ -173,8 +175,10 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     try {
       const updated = await workoutService.editUserWorkout(id, data);
       setUserWorkouts((prev) => prev.map((w) => (w.id === id ? updated : w)));
+      return updated; // Return the updated workout
     } catch (e) {
       console.error('Failed to edit user workout', e);
+      return undefined;
     }
   }, []);
 

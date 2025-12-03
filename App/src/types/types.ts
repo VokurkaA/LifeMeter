@@ -69,8 +69,8 @@ export interface StoreContextType {
 
   userWorkouts: FullWorkout[];
   refreshUserWorkouts: () => Promise<void>;
-  createUserWorkout: (data: FullWorkout) => Promise<void>;
-  editUserWorkout: (id: string, data: FullWorkout) => Promise<void>;
+  createUserWorkout: (data: FullWorkout) => Promise<FullWorkout | undefined>;
+  editUserWorkout: (id: string, data: FullWorkout) => Promise<FullWorkout | undefined>;
   deleteUserWorkout: (id: string) => Promise<void>;
 }
 
