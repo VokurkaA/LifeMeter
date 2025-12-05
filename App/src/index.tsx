@@ -27,17 +27,76 @@ import { navigationRef } from '@/navigation/navigation';
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 
-function Root() {
-  const { isDark } = useTheme();
-  const { user, loading } = useAuth();
-
-  const [currentRouteName, setCurrentRouteName] = useState<string | undefined>(undefined);
+function MainLayout({ currentRouteName }: { currentRouteName?: string }) {
+  const { user } = useAuth();
 
   const atHome = currentRouteName === 'Home';
   const atTitle = currentRouteName === 'Title';
   const enableExitConfirm = (!user && atTitle) || (!!user && atHome);
 
   useExitConfirmBackHandler(enableExitConfirm);
+
+  if (!user) {
+    return (
+      <OnboardingStack.Navigator
+        initialRouteName="Title"
+        screenOptions={{
+          contentStyle: { backgroundColor: 'transparent' },
+          headerShown: false,
+        }}
+      >
+        <OnboardingStack.Screen
+          name="Title"
+          component={TitleScreen}
+          options={{ gestureEnabled: false }}
+        />
+        <OnboardingStack.Screen name="Login" component={LoginScreen} />
+        <OnboardingStack.Screen name="SignUp" component={SignupScreen} />
+      </OnboardingStack.Navigator>
+    );
+  }
+
+  return (
+    <View className="flex-1">
+      <Header />
+      <AppStack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerShown: false,
+          animation: 'none',
+        }}
+        screenListeners={({ navigation }) => ({
+          beforeRemove: (e) => {
+            if (e.data.action.type !== 'GO_BACK') return;
+            const state = navigation.getState();
+            const current = state.routes[state.index]?.name;
+            if (current !== 'Home') {
+              e.preventDefault();
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'Home' }],
+                }),
+              );
+            }
+          },
+        })}
+      >
+        <AppStack.Screen name="Home" component={HomeScreen} />
+        <AppStack.Screen name="Training" component={TrainingScreen} />
+        <AppStack.Screen name="Nutrition" component={NutritionScreen} />
+        <AppStack.Screen name="Sleep" component={SleepScreen} />
+      </AppStack.Navigator>
+
+      <Footer current={currentRouteName} />
+    </View>
+  );
+}
+
+function Root() {
+  const { isDark } = useTheme();
+  const { loading } = useAuth();
+  const [currentRouteName, setCurrentRouteName] = useState<string | undefined>(undefined);
 
   if (loading) {
     return (
@@ -48,64 +107,14 @@ function Root() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right', 'bottom']}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <NavigationContainer
         ref={navigationRef}
         onStateChange={() => setCurrentRouteName(navigationRef.getCurrentRoute()?.name)}
       >
-        {!user ? (
-          <OnboardingStack.Navigator
-            initialRouteName="Title"
-            screenOptions={{
-              contentStyle: { backgroundColor: 'transparent' },
-              headerShown: false,
-            }}
-          >
-            <OnboardingStack.Screen
-              name="Title"
-              component={TitleScreen}
-              options={{ gestureEnabled: false }}
-            />
-            <OnboardingStack.Screen name="Login" component={LoginScreen} />
-            <OnboardingStack.Screen name="SignUp" component={SignupScreen} />
-          </OnboardingStack.Navigator>
-        ) : (
-          <View className="flex-1">
-            <Header />
-            <AppStack.Navigator
-              initialRouteName="Home"
-              screenOptions={{
-                headerShown: false,
-                animation: 'none',
-              }}
-              screenListeners={({ navigation }) => ({
-                beforeRemove: (e) => {
-                  if (e.data.action.type !== 'GO_BACK') return;
-                  const state = navigation.getState();
-                  const current = state.routes[state.index]?.name;
-                  if (current !== 'Home') {
-                    e.preventDefault();
-                    navigation.dispatch(
-                      CommonActions.reset({
-                        index: 0,
-                        routes: [{ name: 'Home' }],
-                      }),
-                    );
-                  }
-                },
-              })}
-            >
-              <AppStack.Screen name="Home" component={HomeScreen} />
-              <AppStack.Screen name="Training" component={TrainingScreen} />
-              <AppStack.Screen name="Nutrition" component={NutritionScreen} />
-              <AppStack.Screen name="Sleep" component={SleepScreen} />
-            </AppStack.Navigator>
-
-            <Footer current={currentRouteName} />
-          </View>
-        )}
+        <MainLayout currentRouteName={currentRouteName} />
       </NavigationContainer>
     </SafeAreaView>
   );

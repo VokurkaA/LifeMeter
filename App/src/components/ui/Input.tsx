@@ -1,12 +1,11 @@
 import { Eye, EyeOff } from 'lucide-react-native';
-import { forwardRef, useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
-import { Text } from './Text';
-
+import { Text } from './Text'; // Ensure path matches your project
 import { cn } from '@/lib/utils';
+import { InputKind, typeDefaults } from '@/types/input.types'; // Ensure path matches
 
 type ReturnFocus = (() => void) | { current: TextInput | null };
-type InputKind = 'name' | 'email' | 'password' | 'confirmPassword' | 'date' | 'time' | 'datetime';
 
 export interface InputProps extends React.ComponentPropsWithoutRef<typeof TextInput> {
   label?: string;
@@ -14,108 +13,8 @@ export interface InputProps extends React.ComponentPropsWithoutRef<typeof TextIn
   inputClasses?: string;
   onReturnFocus?: ReturnFocus;
   type?: InputKind;
+  rightIcon?: React.ReactNode;
 }
-
-const typeDefaults: Record<InputKind, Partial<React.ComponentPropsWithoutRef<typeof TextInput>>> = {
-  name: {
-    autoCapitalize: 'words',
-    autoCorrect: false,
-    spellCheck: false,
-    textContentType: 'name',
-    autoComplete: 'name',
-    inputMode: 'text',
-    returnKeyType: 'next',
-    enablesReturnKeyAutomatically: true,
-    importantForAutofill: 'yes',
-    accessibilityLabel: 'Name',
-    blurOnSubmit: false,
-  },
-  email: {
-    autoCapitalize: 'none',
-    autoCorrect: false,
-    spellCheck: false,
-    keyboardType: 'email-address',
-    inputMode: 'email',
-    textContentType: 'emailAddress',
-    autoComplete: 'email',
-    returnKeyType: 'next',
-    enablesReturnKeyAutomatically: true,
-    importantForAutofill: 'yes',
-    accessibilityLabel: 'Email',
-    blurOnSubmit: false,
-  },
-  password: {
-    secureTextEntry: true,
-    autoCapitalize: 'none',
-    autoCorrect: false,
-    spellCheck: false,
-    textContentType: 'newPassword',
-    autoComplete: 'new-password',
-    inputMode: 'text',
-    returnKeyType: 'next',
-    enablesReturnKeyAutomatically: true,
-    importantForAutofill: 'yes',
-    accessibilityLabel: 'Password',
-    passwordRules: 'minlength: 6;',
-    blurOnSubmit: false,
-  },
-  confirmPassword: {
-    secureTextEntry: true,
-    autoCapitalize: 'none',
-    autoCorrect: false,
-    spellCheck: false,
-    textContentType: 'newPassword',
-    autoComplete: 'new-password',
-    inputMode: 'text',
-    returnKeyType: 'done',
-    enablesReturnKeyAutomatically: true,
-    importantForAutofill: 'yes',
-    accessibilityLabel: 'Confirm password',
-    passwordRules: 'minlength: 6;',
-  },
-  date: {
-    autoCapitalize: 'none',
-    autoCorrect: false,
-    spellCheck: false,
-    keyboardType: 'numbers-and-punctuation',
-    textContentType: 'none',
-    autoComplete: 'off',
-    returnKeyType: 'next',
-    enablesReturnKeyAutomatically: true,
-    importantForAutofill: 'yes',
-    accessibilityLabel: 'Date',
-    placeholder: 'YYYY-MM-DD',
-    blurOnSubmit: false,
-  },
-  time: {
-    autoCapitalize: 'none',
-    autoCorrect: false,
-    spellCheck: false,
-    keyboardType: 'numbers-and-punctuation',
-    textContentType: 'none',
-    autoComplete: 'off',
-    returnKeyType: 'next',
-    enablesReturnKeyAutomatically: true,
-    importantForAutofill: 'yes',
-    accessibilityLabel: 'Time',
-    placeholder: 'HH:mm',
-    blurOnSubmit: false,
-  },
-  datetime: {
-    autoCapitalize: 'none',
-    autoCorrect: false,
-    spellCheck: false,
-    keyboardType: 'numbers-and-punctuation',
-    textContentType: 'none',
-    autoComplete: 'off',
-    returnKeyType: 'next',
-    enablesReturnKeyAutomatically: true,
-    importantForAutofill: 'yes',
-    accessibilityLabel: 'Date and time',
-    placeholder: 'YYYY-MM-DD HH:mm',
-    blurOnSubmit: false,
-  },
-};
 
 const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
   (
@@ -128,6 +27,7 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
       onSubmitEditing,
       type,
       accessibilityLabel,
+      rightIcon,
       ...props
     },
     ref,
@@ -145,15 +45,16 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
     };
 
     const defaults = type ? typeDefaults[type] : {};
-    // Merge defaults with incoming props; incoming props win.
     const mergedProps = { ...defaults, ...props } as React.ComponentPropsWithoutRef<
       typeof TextInput
     >;
     const mergedA11yLabel =
       accessibilityLabel ?? label ?? (defaults.accessibilityLabel as string | undefined);
 
+    const hasRightElement = isPasswordType || !!rightIcon;
+
     return (
-      <View className={cn('flex flex-col gap-1.5', className)}>
+      <View className="flex flex-col gap-1.5">
         {label && <Text className={cn('text-input-label', labelClasses)}>{label}</Text>}
 
         <View className="relative">
@@ -162,7 +63,8 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
             className={cn(
               inputClasses,
               'rounded-lg border border-input-border px-4 py-2.5 text-input-foreground placeholder:text-input-placeholder',
-              isPasswordType && 'pr-10',
+              hasRightElement && 'pr-10',
+              className,
             )}
             {...mergedProps}
             accessibilityLabel={mergedA11yLabel}
@@ -172,7 +74,7 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
             }
           />
 
-          {isPasswordType && (
+          {isPasswordType ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
@@ -186,6 +88,10 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
                 <Eye size={20} color="#8E8E93" />
               )}
             </Pressable>
+          ) : (
+            rightIcon && (
+              <View className="absolute bottom-0 right-3 top-0 justify-center">{rightIcon}</View>
+            )
           )}
         </View>
       </View>
