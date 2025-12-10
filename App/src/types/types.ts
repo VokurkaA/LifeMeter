@@ -98,6 +98,7 @@ export type OnboardingStackParamList = {
   Title: undefined;
   SignUp: undefined;
   Login: undefined;
+  Preferences: undefined;
 };
 
 export type AppStackParamList = {

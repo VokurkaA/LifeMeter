@@ -70,7 +70,7 @@ export default function SignupScreen({
         </View>
         <Button
           className="mt-4"
-          label="Sign up"
+          label="Create an account"
           variant="default"
           onPress={() => {
             signUp(email, password, name);
