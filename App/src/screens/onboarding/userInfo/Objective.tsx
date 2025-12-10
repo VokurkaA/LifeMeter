@@ -5,11 +5,14 @@ import { useToast } from '@/components/ui/Toast';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { BodyStatsData } from '@/screens/onboarding/userInfo/BodyStats';
-import { ActivityLevel } from '@/types/user.profile.types';
+import { useStore } from '@/contexts/useStore';
+import { calculateAge } from '@/lib/utils';
+import mifflinStJeor from '@/lib/bmr';
 
 // Activity Level
 export interface ObjectiveData {
   goalWeight: number;
+  calculatedBmr: number;
 }
 
 interface BodyStatsProps {
@@ -17,20 +20,58 @@ interface BodyStatsProps {
   units: { weightUnit: 'kg' | 'lbs' | undefined };
   userSex: 'male' | 'female';
   userBirthDate: string;
-  userBodyStats: BodyStatsData; // weight, weight unit, height, height unit
-  userActivityLevel: ActivityLevel;
+  userBodyStats: BodyStatsData;
+  userActivityLevelId: number;
 }
 
-export function Objective({ onSubmit, units }: BodyStatsProps) {
+export function Objective({
+  onSubmit,
+  units,
+  userSex,
+  userBirthDate,
+  userBodyStats,
+  userActivityLevelId,
+}: BodyStatsProps) {
   const { toast } = useToast();
+  const { weightUnits, lengthUnits } = useStore();
   const [goalWeight, setGoalWeight] = useState<number | null>(null);
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>(units.weightUnit || 'kg');
   const [goalWeightBy, setGoalWeightBy] = useState<string | undefined>();
 
+  const baseMetabolicRate = (
+    sex: 'male' | 'female',
+    bodyStats: BodyStatsData,
+    birthDate: string,
+    weightUnits: { name: string; kgConversionFactor: number }[],
+    lengthUnits: { name: string; meterConversionFactor: number }[],
+  ) => {
+    const age = calculateAge(birthDate);
+
+    const weightUnitEntry = weightUnits.find(
+      (u) => u.name.toLowerCase() === bodyStats.weightUnit.toLowerCase(),
+    );
+    const heightUnitEntry = lengthUnits.find(
+      (u) => u.name.toLowerCase() === bodyStats.heightUnit.toLowerCase(),
+    );
+
+    const weightKg = bodyStats.weight * weightUnitEntry!.kgConversionFactor;
+    const heightCm = bodyStats.height * heightUnitEntry!.meterConversionFactor * 100;
+
+    return Math.round(mifflinStJeor(sex, weightKg, heightCm, age));
+  };
+
   const validateAndSubmit = () => {
     if (!goalWeight) {
       toast('Please enter a goal weight', 'destructive', 1000, 'top', false, 'narrow');
+      return;
     }
+
+    const bmr = baseMetabolicRate(userSex, userBodyStats, userBirthDate, weightUnits, lengthUnits);
+
+    onSubmit({
+      goalWeight: goalWeight,
+      calculatedBmr: bmr,
+    });
   };
 
   const handleDateChange = (text: string) => {
@@ -45,14 +86,6 @@ export function Objective({ onSubmit, units }: BodyStatsProps) {
     setGoalWeightBy(formatted);
   };
 
-  const weightKg = (height: number, heightUnit: 'cm' | 'ft') => {
-
-  };
-  const baseMetabolicRate = (
-    sex: 'male' | 'female',
-    bodyStats: BodyStatsData,
-    birthDate: string,
-  ) => {};
   return (
     <View className="flex gap-4">
       <View className="flex-row gap-2">

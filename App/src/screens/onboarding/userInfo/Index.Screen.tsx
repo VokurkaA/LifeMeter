@@ -47,6 +47,10 @@ export function PreferencesScreen() {
         setObjective(data);
         setActiveStep(4);
       }}
+      userSex={basicInfo!.sex}
+      userBirthDate={basicInfo!.birthDateIso}
+      userBodyStats={bodyStats!}
+      userActivityLevelId={lifestyle!.activityLevelId}
       key={3}
     />,
     <View key={1}>
