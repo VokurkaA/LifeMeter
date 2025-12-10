@@ -13,7 +13,7 @@ import {
   WeightUnit,
 } from '@/types/user.profile.types';
 
-const APP_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000') + '/api/user/data';
 
 interface ServerUserProfile {
   user_id: string;
@@ -23,6 +23,7 @@ interface ServerUserProfile {
   current_bmr_calories: number | null;
   default_weight_unit_id: number | null;
   default_length_unit_id: number | null;
+  finished_onboarding: boolean;
 }
 
 interface ServerUserGoal {
@@ -56,6 +57,7 @@ const mapProfileToClient = (server: ServerUserProfile): UserProfile => ({
   currentBmrCalories: server.current_bmr_calories,
   defaultWeightUnitId: server.default_weight_unit_id,
   defaultLengthUnitId: server.default_length_unit_id,
+  finishedOnboarding: server.finished_onboarding,
 });
 
 const mapGoalToClient = (server: ServerUserGoal): UserGoal => ({
@@ -88,10 +90,9 @@ const mapHeightLogToClient = (server: any): UserHeightLog => ({
   heightCm: server.height_cm,
 });
 
-
 export const userProfileService = {
   getActivityLevels: async (): Promise<ActivityLevel[]> => {
-    const data = await request<any[]>(`${APP_URL}/api/user/reference/activity-levels`, {
+    const data = await request<any[]>(`${BASE_URL}/reference/activity-levels`, {
       method: 'GET',
     });
     return data.map((item) => ({
@@ -104,7 +105,7 @@ export const userProfileService = {
   },
 
   getLengthUnits: async (): Promise<LengthUnit[]> => {
-    const data = await request<any[]>(`${APP_URL}/api/user/reference/length-units`, {
+    const data = await request<any[]>(`${BASE_URL}/reference/length-units`, {
       method: 'GET',
     });
     return data.map((item) => ({
@@ -115,7 +116,7 @@ export const userProfileService = {
   },
 
   getWeightUnits: async (): Promise<WeightUnit[]> => {
-    const data = await request<any[]>(`${APP_URL}/api/user/reference/weight-units`, {
+    const data = await request<any[]>(`${BASE_URL}/reference/weight-units`, {
       method: 'GET',
     });
     return data.map((item) => ({
@@ -126,8 +127,7 @@ export const userProfileService = {
   },
 
   getProfile: async (): Promise<UserProfile | null> => {
-    const data = await request<ServerUserProfile>(`${APP_URL}/api/user/profile`, { method: 'GET' });
-    // Handle empty object if user has no profile yet
+    const data = await request<ServerUserProfile>(`${BASE_URL}/profile`, { method: 'GET' });
     if (!data || Object.keys(data).length === 0) return null;
     return mapProfileToClient(data);
   },
@@ -142,7 +142,7 @@ export const userProfileService = {
       default_length_unit_id: data.defaultLengthUnitId,
     };
 
-    const response = await request<ServerUserProfile>(`${APP_URL}/api/user/profile`, {
+    const response = await request<ServerUserProfile>(`${BASE_URL}/profile`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -151,7 +151,7 @@ export const userProfileService = {
   },
 
   getGoals: async (): Promise<UserGoal | null> => {
-    const data = await request<ServerUserGoal>(`${APP_URL}/api/user/goals`, { method: 'GET' });
+    const data = await request<ServerUserGoal>(`${BASE_URL}/goals`, { method: 'GET' });
     if (!data || Object.keys(data).length === 0) return null;
     return mapGoalToClient(data);
   },
@@ -168,7 +168,7 @@ export const userProfileService = {
       target_weight_date: data.targetWeightDate,
     };
 
-    const response = await request<ServerUserGoal>(`${APP_URL}/api/user/goals`, {
+    const response = await request<ServerUserGoal>(`${BASE_URL}/goals`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -186,7 +186,7 @@ export const userProfileService = {
       bone_mass_percentage: data.boneMassPercentage,
     };
 
-    const response = await request<ServerWeightLog>(`${APP_URL}/api/user/log/weight`, {
+    const response = await request<ServerWeightLog>(`${BASE_URL}/log/weight`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -195,12 +195,9 @@ export const userProfileService = {
   },
 
   getLatestWeight: async (): Promise<UserWeightLog | null> => {
-    const response = await request<ServerWeightLog | null>(
-      `${APP_URL}/api/user/log/weight/latest`,
-      {
-        method: 'GET',
-      },
-    );
+    const response = await request<ServerWeightLog | null>(`${BASE_URL}/log/weight/latest`, {
+      method: 'GET',
+    });
     if (!response) return null;
     return mapWeightLogToClient(response);
   },
@@ -211,7 +208,7 @@ export const userProfileService = {
       height_cm: data.heightCm,
     };
 
-    const response = await request<any>(`${APP_URL}/api/user/log/height`, {
+    const response = await request<any>(`${BASE_URL}/log/height`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

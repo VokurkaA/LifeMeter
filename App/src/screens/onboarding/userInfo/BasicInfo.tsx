@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Time } from '@/lib/Time';
+import { useToast } from '@/components/ui/Toast';
 
 export interface BasicInfoData {
   preferredUnit: 'metric' | 'imperial' | 'mixed';
@@ -18,6 +19,7 @@ type preferredWeightUnitType = 'kg' | 'lbs' | undefined;
 type userSexType = 'male' | 'female' | undefined;
 
 export function BasicInfo({ onSubmit }: { onSubmit: (data: BasicInfoData) => void }) {
+  const { toast } = useToast();
   const [preferredUnit, setPreferredUnit] = useState<preferredUnitType>();
   const [preferredLengthUnit, setPreferredLengthUnit] = useState<preferredLengthUnitType>();
   const [preferredWeightUnit, setPreferredWeightUnit] = useState<preferredWeightUnitType>();
@@ -61,17 +63,17 @@ export function BasicInfo({ onSubmit }: { onSubmit: (data: BasicInfoData) => voi
     }
 
     if (!validTime) {
-      Alert.alert('Invalid Date', 'Please enter a valid date of birth (DD/MM/YYYY)');
+      toast('Invalid Date', 'destructive', 1000, 'top', false, 'narrow');
       return;
     }
 
     if (!preferredUnit || !userSex) {
-      Alert.alert('Missing Info', 'Please fill in all fields.');
+      toast('Missing info', 'destructive', 1000, 'top', false, 'narrow');
       return;
     }
 
     if (preferredUnit === 'mixed' && (!preferredLengthUnit || !preferredWeightUnit)) {
-      Alert.alert('Missing Info', 'Please fill in all fields.');
+      toast('Missing info', 'destructive', 1000, 'top', false, 'narrow');
       return;
     }
 
@@ -87,74 +89,73 @@ export function BasicInfo({ onSubmit }: { onSubmit: (data: BasicInfoData) => voi
   };
 
   return (
-    <View>
-      <View className="mt-8 flex-1">
-        <Select
-          title="Preferred unit"
-          placeholder="Select your preferred unit type"
-          variants={[
-            { label: 'Metric (kg / cm)', value: 'metric' },
-            { label: 'Imperial (lbs / ft)', value: 'imperial' },
-            { label: 'Mixed', value: 'mixed' },
-          ]}
-          value={preferredUnit}
-          onChange={(val) => {
-            setPreferredUnit(val as preferredUnitType);
-            if (val !== 'mixed') {
-              setPreferredLengthUnit(undefined);
-              setPreferredWeightUnit(undefined);
-            }
-          }}
-        />
+    <View className="mt-8 flex gap-4">
+      <Select
+        title="Preferred unit"
+        placeholder="Select your preferred unit type"
+        variants={[
+          { label: 'Metric (kg / cm)', value: 'metric' },
+          { label: 'Imperial (lbs / ft)', value: 'imperial' },
+          { label: 'Mixed', value: 'mixed' },
+        ]}
+        value={preferredUnit}
+        onChange={(val) => {
+          setPreferredUnit(val as preferredUnitType);
+          if (val !== 'mixed') {
+            setPreferredLengthUnit(undefined);
+            setPreferredWeightUnit(undefined);
+          }
+        }}
+      />
 
-        {preferredUnit === 'mixed' && (
-          <View className="mt-4 space-y-4">
-            <Select
-              title="Length unit"
-              placeholder="Select length unit"
-              variants={[
-                { label: 'Centimeters (cm)', value: 'cm' },
-                { label: 'Feet (ft)', value: 'ft' },
-              ]}
-              value={preferredLengthUnit}
-              onChange={(val) => setPreferredLengthUnit(val as preferredLengthUnitType)}
-            />
+      {preferredUnit === 'mixed' && (
+        <View className="flex gap-4">
+          <Select
+            title="Length unit"
+            placeholder="Select length unit"
+            variants={[
+              { label: 'Centimeters (cm)', value: 'cm' },
+              { label: 'Feet (ft)', value: 'ft' },
+            ]}
+            value={preferredLengthUnit}
+            onChange={(val) => setPreferredLengthUnit(val as preferredLengthUnitType)}
+          />
 
-            <Select
-              title="Weight unit"
-              placeholder="Select weight unit"
-              variants={[
-                { label: 'Kilograms (kg)', value: 'kg' },
-                { label: 'Pounds (lbs)', value: 'lbs' },
-              ]}
-              value={preferredWeightUnit}
-              onChange={(val) => setPreferredWeightUnit(val as preferredWeightUnitType)}
-            />
-          </View>
-        )}
+          <Select
+            title="Weight unit"
+            placeholder="Select weight unit"
+            variants={[
+              { label: 'Kilograms (kg)', value: 'kg' },
+              { label: 'Pounds (lbs)', value: 'lbs' },
+            ]}
+            value={preferredWeightUnit}
+            onChange={(val) => setPreferredWeightUnit(val as preferredWeightUnitType)}
+          />
+        </View>
+      )}
 
-        <Input
-          label="Date of birth"
-          placeholder="DD/MM/YYYY"
-          value={dobInput}
-          onChangeText={handleDateChange}
-          keyboardType="numeric"
-          maxLength={10}
-        />
+      <Input
+        label="Date of birth"
+        placeholder="DD/MM/YYYY"
+        value={dobInput}
+        onChangeText={handleDateChange}
+        keyboardType="numeric"
+        maxLength={10}
+      />
 
-        <Select
-          title="Sex"
-          placeholder="Select your sex"
-          variants={[
-            { label: 'Male', value: 'male' },
-            { label: 'Female', value: 'female' },
-          ]}
-          value={userSex}
-          onChange={(val) => setUserSex(val as userSexType)}
-        />
-      </View>
+      <Select
+        title="Sex"
+        placeholder="Select your sex"
+        variants={[
+          { label: 'Male', value: 'male' },
+          { label: 'Female', value: 'female' },
+        ]}
+        value={userSex}
+        onChange={(val) => setUserSex(val as userSexType)}
+      />
+      {/*</View>*/}
 
-      <Button className="mt-auto" label="Next" variant="link" onPress={validateAndSubmit} />
+      <Button className="mt-auto" label="Next" variant="default" onPress={validateAndSubmit} />
     </View>
   );
 }

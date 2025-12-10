@@ -19,10 +19,11 @@ CREATE TABLE IF NOT EXISTS user_profile
     user_id                 TEXT PRIMARY KEY NOT NULL REFERENCES "user" (id) ON DELETE CASCADE,
     date_of_birth           DATE,
     sex                     CHAR(1),
-    current_activity_factor NUMERIC(4, 3) DEFAULT 1.200,
+    current_activity_factor NUMERIC(4, 3)             DEFAULT 1.200,
     current_bmr_calories    INT,
     default_weight_unit_id  INT              REFERENCES weight_unit (id) ON DELETE SET NULL,
-    default_length_unit_id  INT              REFERENCES length_unit (id) ON DELETE SET NULL
+    default_length_unit_id  INT              REFERENCES length_unit (id) ON DELETE SET NULL,
+    finished_onboarding     BOOLEAN          NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS user_goal

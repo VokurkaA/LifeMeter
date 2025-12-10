@@ -18,17 +18,20 @@ import SignupScreen from '@/screens/onboarding/SignupScreen';
 import TitleScreen from '@/screens/onboarding/Title.screen';
 import { ToastProvider } from '@/components/ui/Toast';
 import { AuthProvider, useAuth } from '@/contexts/useAuth';
-import { StoreProvider } from '@/contexts/useStore';
+import { StoreProvider, useStore } from '@/contexts/useStore';
 import { ThemeProvider, useTheme } from '@/lib/theme-provider';
 import { useExitConfirmBackHandler } from '@/navigation/back-handler';
 import { AppStackParamList, OnboardingStackParamList } from '@/types/types';
 import { navigationRef } from '@/navigation/navigation';
+import { PreferencesScreen } from '@/screens/onboarding/userInfo/Index.Screen';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 
 function MainLayout({ currentRouteName }: { currentRouteName?: string }) {
   const { user } = useAuth();
+  const { userProfile } = useStore();
 
   const atHome = currentRouteName === 'Home';
   const atTitle = currentRouteName === 'Title';
@@ -54,6 +57,10 @@ function MainLayout({ currentRouteName }: { currentRouteName?: string }) {
         <OnboardingStack.Screen name="SignUp" component={SignupScreen} />
       </OnboardingStack.Navigator>
     );
+  }
+
+  if (!userProfile?.finishedOnboarding) {
+    return <PreferencesScreen />;
   }
 
   return (
@@ -122,17 +129,19 @@ function Root() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <AuthProvider>
-          <StoreProvider>
-            <ToastProvider>
-              <Root />
-            </ToastProvider>
-          </StoreProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <StoreProvider>
+              <ToastProvider>
+                <Root />
+              </ToastProvider>
+            </StoreProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

@@ -43,7 +43,8 @@ class UserProfileService {
                               current_activity_factor,
                               current_bmr_calories,
                               default_weight_unit_id,
-                              default_length_unit_id
+                              default_length_unit_id,
+                              finished_onboarding
                        FROM user_profile
                        WHERE user_id = $1`;
         const result = await pool.query<UserProfile>(query, [userId]);

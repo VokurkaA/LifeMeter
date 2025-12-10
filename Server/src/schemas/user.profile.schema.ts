@@ -1,4 +1,4 @@
-import { z } from "zod";
+import {z} from "zod";
 
 export const updateProfileSchema = z.object({
     date_of_birth: z.string().date().optional().nullable(),
@@ -7,6 +7,7 @@ export const updateProfileSchema = z.object({
     current_bmr_calories: z.number().int().positive().optional().nullable(),
     default_weight_unit_id: z.number().int().optional().nullable(),
     default_length_unit_id: z.number().int().optional().nullable(),
+    finished_onboarding: z.boolean(),
 });
 
 export const updateGoalSchema = z.object({
@@ -30,6 +31,5 @@ export const logWeightSchema = z.object({
 });
 
 export const logHeightSchema = z.object({
-    measured_at: z.string().datetime(),
-    height_cm: z.number().positive(),
+    measured_at: z.string().datetime(), height_cm: z.number().positive(),
 });

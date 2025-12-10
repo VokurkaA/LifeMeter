@@ -26,6 +26,7 @@ export interface UserProfile {
   currentBmrCalories: number | null;
   defaultWeightUnitId: number | null;
   defaultLengthUnitId: number | null;
+  finishedOnboarding: boolean;
 }
 
 export interface UserGoal {
@@ -65,6 +66,7 @@ export interface UpdateProfileInput {
   currentBmrCalories?: number | null;
   defaultWeightUnitId?: number | null;
   defaultLengthUnitId?: number | null;
+  finishedOnboarding?: boolean;
 }
 
 export interface UpdateGoalInput {

@@ -56,6 +56,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
             sleepService.getAllSleepSessions(),
             foodService.getAllUserMeals(),
             workoutService.getAllUserWorkouts(),
+
             userProfileService.getProfile(),
             userProfileService.getGoals(),
             userProfileService.getLatestWeight(),
