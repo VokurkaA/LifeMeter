@@ -2,16 +2,23 @@ import { SleepSession, StoreContextType } from '@/types/types';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { sleepService } from '@/services/sleep.service';
 import { foodService } from '@/services/food.service';
-import type {
-  CreateMealInput,
-  FullUserMeal,
-  UpdateMealInput,
-  UserFood,
-  UserMeal,
-} from '@/types/food.types';
+import { userProfileService } from '@/services/user.profile.service';
+import type { CreateMealInput, UpdateMealInput, UserFood, UserMeal } from '@/types/food.types';
 import { workoutService } from '@/services/workout.service';
 import { FullWorkout } from '@/types/workout.types';
 import { useAuth } from '@/contexts/useAuth';
+import {
+  ActivityLevel,
+  LengthUnit,
+  LogHeightInput,
+  LogWeightInput,
+  UpdateGoalInput,
+  UpdateProfileInput,
+  UserGoal,
+  UserProfile,
+  UserWeightLog,
+  WeightUnit,
+} from '@/types/user.profile.types';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -20,6 +27,14 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
   const [userMeals, setUserMeals] = useState<{ userMeal: UserMeal; userFoods: UserFood[] }[]>([]);
   const [userWorkouts, setUserWorkouts] = useState<FullWorkout[]>([]);
 
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userGoals, setUserGoals] = useState<UserGoal | null>(null);
+  const [latestWeight, setLatestWeight] = useState<UserWeightLog | null>(null);
+
+  const [activityLevels, setActivityLevels] = useState<ActivityLevel[]>([]);
+  const [lengthUnits, setLengthUnits] = useState<LengthUnit[]>([]);
+  const [weightUnits, setWeightUnits] = useState<WeightUnit[]>([]);
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -27,20 +42,40 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       setSleepSessions([]);
       setUserMeals([]);
       setUserWorkouts([]);
+      setUserProfile(null);
+      setUserGoals(null);
+      setLatestWeight(null);
       return;
     }
+
     let active = true;
     (async () => {
       try {
-        const [sessions, meals, workouts] = await Promise.all([
-          sleepService.getAllSleepSessions(),
-          foodService.getAllUserMeals(),
-          workoutService.getAllUserWorkouts(),
-        ]);
+        const [sessions, meals, workouts, profile, goals, weight, levels, lUnits, wUnits] =
+          await Promise.all([
+            sleepService.getAllSleepSessions(),
+            foodService.getAllUserMeals(),
+            workoutService.getAllUserWorkouts(),
+            userProfileService.getProfile(),
+            userProfileService.getGoals(),
+            userProfileService.getLatestWeight(),
+            userProfileService.getActivityLevels(),
+            userProfileService.getLengthUnits(),
+            userProfileService.getWeightUnits(),
+          ]);
+
         if (!active) return;
+
         setSleepSessions(sessions);
         setUserMeals(meals);
         setUserWorkouts(workouts);
+
+        setUserProfile(profile);
+        setUserGoals(goals);
+        setLatestWeight(weight);
+        setActivityLevels(levels);
+        setLengthUnits(lUnits);
+        setWeightUnits(wUnits);
       } catch (e) {
         console.error('Failed to initialize store', e);
       }
@@ -82,11 +117,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
   const editSleepSession = useCallback(
     async (
       id: string,
-      patch: {
-        startAt?: string;
-        endAt?: string | null;
-        note?: string | null;
-      },
+      patch: { startAt?: string; endAt?: string | null; note?: string | null },
     ) => {
       try {
         const updated = await sleepService.editSleepSession(id, patch);
@@ -113,7 +144,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
 
   const refreshSleepSessions = useCallback(async () => {
     try {
-      const sessions: SleepSession[] = await sleepService.getAllSleepSessions();
+      const sessions = await sleepService.getAllSleepSessions();
       setSleepSessions(sessions);
     } catch (e) {
       console.error('Failed to refresh sleep sessions', e);
@@ -131,7 +162,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
 
   const createUserMeal = useCallback(async (data: CreateMealInput) => {
     try {
-      const created = await foodService.addUserMeal(data); // { meal, food }
+      const created = await foodService.addUserMeal(data);
       setUserMeals((prev) => [{ userMeal: created.meal, userFoods: created.food }, ...prev]);
     } catch (e) {
       console.error('Failed to create user meal', e);
@@ -140,7 +171,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
 
   const editUserMeal = useCallback(async (id: string, data: UpdateMealInput) => {
     try {
-      const updated: FullUserMeal = await foodService.editUserMeal(id, data);
+      const updated = await foodService.editUserMeal(id, data);
       const summary = {
         userMeal: updated.userMeal,
         userFoods: updated.userFoods.map((uf) => uf.userFood),
@@ -173,7 +204,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     try {
       const created = await workoutService.addUserWorkout(data);
       setUserWorkouts((prev) => [created, ...prev]);
-      return created; // Return the created workout
+      return created;
     } catch (e) {
       console.error('Failed to create user workout', e);
       return undefined;
@@ -184,7 +215,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     try {
       const updated = await workoutService.editUserWorkout(id, data);
       setUserWorkouts((prev) => prev.map((w) => (w.id === id ? updated : w)));
-      return updated; // Return the updated workout
+      return updated;
     } catch (e) {
       console.error('Failed to edit user workout', e);
       return undefined;
@@ -197,6 +228,58 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       setUserWorkouts((prev) => prev.filter((w) => w.id !== id));
     } catch (e) {
       console.error('Failed to delete user workout', e);
+    }
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      const profile = await userProfileService.getProfile();
+      const goals = await userProfileService.getGoals();
+      const weight = await userProfileService.getLatestWeight();
+      setUserProfile(profile);
+      setUserGoals(goals);
+      setLatestWeight(weight);
+    } catch (e) {
+      console.error('Failed to refresh profile', e);
+    }
+  }, []);
+
+  const updateProfile = useCallback(async (data: UpdateProfileInput) => {
+    try {
+      const updated = await userProfileService.updateProfile(data);
+      setUserProfile(updated);
+    } catch (e) {
+      console.error('Failed to update profile', e);
+      throw e;
+    }
+  }, []);
+
+  const updateGoals = useCallback(async (data: UpdateGoalInput) => {
+    try {
+      const updated = await userProfileService.updateGoals(data);
+      setUserGoals(updated);
+    } catch (e) {
+      console.error('Failed to update goals', e);
+      throw e;
+    }
+  }, []);
+
+  const logWeight = useCallback(async (data: LogWeightInput) => {
+    try {
+      const log = await userProfileService.logWeight(data);
+      setLatestWeight(log);
+    } catch (e) {
+      console.error('Failed to log weight', e);
+      throw e;
+    }
+  }, []);
+
+  const logHeight = useCallback(async (data: LogHeightInput) => {
+    try {
+      await userProfileService.logHeight(data);
+    } catch (e) {
+      console.error('Failed to log height', e);
+      throw e;
     }
   }, []);
 
@@ -225,9 +308,21 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       createUserWorkout,
       editUserWorkout,
       deleteUserWorkout,
+
+      // Profile & Goals
+      userProfile,
+      userGoals,
+      activityLevels,
+      lengthUnits,
+      weightUnits,
+      latestWeight,
+      refreshProfile,
+      updateProfile,
+      updateGoals,
+      logWeight,
+      logHeight,
     }),
     [
-      // Sleep deps
       sleepSessions,
       startSleep,
       endSleep,
@@ -236,18 +331,27 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       deleteSleepSession,
       ongoingSleepSession,
       refreshSleepSessions,
-      // Meals deps
       userMeals,
       refreshUserMeals,
       createUserMeal,
       editUserMeal,
       deleteUserMeal,
-      // Workouts deps
       userWorkouts,
       refreshUserWorkouts,
       createUserWorkout,
       editUserWorkout,
       deleteUserWorkout,
+      userProfile,
+      userGoals,
+      activityLevels,
+      lengthUnits,
+      weightUnits,
+      latestWeight,
+      refreshProfile,
+      updateProfile,
+      updateGoals,
+      logWeight,
+      logHeight,
     ],
   );
 
