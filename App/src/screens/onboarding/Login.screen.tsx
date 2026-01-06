@@ -6,17 +6,37 @@ import { OnboardingStackParamList } from '@/types/types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, TextInput, View } from 'react-native';
+import { useToast } from '@/components/ui/Toast'; //
 
 export default function LoginScreen({
   navigation,
 }: NativeStackScreenProps<OnboardingStackParamList, 'Login'>) {
   const { signIn } = useAuth();
+  const { toast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      toast('Please enter both email and password', 'destructive');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await signIn(email, password);
+    } catch (error: any) {
+      console.error(error);
+      toast(error.message || 'Login failed', 'destructive');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View className="flex-1 bg-background p-8">
@@ -45,11 +65,10 @@ export default function LoginScreen({
           />
           <Button
             className="mt-4"
-            label="Log in"
+            label={isLoading ? 'Logging in...' : 'Log in'}
             variant="default"
-            onPress={() => {
-              signIn(email, password);
-            }}
+            disabled={isLoading}
+            onPress={handleLogin}
           />
         </View>
       </KeyboardAvoidingView>

@@ -80,7 +80,7 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
               accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
               onPress={() => setShowPassword((prev) => !prev)}
               hitSlop={8}
-              className="absolute bottom-0 right-3 top-0 justify-center"
+              className="absolute top-0 bottom-0 justify-center right-3"
             >
               {showPassword ? (
                 <EyeOff size={20} color="#8E8E93" />
@@ -90,7 +90,7 @@ const Input = forwardRef<React.ElementRef<typeof TextInput>, InputProps>(
             </Pressable>
           ) : (
             rightIcon && (
-              <View className="absolute bottom-0 right-3 top-0 justify-center">{rightIcon}</View>
+              <View className="absolute top-0 bottom-0 justify-center right-3">{rightIcon}</View>
             )
           )}
         </View>

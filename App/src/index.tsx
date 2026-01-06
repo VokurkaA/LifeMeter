@@ -1,4 +1,3 @@
-import 'react-native-gesture-handler';
 import '@/styles/global.css';
 import React, { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -107,7 +106,7 @@ function Root() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-background">
+      <View className="items-center justify-center flex-1 bg-background">
         <ActivityIndicator size="large" />
       </View>
     );

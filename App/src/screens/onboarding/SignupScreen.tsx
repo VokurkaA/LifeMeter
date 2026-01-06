@@ -6,21 +6,46 @@ import { OnboardingStackParamList } from '@/types/types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, TextInput, View } from 'react-native';
+import { useToast } from '@/components/ui/Toast';
 
 export default function SignupScreen({
   navigation,
 }: NativeStackScreenProps<OnboardingStackParamList, 'SignUp'>) {
   const { signUp } = useAuth();
+  const { toast } = useToast();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const nameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
+
+  const handleSignUp = async () => {
+    if (!email || !password || !name) {
+      toast('Please fill in all fields', 'destructive');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast('Passwords do not match', 'destructive');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await signUp(email, password, name);
+    } catch (error: any) {
+      console.error(error);
+      toast(error.message || 'Sign up failed', 'destructive');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View className="flex-1 bg-background p-8">
@@ -70,11 +95,10 @@ export default function SignupScreen({
         </View>
         <Button
           className="mt-4"
-          label="Create an account"
+          label={isLoading ? 'Creating account...' : 'Create an account'}
           variant="default"
-          onPress={() => {
-            signUp(email, password, name);
-          }}
+          disabled={isLoading}
+          onPress={handleSignUp}
         />
       </KeyboardAvoidingView>
       <Button
