@@ -4,6 +4,7 @@ import type {AuthSession, AuthUser} from "@/types/auth.types";
 import {userSleepRouter} from "@/routes/user/user.sleep.route";
 import {userFoodRouter} from "@/routes/user/user.food.route";
 import {userWorkoutRouter} from "@/routes/user/user.workout.route";
+import {userProfileRouter} from "@/routes/user/user.profile.route";
 
 export const userRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
@@ -14,6 +15,8 @@ userRouter.route("/sleep", userSleepRouter)
 userRouter.route("/food", userFoodRouter)
 
 userRouter.route("/workout", userWorkoutRouter)
+
+userRouter.route("/data", userProfileRouter)
 
 userRouter.get("/", async (c) => {
     return c.json(c.get('user'));
