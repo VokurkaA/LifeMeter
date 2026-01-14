@@ -3,12 +3,12 @@ import {SleepSession} from "@/types/types";
 import {useState} from "react";
 import {BottomSheetScrollView} from "@gorhom/bottom-sheet";
 import DateTimePicker from "@/components/DateTimePicker";
-import {PlusIcon, X} from "lucide-react-native";
-import { BottomSheetTextInput } from "@/components/BottomSheetTextInput";
-import {formatTime, timeToDate} from "@/lib/dateTime";
+import {X} from "lucide-react-native";
+import {BottomSheetTextInput} from "@/components/BottomSheetTextInput";
+import {formatDate, formatTime, timeToDate} from "@/lib/dateTime";
 
 interface NewSleepScreenProps {
-    ongoingSleepSession: SleepSession | null,
+    session: SleepSession | null,
     createSleepSession: (startAt: string, endAt?: string, note?: string) => Promise<void>,
     editSleepSession: (id: string, patch: {
         startAt?: string
@@ -19,7 +19,7 @@ interface NewSleepScreenProps {
 }
 
 export const NewSleepScreen = ({
-                                   ongoingSleepSession, createSleepSession, editSleepSession, closeSheet
+                                   session, createSleepSession, editSleepSession, closeSheet
                                }: NewSleepScreenProps) => {
     const {toast} = useToast();
 
@@ -27,21 +27,81 @@ export const NewSleepScreen = ({
     const placeholderColor = useThemeColor("field-placeholder")
     const foregroundColor = useThemeColor("foreground");
 
-    const isNew = !ongoingSleepSession;
+    const isEditing = !!session;
 
-    const [startAt, setStartAt] = useState<Date | undefined>(timeToDate(ongoingSleepSession?.startAt) ?? new Date());
-    const [endAt, setEndAt] = useState<Date | undefined>(timeToDate(ongoingSleepSession?.endAt));
-    const [note, setNote] = useState<string | undefined>(ongoingSleepSession?.note ?? undefined);
+    const [date, setDate] = useState<Date>(timeToDate(session?.startAt) ?? new Date());
+    const [startAt, setStartAt] = useState<Date | undefined>(timeToDate(session?.startAt) ?? new Date());
+    const [endAt, setEndAt] = useState<Date | undefined>(timeToDate(session?.endAt));
+    const [note, setNote] = useState<string | undefined>(session?.note ?? undefined);
 
-    const isDisabled = !startAt || startAt.toISOString() === endAt?.toISOString() || (!isNew && ongoingSleepSession && startAt?.toISOString() === ongoingSleepSession.startAt && (endAt?.toISOString() ?? null) === (ongoingSleepSession.endAt ?? null) && (note ?? null) === (ongoingSleepSession.note ?? null));
+    // Only invalid if end is strictly before start (including potential next day)
+    // Actually, with the auto-adjusting logic, it should rarely be invalid.
+    const isTimeInvalid = startAt && endAt && startAt.getTime() > endAt.getTime();
+
+    const isDisabled = !startAt || startAt.toISOString() === endAt?.toISOString() || isTimeInvalid || (isEditing && session && startAt.toISOString() === session.startAt && (endAt?.toISOString() ?? null) === (session.endAt ?? null) && (note ?? null) === (session.note ?? null));
+
+    const handleDateChange = (newDate?: Date) => {
+        if (!newDate) return;
+        setDate(newDate);
+
+        if (startAt) {
+            const newStart = new Date(startAt);
+            newStart.setFullYear(newDate.getFullYear(), newDate.getMonth(), newDate.getDate());
+            setStartAt(newStart);
+        }
+
+        if (endAt) {
+            const newEnd = new Date(endAt);
+            // We want to keep the relative difference (same day or next day)
+            const diffDays = startAt ? Math.floor((endAt.getTime() - startAt.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+            newEnd.setFullYear(newDate.getFullYear(), newDate.getMonth(), newDate.getDate() + diffDays);
+            setEndAt(newEnd);
+        }
+    };
+
+    const handleStartAtChange = (newTime?: Date) => {
+        if (!newTime) return;
+        const newStart = new Date(date);
+        newStart.setHours(newTime.getHours(), newTime.getMinutes(), 0, 0);
+        setStartAt(newStart);
+
+        if (endAt) {
+            // Re-validate endAt relative to new startAt
+            const newEnd = new Date(newStart);
+            newEnd.setHours(endAt.getHours(), endAt.getMinutes(), 0, 0);
+            if (newEnd <= newStart) {
+                newEnd.setDate(newEnd.getDate() + 1);
+            }
+            setEndAt(newEnd);
+        }
+    };
+
+    const handleEndAtChange = (newTime?: Date) => {
+        if (!newTime) return;
+        const newEnd = new Date(startAt ?? date);
+        newEnd.setHours(newTime.getHours(), newTime.getMinutes(), 0, 0);
+
+        if (startAt && newEnd <= startAt) {
+            newEnd.setDate(newEnd.getDate() + 1);
+        }
+        setEndAt(newEnd);
+    };
 
     return (<BottomSheetScrollView
         contentContainerClassName="gap-4 pb-24"
         keyboardShouldPersistTaps="handled"
     >
         <DateTimePicker
+            value={date}
+            onValueChange={handleDateChange}
+            label="Day"
+            placeholder="Select day"
+            mode="date"
+            formatValue={formatDate}
+        />
+        <DateTimePicker
             value={startAt}
-            onValueChange={setStartAt}
+            onValueChange={handleStartAtChange}
             label="Slept from"
             placeholder="Select start time"
             mode="time"
@@ -51,11 +111,13 @@ export const NewSleepScreen = ({
         />
         <DateTimePicker
             value={endAt}
-            onValueChange={setEndAt}
+            onValueChange={handleEndAtChange}
             label="Slept to"
             placeholder="Select end time"
             mode="time"
             formatValue={formatTime}
+            isInvalid={isTimeInvalid}
+            errorMessage="Wake up time must be after bed time"
             rightIcon={endAt && <X color={mutedColor} size={18}/>}
             rightIconOnPress={() => setEndAt(undefined)}
         />
@@ -76,37 +138,36 @@ export const NewSleepScreen = ({
                 const startAtStr = startAt?.toISOString();
                 const endAtStr = endAt?.toISOString();
                 if (!startAtStr) return;
-                if (isNew) {
-                    try {
+
+                try {
+                    if (!isEditing) {
                         await createSleepSession(startAtStr, endAtStr, note);
                         toast.show({
                             variant: "success",
                             label: 'Sleep entry added',
                             description: 'Your sleep session has been saved.',
-                            icon: <PlusIcon color={foregroundColor} size={20}/>,
-                            actionLabel: 'Close',
-                            onActionPress: ({hide}) => hide(),
                         });
-                        if (endAt) closeSheet();
-                    } catch (error) {
+                    } else if (session) {
+                        await editSleepSession(session.id, {
+                            startAt: startAtStr, endAt: endAtStr, note
+                        });
                         toast.show({
-                            variant: 'danger',
-                            label: 'Failed to add sleep entry',
-                            description: error instanceof Error ? error.message : 'An error occurred.',
-                            actionLabel: 'Close',
-                            onActionPress: ({hide}) => hide(),
+                            variant: "success",
+                            label: 'Sleep entry updated',
+                            description: 'Your sleep session has been updated.',
                         });
                     }
-                    if (endAt) closeSheet();
-                } else {
-                    await editSleepSession(ongoingSleepSession?.id, {
-                        startAt: startAtStr, endAt: endAtStr, note
-                    });
                     closeSheet();
+                } catch (error) {
+                    toast.show({
+                        variant: 'danger',
+                        label: `Failed to ${isEditing ? 'update' : 'add'} sleep entry`,
+                        description: error instanceof Error ? error.message : 'An error occurred.',
+                    });
                 }
             }}
         >
-            <Button.Label>{isNew ? endAt ? "Add" : "Start" : "Edit"}</Button.Label>
+            <Button.Label>{isEditing ? "Update" : endAt ? "Add" : "Start"}</Button.Label>
         </Button>
     </BottomSheetScrollView>)
 }

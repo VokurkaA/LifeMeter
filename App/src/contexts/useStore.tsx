@@ -112,6 +112,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       setSleepSessions((prev) => [created, ...prev]);
     } catch (e) {
       console.error('Failed to create sleep session', e);
+      throw e;
     }
   }, []);
 
@@ -125,6 +126,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
         setSleepSessions((prev) => prev.map((s) => (s.id === id ? updated : s)));
       } catch (e) {
         console.error('Failed to edit sleep session', e);
+        throw e;
       }
     },
     [],
@@ -136,6 +138,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       setSleepSessions((prev) => prev.filter((s) => s.id !== id));
     } catch (e) {
       console.error('Failed to delete sleep session', e);
+      throw e;
     }
   }, []);
 

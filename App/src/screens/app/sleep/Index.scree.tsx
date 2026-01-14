@@ -40,7 +40,7 @@ export default function SleepScreen() {
                         <BottomSheet.Title className="text-2xl font-semibold">Sleep</BottomSheet.Title>
                         <BottomSheet.Description>Add a sleep entry</BottomSheet.Description>
                         <NewSleepScreen
-                            ongoingSleepSession={ongoingSleepSession}
+                            session={ongoingSleepSession}
                             createSleepSession={createSleepSession}
                             editSleepSession={editSleepSession}
                             closeSheet={() => setIsSheetOpen(false)}
