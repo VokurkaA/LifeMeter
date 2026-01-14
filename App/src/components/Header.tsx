@@ -1,83 +1,68 @@
-import { useAuth } from '@/contexts/useAuth';
-import { TouchableOpacity, View } from 'react-native';
-import HamburgerIcon from './icons/hamburger';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/Avatar';
-import { Button } from './ui/Button';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/Popover';
-import { H1, Text } from './ui/Text';
-import { ThemeToggle } from './theme-toggle';
-import { Time } from '@/lib/Time';
+import {Avatar, Button, Dialog, Surface, useThemeColor} from "heroui-native";
+import {useAuth} from "@/contexts/useAuth";
+import {TextAlignStart, UserIcon} from "lucide-react-native";
+import {Pressable, Text, View} from 'react-native'
+import { useStore } from "@/contexts/useStore";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
-  const { user, signOut } = useAuth();
-  return (
-    <View className="flex h-20 flex-row items-center justify-between rounded-b-3xl bg-card px-4 py-4">
-      <View className="flex flex-row items-center">
-        <View className="mr-4 flex aspect-square h-12 items-center justify-center rounded-full bg-secondary">
-          <HamburgerIcon variant="left-shrink" />
+    const {user, session, signOut} = useAuth(); 
+    const {userProfile, userGoals} = useStore(); 
+    const mutedColor = useThemeColor('muted');
+
+    return (<Surface className='flex flex-row items-center justify-between w-full px-6 rounded-t-none'>
+        <View className='flex flex-row items-center gap-4'>
+            <Pressable className='flex items-center justify-center h-10 rounded-full aspect-square bg-field'>
+                <TextAlignStart color={mutedColor} size={24}/>
+            </Pressable>
+            <Text className="text-3xl font-bold text-foreground">LifeMeter</Text>
         </View>
-        <H1>LifeMeter</H1>
-      </View>
-      <Popover>
-        <PopoverTrigger asChild>
-          <TouchableOpacity className="ml-auto">
-            <Avatar>
-              <AvatarImage source={{ uri: user?.image || undefined }} />
-              <AvatarFallback textClassname="font-bold color-foreground">
-                {user?.name?.[0]?.toUpperCase() ?? '?'}
-              </AvatarFallback>
-            </Avatar>
-          </TouchableOpacity>
-        </PopoverTrigger>
-
-        <PopoverContent className="w-72" align="end" side="bottom" sideOffset={8}>
-          <ThemeToggle />
-          <View className="mb-4 flex flex-row items-center gap-2">
-            <Avatar>
-              <AvatarImage source={{ uri: user?.image || undefined }} />
-              <AvatarFallback textClassname="font-bold color-foreground">
-                {user?.name?.[0]?.toUpperCase() ?? '?'}
-              </AvatarFallback>
-            </Avatar>
-            <View className="flex-1">
-              <Text className="font-semibold">{user?.name || 'User'}</Text>
-              <Text className="text-sm text-muted-foreground">{user?.email || 'No email'}</Text>
-            </View>
-          </View>
-          <View className="mb-4 gap-1">
-            <View className="flex flex-row justify-between">
-              <Text className="text-sm text-muted-foreground">ID</Text>
-              <Text className="text-sm">{user?.id || 'N/A'}</Text>
-            </View>
-            <View className="flex flex-row justify-between">
-              <Text className="text-sm text-muted-foreground">Email verified</Text>
-              <Text className="text-sm">{user?.emailVerified ? 'Yes' : 'No'}</Text>
-            </View>
-            <View className="flex flex-row justify-between">
-              <Text className="text-sm text-muted-foreground">Banned</Text>
-              <Text className="text-sm">{user?.banned ? 'Yes' : 'No'}</Text>
-            </View>
-            <View className="flex flex-row justify-between">
-              <Text className="text-sm text-muted-foreground">Ban expires</Text>
-              <Text className="text-sm">{user?.banExpires || 'N/A'}</Text>
-            </View>
-            <View className="flex flex-row justify-between">
-              <Text className="text-sm text-muted-foreground">Ban reason</Text>
-              <Text className="text-sm">{user?.banReason || 'N/A'}</Text>
-            </View>
-            <View className="flex flex-row justify-between">
-              <Text className="text-sm text-muted-foreground">Created at</Text>
-              <Text className="text-sm">{Time.format(user?.createdAt, 'D.M.YYYY')}</Text>
-            </View>
-            <View className="flex flex-row justify-between">
-              <Text className="text-sm text-muted-foreground">Last login method</Text>
-              <Text className="text-sm">{user?.lastLoginMethod || 'Unknown'}</Text>
-            </View>
-          </View>
-
-          <Button label="Log out" variant="destructive" className="rounded-md" onPress={signOut} />
-        </PopoverContent>
-      </Popover>
-    </View>
-  );
+        <Dialog>
+            <Dialog.Trigger>
+                <Avatar animation="disable-all" size="sm" alt={user?.name ?? "User avatar"}>
+                    {user?.image && (<Avatar.Image source={{uri: user.image}}/>)}
+                    <Avatar.Fallback>
+                        <UserIcon color={mutedColor} size={24}/>
+                    </Avatar.Fallback>
+                </Avatar>
+            </Dialog.Trigger>
+            <Dialog.Portal>
+                <Dialog.Overlay/>
+                <Dialog.Content>
+                    <View>
+                        <Text className="mt-2 font-bold text-foreground">User</Text>
+                        {user && Object.entries(user).map(([key, value]) => (
+                            <View key={key} className="flex flex-row items-center justify-between pb-px">
+                                <Text className="flex-1 text-xs text-muted">{key}</Text>
+                                <Text className="text-xs flex-2 text-muted">{String(value)}</Text>
+                            </View>
+                        ))}
+                        <Text className="mt-2 font-bold text-foreground">Session</Text>
+                        {session && Object.entries(session).map(([key, value]) => (
+                            <View key={key} className="flex flex-row items-center justify-between pb-px">
+                                <Text className="flex-1 text-xs text-muted">{key}</Text>
+                                <Text className="text-xs flex-2 text-muted">{String(value)}</Text>
+                            </View>
+                        ))}
+                        <Text className="mt-2 font-bold text-foreground">UserProfile</Text>
+                        {userProfile && Object.entries(userProfile).map(([key, value]) => (
+                            <View key={key} className="flex flex-row items-center justify-between pb-px">
+                                <Text className="flex-1 text-xs text-muted">{key}</Text>
+                                <Text className="text-xs flex-2 text-muted">{String(value)}</Text>
+                            </View>
+                        ))}
+                        <Text className="mt-2 font-bold text-foreground">UserGoal</Text>
+                        {userGoals && Object.entries(userGoals).map(([key, value]) => (
+                            <View key={key} className="flex flex-row items-center justify-between pb-px">
+                                <Text className="flex-1 text-xs text-muted">{key}</Text>
+                                <Text className="text-xs flex-2 text-muted">{String(value)}</Text>
+                            </View>
+                        ))}
+                    </View>
+                    <Button onPress={signOut} size="sm" variant="danger-soft" className="my-4">Sign out</Button>
+                    <ThemeToggle />
+                </Dialog.Content>
+            </Dialog.Portal>
+        </Dialog>
+    </Surface>)
 }

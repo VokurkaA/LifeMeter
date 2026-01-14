@@ -1,5 +1,18 @@
-import { CreateMealInput, UpdateMealInput, UserFood, UserMeal } from './food.types';
-import { FullWorkout } from './workout.types';
+import { CreateMealInput, UpdateMealInput, UserFood, UserMeal } from '@/types/food.types';
+import { FullWorkout } from '@/types/workout.types';
+import {
+  ActivityLevel,
+  LengthUnit,
+  LogHeightInput,
+  LogWeightInput,
+  UpdateGoalInput,
+  UpdateProfileInput,
+  UserGoal,
+  UserProfile,
+  UserWeightLog,
+  WeightUnit,
+} from '@/types/user.profile.types';
+import React from 'react';
 
 export interface User {
   id: string;
@@ -72,6 +85,18 @@ export interface StoreContextType {
   createUserWorkout: (data: FullWorkout) => Promise<FullWorkout | undefined>;
   editUserWorkout: (id: string, data: FullWorkout) => Promise<FullWorkout | undefined>;
   deleteUserWorkout: (id: string) => Promise<void>;
+  userProfile: UserProfile | null;
+  userGoals: UserGoal | null;
+  activityLevels: ActivityLevel[];
+  lengthUnits: LengthUnit[];
+  weightUnits: WeightUnit[];
+  latestWeight: UserWeightLog | null;
+
+  refreshProfile: () => Promise<void>;
+  updateProfile: (data: UpdateProfileInput) => Promise<void>;
+  updateGoals: (data: UpdateGoalInput) => Promise<void>;
+  logWeight: (data: LogWeightInput) => Promise<void>;
+  logHeight: (data: LogHeightInput) => Promise<void>;
 }
 
 export interface NavigationItem {
@@ -97,7 +122,8 @@ export type Theme = 'light' | 'dark' | 'system';
 export type OnboardingStackParamList = {
   Title: undefined;
   SignUp: undefined;
-  Login: undefined;
+  SignIn: undefined;
+  Preferences: undefined;
 };
 
 export type AppStackParamList = {
@@ -105,6 +131,7 @@ export type AppStackParamList = {
   Training: undefined;
   Nutrition: undefined;
   Sleep: undefined;
+  SleepList: undefined;
 };
 
 export type SleepSession = {

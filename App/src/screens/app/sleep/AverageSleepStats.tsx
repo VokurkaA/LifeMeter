@@ -1,6 +1,7 @@
 import {useMemo} from "react";
 import {SleepSession} from "@/types/types";
 import {Card, PressableFeedback} from "heroui-native";
+import {formatTime} from "@/lib/dateTime";
 
 interface AverageStatsProps {
     sleepSessions: SleepSession[];
@@ -42,10 +43,11 @@ export const AverageStats = ({sleepSessions, dayAmount, state, className}: Avera
             avgTotalMinutes -= 24 * 60;
         }
 
-        const avgHours = Math.floor(avgTotalMinutes / 60);
-        const avgMinutes = Math.round(avgTotalMinutes % 60);
+        const avgDate = new Date();
+        avgDate.setHours(0, 0, 0, 0);
+        avgDate.setMinutes(avgTotalMinutes);
 
-        return `${String(avgHours).padStart(2, '0')}:${String(avgMinutes).padStart(2, '0')}`;
+        return formatTime(avgDate);
 
     }, [sleepSessions, dayAmount, state]);
 

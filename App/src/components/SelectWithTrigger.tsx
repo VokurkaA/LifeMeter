@@ -1,96 +1,77 @@
-import Feather from '@expo/vector-icons/Feather';
-import { Divider, Select, useSelectAnimation } from 'heroui-native';
-import React, { useState, type FC } from 'react';
-import { StyleSheet, View } from 'react-native';
-import Animated, {
-    interpolate,
-    useAnimatedStyle,
-} from 'react-native-reanimated';
-import { withUniwind } from 'uniwind';
+import {Select, useSelect, useSelectAnimation, useThemeColor} from 'heroui-native';
+import {ChevronDown} from 'lucide-react-native';
+import {useMemo, useState} from 'react';
+import {Text, View} from 'react-native';
+import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 
-const StyledFeather = withUniwind(Feather);
-const StyleAnimatedView = withUniwind(Animated.View);
-
-type SelectOption = {
-    value: string;
-    label: string;
+export type SelectWithTriggerOption = { value: string; label: string };
+export type SelectWithTriggerProps = {
+    options: SelectWithTriggerOption[];
+    value?: SelectWithTriggerOption;
+    initialValue?: SelectWithTriggerOption;
+    onValueChange?: (value?: SelectWithTriggerOption) => void;
+    label?: string;
+    placeholder?: string;
+    className?: string;
 };
 
-const US_STATES: SelectOption[] = [
-    { value: 'CA', label: 'California' },
-    { value: 'NY', label: 'New York' },
-    { value: 'TX', label: 'Texas' },
-    { value: 'FL', label: 'Florida' },
-];
+export function SelectWithTrigger({
+                                      options, value, initialValue, onValueChange, label, placeholder, className,
+                                  }: SelectWithTriggerProps) {
+    const valueByKey = useMemo(() => {
+        const map = new Map<string, SelectWithTriggerOption>();
+        for (const o of options) map.set(o.value, o);
+        return map;
+    }, [options]);
 
-const AnimatedTrigger: FC = () => {
-    const { progress } = useSelectAnimation();
+    const [internalValue, setInternalValue] = useState<SelectWithTriggerOption | undefined>(() => initialValue);
+    const selectedValue = value ?? internalValue;
 
-    const rContainerStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(progress.value, [0, 1, 2], [0, 1, 0]);
-        return {
-            opacity,
-        };
-    });
+    const Trigger = () => {
+        const {progress} = useSelectAnimation();
+        const {value: selected} = useSelect();
 
-    const rChevronStyle = useAnimatedStyle(() => {
-        const rotate = interpolate(progress.value, [0, 1, 2], [0, -180, 0]);
-        return {
-            transform: [{ rotate: `${rotate}deg` }],
-        };
-    });
+        return (<View className="justify-center h-12 w-full px-3 shadow-md bg-field rounded-2xl shadow-black/5">
+            <Text className={selected ? 'text-foreground' : 'text-muted'}>
+                {selected?.label ?? (placeholder ?? 'Select...')}
+            </Text>
 
-    return (
-        <View
-            className="bg-surface h-[48px] w-[256px] px-3 rounded-2xl justify-center shadow-md shadow-black/5"
-            style={styles.borderCurve}
+            <Animated.View
+                className="absolute right-3"
+                style={useAnimatedStyle(() => ({
+                    transform: [{
+                        rotate: `${interpolate(progress.value, [0, 1, 2], [0, -180, 0])}deg`,
+                    },],
+                }))}
+            >
+                <ChevronDown color={useThemeColor('muted')} size={18}/>
+            </Animated.View>
+        </View>);
+    };
+
+    return (<View className={['gap-2', className].filter(Boolean).join(' ')}>
+        {label && <Text className="text-foreground">{label}</Text>}
+
+        <Select
+            value={selectedValue}
+            onValueChange={(next: unknown) => {
+                const n = next as any;
+                const resolved = (n?.value != null ? valueByKey.get(String(n.value)) : undefined) ?? (next as SelectWithTriggerOption | undefined);
+
+                if (value === undefined) setInternalValue(resolved);
+                onValueChange?.(resolved);
+            }}
         >
-            <StyleAnimatedView
-                style={[rContainerStyle, styles.borderCurve]}
-                className="absolute -inset-1 border-[2.5px] border-accent rounded-[18px] pointer-events-none"
-            />
-            <Select.Value placeholder="Select a state" />
-            <StyleAnimatedView style={rChevronStyle} className="absolute right-3">
-                <StyledFeather name="chevron-down" size={18} className="text-muted" />
-            </StyleAnimatedView>
-        </View>
-    );
-};
-
-type Props = {
-    contentOffset?: number;
-};
-
-export function SelectButtonTrigger({ contentOffset }: Props) {
-    const [basicValue, setBasicValue] = useState<SelectOption | undefined>();
-
-    return (
-        <Select value={basicValue} onValueChange={setBasicValue}>
             <Select.Trigger>
-                <AnimatedTrigger />
+                <Trigger/>
             </Select.Trigger>
+
             <Select.Portal>
-                <Select.Overlay />
-                <Select.Content
-                    width="trigger"
-                    offset={contentOffset}
-                    className="w-[256px]"
-                >
-                    <Select.ListLabel className="mb-2">Choose a state</Select.ListLabel>
-                    {US_STATES.map((state, index) => (
-                        <React.Fragment key={state.value}>
-                            <Select.Item value={state.value} label={state.label} />
-                            {index < US_STATES.length - 1 && <Divider />}
-                        </React.Fragment>
-                    ))}
+                <Select.Overlay/>
+                <Select.Content width="trigger">
+                    {options.map(opt => (<Select.Item key={opt.value} value={opt.value} label={opt.label}/>))}
                 </Select.Content>
             </Select.Portal>
         </Select>
-    );
+    </View>);
 }
-
-const styles = StyleSheet.create({
-    borderCurve: {
-        borderCurve: 'continuous',
-    },
-});

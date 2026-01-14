@@ -3,7 +3,7 @@ import {useEffect, useMemo, useState} from "react";
 import {Text, View} from "react-native";
 import Svg, {Defs, RadialGradient, Rect, Stop} from "react-native-svg";
 import {useStore} from "@/contexts/useStore";
-import {timeToDate} from "@/screens/app/Sleep.screen";
+import { timeToDate } from "@/lib/dateTime";
 
 interface TimeCardProps {
     bedTime?: Date;
@@ -83,12 +83,11 @@ export const useDayCycle = (currentHour: number) => {
     }, [currentHour]);
 };
 
-// Helper to calculate text based on current live time
 const getSleepDurationText = (startDate: Date | undefined, currentDate: Date) => {
     if (!startDate) return "Sleeping..."
 
     const diffMs = currentDate.getTime() - startDate.getTime();
-    if (diffMs < 60000) return "Good night"; // Changed to 1 min for better UX
+    if (diffMs < 60000) return "Good night"; 
 
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -174,28 +173,28 @@ export const TimeCard = ({
                 </Svg>
             </View>
             <Card.Header>
-                <Card.Title className="text-2xl font-bold">{greeting}</Card.Title>
-                <Card.Description className="text-foreground/75">{displayTime}</Card.Description>
+                <Card.Title className="text-2xl font-bold text-white">{greeting}</Card.Title>
+                <Card.Description className="text-white/75">{displayTime}</Card.Description>
             </Card.Header>
             <Card.Body className="flex-1"/>
             <Card.Footer>
-                <View className="p-4 border bg-foreground/10 rounded-2xl backdrop-blur-md border-foreground/5">
+                <View className="p-4 border bg-white/10 rounded-2xl backdrop-blur-md border-foreground/5">
                     <View className="flex-row items-center justify-between w-full">
                         <View>
-                            <Text className="text-base font-semibold text-foreground">{footerData.title}</Text>
-                            <Text className="text-sm text-foreground/75">
+                            <Text className="text-base font-semibold text-white">{footerData.title}</Text>
+                            <Text className="text-sm text-white/75">
                                 {footerData.subtitle}
                             </Text>
                         </View>
 
                         <Button
                             size="sm"
-                            className={footerData.variant === 'danger' ? "bg-danger-soft" : "bg-foreground"}
+                            className={footerData.variant === 'danger' ? "bg-danger-soft" : "bg-white"}
                             onPress={footerData.action}
                             pressableFeedbackVariant="ripple"
                         >
                             <Button.Label
-                                className={footerData.variant === 'danger' ? "text-foreground" : "text-background"}>
+                                className={footerData.variant === 'danger' ? "text-white" : "text-black"}>
                                 {footerData.buttonLabel}
                             </Button.Label>
                         </Button>
