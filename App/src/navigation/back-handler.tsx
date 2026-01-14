@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { BackHandler, Platform } from 'react-native';
-import { useToast } from '@/components/ui/Toast';
+import { Toast, useToast } from 'heroui-native';
 
 export function useExitConfirmBackHandler(
   active: boolean,
@@ -20,7 +20,7 @@ export function useExitConfirmBackHandler(
         return true;
       }
       lastPressRef.current = now;
-      toast(message, 'default', 3000, 'bottom', false, 'narrow');
+      toast.show({})
       return true;
     };
 
