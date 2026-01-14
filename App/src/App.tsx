@@ -15,12 +15,9 @@ import WelcomeScreen from '@/screens/onboarding/Welcome.screen';
 import SignIn from '@/screens/onboarding/SignIn.screen';
 import SignUp from '@/screens/onboarding/SignUp.screen';
 import OnboardingInfoScreen from "@/screens/onboarding/userInfo/Index.screen";
-import HomeScreen from '@/screens/app/Home.screen';
-import TrainingScreen from './screens/app/Training.screen';
-import NutritionScreen from './screens/app/Nutrition.screen';
-import SleepScreen from './screens/app/sleep/Index.scree';
 import {navigationRef} from '@/navigation/navigate';
 import SleepList from "@/screens/app/sleep/SleepList";
+import AppTabs from '@/navigation/Tabs';
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -87,13 +84,10 @@ function RootApp() {
     return (<View className='flex-1'>
             <NavigationContainer ref={navigationRef}>
                 <AppStack.Navigator
-                    initialRouteName="Home"
+                    initialRouteName="Tabs"
                     screenOptions={screenOptions}
                 >
-                    <AppStack.Screen name="Home" component={HomeScreen}/>
-                    <AppStack.Screen name="Training" component={TrainingScreen}/>
-                    <AppStack.Screen name="Nutrition" component={NutritionScreen}/>
-                    <AppStack.Screen name="Sleep" component={SleepScreen}/>
+                    <AppStack.Screen name="Tabs" component={AppTabs}/>
                     <AppStack.Screen name="SleepList" component={SleepList}/>    
                 </AppStack.Navigator>
             </NavigationContainer>

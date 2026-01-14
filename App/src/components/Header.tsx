@@ -9,8 +9,11 @@ export default function Header() {
     const {user, session, signOut} = useAuth(); 
     const {userProfile, userGoals} = useStore(); 
     const mutedColor = useThemeColor('muted');
+    const backgroundColor = useThemeColor('background');
 
-    return (<Surface className='flex flex-row items-center justify-between w-full px-6 rounded-t-none'>
+    return (
+    <View className="bg-background">
+    <Surface className='flex flex-row items-center justify-between w-full px-6 rounded-t-none'>
         <View className='flex flex-row items-center gap-4'>
             <Pressable className='flex items-center justify-center h-10 rounded-full aspect-square bg-field'>
                 <TextAlignStart color={mutedColor} size={24}/>
@@ -64,5 +67,6 @@ export default function Header() {
                 </Dialog.Content>
             </Dialog.Portal>
         </Dialog>
-    </Surface>)
+    </Surface>
+    </View>)
 }

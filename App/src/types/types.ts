@@ -126,11 +126,15 @@ export type OnboardingStackParamList = {
   Preferences: undefined;
 };
 
-export type AppStackParamList = {
+export type TabParamList = {
   Home: undefined;
   Training: undefined;
   Nutrition: undefined;
   Sleep: undefined;
+};
+
+export type AppStackParamList = {
+  Tabs: { screen?: keyof TabParamList };
   SleepList: undefined;
 };
 
@@ -150,4 +154,4 @@ export type PaginationResult = {
   totalRecords: number;
 };
 
-export type RootParamList = OnboardingStackParamList & AppStackParamList;
+export type RootParamList = OnboardingStackParamList & AppStackParamList & TabParamList;
