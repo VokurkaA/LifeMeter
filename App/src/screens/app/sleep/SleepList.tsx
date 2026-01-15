@@ -1,11 +1,12 @@
 import React, {useState} from "react";
-import {FlatList, Pressable, Text, View} from "react-native";
+import {FlatList, Pressable, View} from "react-native";
 import {Accordion, BottomSheet, Button, Dialog, Divider, useThemeColor, useToast} from "heroui-native";
 import {useStore} from "@/contexts/useStore";
 import {SleepSession} from "@/types/types";
 import {formatTime, timeToDate} from "@/lib/dateTime";
 import {Edit2Icon, Trash2Icon} from "lucide-react-native";
 import {NewSleepScreen} from "@/screens/app/sleep/NewSleep";
+import {Muted, Text} from "@/components/Text";
 
 const DAYS_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -44,13 +45,11 @@ function RenderItem({item, deleteSleepSession, onEdit}: {
         <Accordion.Trigger>
             <View className="flex-row items-center flex-1 gap-3 py-2">
                 <View className="h-14 aspect-square rounded-2xl bg-field flex items-center justify-center">
-                    <Text className="text-muted text-xs text-center">{dayNumber}</Text>
-                    <Text className="text-foreground text-center text-sm font-bold">
-                        {dayName}
-                    </Text>
+                    <Muted>{dayNumber}</Muted>
+                    <Text className="font-bold">{dayName}</Text>
                 </View>
 
-                <Text className="text-foreground text-base flex-1 font-medium">
+                <Text className="flex-1">
                     {formatTime(startDate)} - {formatTime(endDate)}
                 </Text>
 
@@ -61,23 +60,23 @@ function RenderItem({item, deleteSleepSession, onEdit}: {
             <View className="flex flex-row justify-between">
                 <View className="flex flex-col gap-3">
                     <View className="flex flex-row gap-1">
-                        <Text className="text-muted">Duration:</Text>
-                        <Text className="text-foreground font-base">{sleepDurationText()}</Text>
+                        <Muted className="text-sm">Duration:</Muted>
+                        <Text className="text-sm">{sleepDurationText()}</Text>
                     </View>
                     {item.note ? (<View className="flex flex-row gap-1">
-                        <Text className="text-muted">Notes: </Text>
-                        <Text className="text-foreground">{item.note}</Text>
-                    </View>) : (<Text className="text-muted">No notes</Text>)}
+                        <Muted className="text-sm">Notes: </Muted>
+                        <Text className="text-sm">{item.note}</Text>
+                    </View>) : (<Muted className="text-sm">No notes</Muted>)}
                 </View>
                 <View className="flex items-end gap-3">
                     <Pressable className="flex items-center flex-row gap-1" onPress={() => onEdit(item)}>
-                        <Text className="text-foreground">Edit</Text>
+                        <Text className="text-sm">Edit</Text>
                         <Edit2Icon color={foregroundColor} size={14}/>
                     </Pressable>
                     <Dialog isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                         <Dialog.Trigger asChild>
                             <Pressable className="flex items-center flex-row gap-1">
-                                <Text className="text-danger">Delete</Text>
+                                <Text className="text-sm text-danger">Delete</Text>
                                 <Trash2Icon color={dangerColor} size={14}/>
                             </Pressable>
                         </Dialog.Trigger>
@@ -89,19 +88,17 @@ function RenderItem({item, deleteSleepSession, onEdit}: {
                                         <Dialog.Title>Are you sure?</Dialog.Title>
                                         <Dialog.Close/>
                                     </View>
-                                    <Dialog.Description>Do you really want to remove the following sleep
-                                        entry?</Dialog.Description>
+                                    <Dialog.Description><Muted className="text-sm">Do you really want to remove the following sleep entry?</Muted></Dialog.Description>
                                     <View>
-                                        <Text className="text-foreground">
+                                        <Text>
                                             {DAYS[startDate.getDay()]}, {MONTHS[startDate.getMonth()]} {startDate.getDate()}
                                         </Text>
-                                        <Text className="text-foreground">
+                                        <Text>
                                             {formatTime(startDate)} - {formatTime(endDate)}
                                         </Text>
                                     </View>
                                     <View className="flex flex-row gap-2">
-                                        <Button variant="tertiary" className="flex-1"
-                                                onPress={() => setIsDeleteOpen(false)}>Cancel</Button>
+                                        <Button variant="tertiary" className="flex-1" onPress={() => setIsDeleteOpen(false)}>Cancel</Button>
                                         <Button variant="danger" className="flex-1"
                                                 onPress={async () => {
                                                     try {

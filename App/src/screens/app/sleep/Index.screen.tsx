@@ -37,8 +37,8 @@ export default function SleepScreen() {
                         snapPoints={['90%']}
                         keyboardBehavior="extend"
                     >
-                        <BottomSheet.Title className="text-2xl font-semibold">Sleep</BottomSheet.Title>
-                        <BottomSheet.Description>Add a sleep entry</BottomSheet.Description>
+                        <BottomSheet.Title>Sleep</BottomSheet.Title>
+                        <BottomSheet.Description className="mb-2">Add a sleep entry</BottomSheet.Description>
                         <NewSleepScreen
                             session={ongoingSleepSession}
                             createSleepSession={createSleepSession}

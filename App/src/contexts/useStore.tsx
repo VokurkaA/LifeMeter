@@ -1,5 +1,5 @@
 import { SleepSession, StoreContextType } from '@/types/types';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { sleepService } from '@/services/sleep.service';
 import { foodService } from '@/services/food.service';
 import { userProfileService } from '@/services/user.profile.service';
@@ -34,10 +34,11 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
   const [activityLevels, setActivityLevels] = useState<ActivityLevel[]>([]);
   const [lengthUnits, setLengthUnits] = useState<LengthUnit[]>([]);
   const [weightUnits, setWeightUnits] = useState<WeightUnit[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { user } = useAuth();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!user) {
       setSleepSessions([]);
       setUserMeals([]);
@@ -45,9 +46,11 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       setUserProfile(null);
       setUserGoals(null);
       setLatestWeight(null);
+      setIsLoading(false);
       return;
     }
 
+    setIsLoading(true);
     let active = true;
     (async () => {
       try {
@@ -79,6 +82,8 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
         setWeightUnits(wUnits);
       } catch (e) {
         console.error('Failed to initialize store', e);
+      } finally {
+        if (active) setIsLoading(false);
       }
     })();
     return () => {
@@ -320,6 +325,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       lengthUnits,
       weightUnits,
       latestWeight,
+      isLoading,
       refreshProfile,
       updateProfile,
       updateGoals,
@@ -351,6 +357,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       lengthUnits,
       weightUnits,
       latestWeight,
+      isLoading,
       refreshProfile,
       updateProfile,
       updateGoals,

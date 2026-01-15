@@ -4,6 +4,7 @@ import {Text, View} from "react-native";
 import Svg, {Defs, RadialGradient, Rect, Stop} from "react-native-svg";
 import {useStore} from "@/contexts/useStore";
 import { timeToDate } from "@/lib/dateTime";
+import { Muted } from "@/components/Text";
 
 interface TimeCardProps {
     bedTime?: Date;
@@ -173,7 +174,7 @@ export const TimeCard = ({
                 </Svg>
             </View>
             <Card.Header>
-                <Card.Title className="text-2xl font-bold text-white">{greeting}</Card.Title>
+                <Card.Title className="text-2xl text-white">{greeting}</Card.Title>
                 <Card.Description className="text-white/75">{displayTime}</Card.Description>
             </Card.Header>
             <Card.Body className="flex-1"/>
@@ -181,10 +182,10 @@ export const TimeCard = ({
                 <View className="p-4 border bg-white/10 rounded-2xl backdrop-blur-md border-foreground/5">
                     <View className="flex-row items-center justify-between w-full">
                         <View>
-                            <Text className="text-base font-semibold text-white">{footerData.title}</Text>
-                            <Text className="text-sm text-white/75">
+                            <Text className="text-white font-semibold text-base">{footerData.title}</Text>
+                            <Muted className="text-white/75">
                                 {footerData.subtitle}
-                            </Text>
+                            </Muted>
                         </View>
 
                         <Button
@@ -194,7 +195,7 @@ export const TimeCard = ({
                             pressableFeedbackVariant="ripple"
                         >
                             <Button.Label
-                                className={footerData.variant === 'danger' ? "text-white" : "text-black"}>
+                                className={`${footerData.variant === 'danger' ? "text-white" : "text-black"}`}>
                                 {footerData.buttonLabel}
                             </Button.Label>
                         </Button>

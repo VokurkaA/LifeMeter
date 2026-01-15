@@ -2,7 +2,7 @@ import {Button, TextField, useThemeColor, useToast} from "heroui-native";
 import {Pressable, Text, TextInput, View} from "react-native";
 import {useRef, useState} from "react";
 import {ArrowUpRight, CircleAlert, Eye, EyeOff} from "lucide-react-native";
-import {Heading} from "@/components/Text";
+import {H2} from "@/components/Text";
 import {useNavigation} from "@react-navigation/native";
 import {useAuth} from "@/contexts/useAuth";
 
@@ -48,7 +48,7 @@ export default function SignIn() {
     };
 
     return (<View className="gap-4 p-4">
-        <Heading>Sign In</Heading>
+         <H2>Sign In</H2>
 
         <TextField
             isRequired
@@ -117,7 +117,7 @@ export default function SignIn() {
             <TextField.ErrorMessage>Password must be at least 6 characters</TextField.ErrorMessage>
         </TextField>
 
-        <Button isDisabled={!canSubmit || isSubmitting} onPress={handleSubmit}>
+        <Button className="mt-2" isDisabled={!canSubmit || isSubmitting} onPress={handleSubmit}>
             Sign in
         </Button>
 

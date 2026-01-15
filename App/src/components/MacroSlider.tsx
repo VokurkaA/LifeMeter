@@ -1,6 +1,7 @@
 import Slider from "@react-native-community/slider";
 import {useThemeColor} from "heroui-native";
-import {Text, View} from "react-native";
+import {View} from "react-native";
+import {Muted, Text} from "@/components/Text";
 
 interface MacroSliderProps {
     tdee: number;
@@ -39,10 +40,10 @@ function MacroSliderItem({
     return (
         <View>
             <View>
-                <Text className="text-foreground font-medium">{label}</Text>
+                <Text>{label}</Text>
                 <View className="flex flex-row justify-between">
-                    <Text className="text-foreground">{getGrams(percentage, divisor)}g</Text>
-                    <Text className="text-muted">{(tdee*percentage/100).toFixed(0)} kcal ({percentage}%)</Text>
+                    <Text>{getGrams(percentage, divisor)}g</Text>
+                    <Muted>{(tdee*percentage/100).toFixed(0)} kcal ({percentage}%)</Muted>
                 </View>
             </View>
             <Slider

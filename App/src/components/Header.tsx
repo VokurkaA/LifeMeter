@@ -1,15 +1,15 @@
 import {Avatar, Button, Dialog, Surface, useThemeColor} from "heroui-native";
 import {useAuth} from "@/contexts/useAuth";
 import {TextAlignStart, UserIcon} from "lucide-react-native";
-import {Pressable, Text, View} from 'react-native'
+import {Pressable, View} from 'react-native'
 import { useStore } from "@/contexts/useStore";
 import ThemeToggle from "./ThemeToggle";
+import { H2, Muted, Text } from "@/components/Text";
 
 export default function Header() {
     const {user, session, signOut} = useAuth(); 
     const {userProfile, userGoals} = useStore(); 
     const mutedColor = useThemeColor('muted');
-    const backgroundColor = useThemeColor('background');
 
     return (
     <View className="bg-background">
@@ -18,7 +18,7 @@ export default function Header() {
             <Pressable className='flex items-center justify-center h-10 rounded-full aspect-square bg-field'>
                 <TextAlignStart color={mutedColor} size={24}/>
             </Pressable>
-            <Text className="text-3xl font-bold text-foreground">LifeMeter</Text>
+            <H2>LifeMeter</H2>
         </View>
         <Dialog>
             <Dialog.Trigger>
@@ -33,32 +33,32 @@ export default function Header() {
                 <Dialog.Overlay/>
                 <Dialog.Content>
                     <View>
-                        <Text className="mt-2 font-bold text-foreground">User</Text>
+                        <Text className="mt-2">User</Text>
                         {user && Object.entries(user).map(([key, value]) => (
                             <View key={key} className="flex flex-row items-center justify-between pb-px">
-                                <Text className="flex-1 text-xs text-muted">{key}</Text>
-                                <Text className="text-xs flex-2 text-muted">{String(value)}</Text>
+                                <Muted className="flex-1">{key}</Muted>
+                                <Muted className="flex-2">{String(value)}</Muted>
                             </View>
                         ))}
-                        <Text className="mt-2 font-bold text-foreground">Session</Text>
+                        <Text className="mt-2">Session</Text>
                         {session && Object.entries(session).map(([key, value]) => (
                             <View key={key} className="flex flex-row items-center justify-between pb-px">
-                                <Text className="flex-1 text-xs text-muted">{key}</Text>
-                                <Text className="text-xs flex-2 text-muted">{String(value)}</Text>
+                                <Muted className="flex-1">{key}</Muted>
+                                <Muted className="flex-2">{String(value)}</Muted>
                             </View>
                         ))}
-                        <Text className="mt-2 font-bold text-foreground">UserProfile</Text>
+                        <Text className="mt-2">UserProfile</Text>
                         {userProfile && Object.entries(userProfile).map(([key, value]) => (
                             <View key={key} className="flex flex-row items-center justify-between pb-px">
-                                <Text className="flex-1 text-xs text-muted">{key}</Text>
-                                <Text className="text-xs flex-2 text-muted">{String(value)}</Text>
+                                <Muted className="flex-1">{key}</Muted>
+                                <Muted className="flex-2">{String(value)}</Muted>
                             </View>
                         ))}
-                        <Text className="mt-2 font-bold text-foreground">UserGoal</Text>
+                        <Text className="mt-2">UserGoal</Text>
                         {userGoals && Object.entries(userGoals).map(([key, value]) => (
                             <View key={key} className="flex flex-row items-center justify-between pb-px">
-                                <Text className="flex-1 text-xs text-muted">{key}</Text>
-                                <Text className="text-xs flex-2 text-muted">{String(value)}</Text>
+                                <Muted className="flex-1">{key}</Muted>
+                                <Muted className="flex-2">{String(value)}</Muted>
                             </View>
                         ))}
                     </View>

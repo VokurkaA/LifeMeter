@@ -1,8 +1,9 @@
 import {TextField, useThemeColor} from "heroui-native";
 import {SelectWithTrigger, SelectWithTriggerOption} from "./SelectWithTrigger";
 import {useEffect, useRef, useState} from "react";
-import {Text, TextInput, View} from "react-native";
+import {TextInput, View} from "react-native";
 import {normalizePositiveDecimal} from "@/lib/normalize";
+import {Text} from "@/components/Text";
 
 const CM_PER_INCH = 2.54;
 
@@ -146,7 +147,7 @@ export default function HeightSelect({height, setHeight, heightUnit, setHeightUn
                 numberOfLines={1}
             />
         </TextField>) : (<View className="flex-1">
-            <Text className="text-foreground font-bold text-base ml-1 mb-1">
+            <Text className="font-bold ml-1 mb-1">
                 Enter your height <Text className="text-danger">*</Text>
             </Text>
 

@@ -3,7 +3,8 @@
 import RnDateTimePicker, {type DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {ErrorView} from 'heroui-native';
 import {type ReactNode, useMemo, useState} from 'react';
-import {Platform, Pressable, Text, View} from 'react-native';
+import {Platform, Pressable, View} from 'react-native';
+import {Text} from '@/components/Text';
 
 export type DatePickerWithTriggerProps = {
     value?: Date;
@@ -64,7 +65,7 @@ export default function DateTimePicker({
     const isRightIconDisabled = !!isDisabled || !rightIconOnPress;
 
     return (<View className="gap-2">
-        {label && <Text className={isDisabled ? 'text-muted' : 'text-foreground'}>{label}</Text>}
+        {label && <Text className={isDisabled ? 'text-muted' : ''}>{label}</Text>}
 
         <Pressable
             disabled={isDisabled}
@@ -75,7 +76,7 @@ export default function DateTimePicker({
             <View
                 className={`${isDisabled ? 'bg-surface' : 'bg-field'} flex-row items-center justify-between w-full h-12 px-3 shadow-md rounded-2xl shadow-black/5`}
             >
-                <Text className={`${value ? 'text-foreground' : 'text-muted'} flex-1`}>
+                <Text className={`${!value && 'text-muted'} text-sm flex-1`}>
                     {value ? formatted : placeholder}
                 </Text>
 

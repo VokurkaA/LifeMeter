@@ -1,8 +1,9 @@
-import {Text, TextInput, View} from "react-native";
+import {TextInput, View} from "react-native";
 import {TextField, useThemeColor} from "heroui-native";
 import {SelectWithTrigger, SelectWithTriggerOption} from "./SelectWithTrigger";
 import {useEffect, useRef, useState} from "react";
 import {normalizePositiveDecimal} from "@/lib/normalize";
+import {Text} from '@/components/Text';
 
 const LB_PER_KG = 2.2046226218;
 const LB_PER_ST = 14;
@@ -173,7 +174,7 @@ export default function WeightSelect({
 
     return (<View className="flex-row gap-3">
         {weightUnit === "st" ? (<View className="flex-1">
-            <Text className="text-foreground font-bold text-base ml-1 mb-1">
+            <Text className="ml-1 mb-1">
                 {label} {required && <Text className="text-danger">*</Text>}
             </Text>
 

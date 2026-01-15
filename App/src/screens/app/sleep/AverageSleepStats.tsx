@@ -2,6 +2,7 @@ import {useMemo} from "react";
 import {SleepSession} from "@/types/types";
 import {Card, PressableFeedback} from "heroui-native";
 import {formatTime} from "@/lib/dateTime";
+import { Muted } from "@/components/Text";
 
 interface AverageStatsProps {
     sleepSessions: SleepSession[];
@@ -57,7 +58,7 @@ export const AverageStats = ({sleepSessions, dayAmount, state, className}: Avera
         <Card className='gap-2'>
             <Card.Header>
                 <Card.Title>
-                    Average {isBedtime ? 'Bedtime' : 'Wakeup'}
+                    Avg. {isBedtime ? 'Bedtime' : 'Wakeup'}
                 </Card.Title>
             </Card.Header>
             <Card.Body>
@@ -66,8 +67,8 @@ export const AverageStats = ({sleepSessions, dayAmount, state, className}: Avera
                 </Card.Title>
             </Card.Body>
             <Card.Footer>
-                <Card.Description className="text-xs">
-                    Avg. {isBedtime ? 'bedtime' : 'wakeup'} (7d)
+                <Card.Description>
+                    <Muted>Avg. {isBedtime ? 'bedtime' : 'wakeup'} (7d)</Muted>
                 </Card.Description>
             </Card.Footer>
         </Card>

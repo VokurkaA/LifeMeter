@@ -1,8 +1,9 @@
 import {Select, useSelect, useSelectAnimation, useThemeColor} from 'heroui-native';
 import {ChevronDown} from 'lucide-react-native';
 import {useMemo, useState} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
+import {Text} from '@/components/Text';
 
 export type SelectWithTriggerOption = { value: string; label: string };
 export type SelectWithTriggerProps = {
@@ -32,7 +33,7 @@ export function SelectWithTrigger({
         const {value: selected} = useSelect();
 
         return (<View className="justify-center h-12 w-full px-3 shadow-md bg-field rounded-2xl shadow-black/5">
-            <Text className={selected ? 'text-foreground' : 'text-muted'}>
+            <Text className={selected ? '' : 'text-muted'}>
                 {selected?.label ?? (placeholder ?? 'Select...')}
             </Text>
 
@@ -50,7 +51,7 @@ export function SelectWithTrigger({
     };
 
     return (<View className={['gap-2', className].filter(Boolean).join(' ')}>
-        {label && <Text className="text-foreground">{label}</Text>}
+        {label && <Text>{label}</Text>}
 
         <Select
             value={selectedValue}

@@ -3,6 +3,7 @@ import {SleepSession} from "@/types/types";
 import {Card, PressableFeedback, useThemeColor} from "heroui-native";
 import {ChevronRight} from "lucide-react-native";
 import {View} from "react-native";
+import { Muted } from "@/components/Text";
 
 interface AverageDurationCardProps {
     sleepSessions: SleepSession[];
@@ -56,8 +57,8 @@ export const AverageDurationCard = ({sleepSessions, onPress, className}: Average
                 </View>
             </Card.Body>
             <Card.Footer>
-                <Card.Description className="text-xs">
-                    Based on {sessionCount} total sessions
+                <Card.Description>
+                    <Muted>Based on {sessionCount} total sessions</Muted>
                 </Card.Description>
             </Card.Footer>
         </Card>

@@ -3,7 +3,7 @@ import {Dimensions, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import Carousel, {ICarouselInstance, Pagination} from 'react-native-reanimated-carousel';
 import {Button, Card, PressableFeedback, useThemeColor} from 'heroui-native';
-import {Heading, SubHeading} from '@/components/Text';
+import {H1, H3} from '@/components/Text';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Image} from 'expo-image';
 
@@ -39,7 +39,7 @@ export default function WelcomeScreen({navigation}: {
     const carouselHeight = carouselWidth + 110;
 
     return (<View className="items-center flex-1 px-4 py-8">
-        <Heading className="mb-8 text-center">LifeMeter</Heading>
+         <H1 className="mb-8 text-center">LifeMeter</H1>
 
         <View className="my-auto">
             <Carousel
@@ -71,10 +71,10 @@ export default function WelcomeScreen({navigation}: {
                     </PressableFeedback>
 
                     <View className="items-center justify-center mt-6">
-                        <Heading className="text-center">{item.title}</Heading>
-                        <SubHeading className="text-center max-w-8/12">
+                        <H1 className="text-center">{item.title}</H1>
+                        <H3 className="text-center max-w-8/12">
                             {item.text}
-                        </SubHeading>
+                        </H3>
                     </View>
                 </View>)}
             />

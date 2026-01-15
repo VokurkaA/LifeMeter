@@ -91,6 +91,7 @@ export interface StoreContextType {
   lengthUnits: LengthUnit[];
   weightUnits: WeightUnit[];
   latestWeight: UserWeightLog | null;
+  isLoading: boolean;
 
   refreshProfile: () => Promise<void>;
   updateProfile: (data: UpdateProfileInput) => Promise<void>;

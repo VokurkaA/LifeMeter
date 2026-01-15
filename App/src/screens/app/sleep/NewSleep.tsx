@@ -25,7 +25,6 @@ export const NewSleepScreen = ({
 
     const mutedColor = useThemeColor("muted");
     const placeholderColor = useThemeColor("field-placeholder")
-    const foregroundColor = useThemeColor("foreground");
 
     const isEditing = !!session;
 
@@ -34,8 +33,6 @@ export const NewSleepScreen = ({
     const [endAt, setEndAt] = useState<Date | undefined>(timeToDate(session?.endAt));
     const [note, setNote] = useState<string | undefined>(session?.note ?? undefined);
 
-    // Only invalid if end is strictly before start (including potential next day)
-    // Actually, with the auto-adjusting logic, it should rarely be invalid.
     const isTimeInvalid = startAt && endAt && startAt.getTime() > endAt.getTime();
 
     const isDisabled = !startAt || startAt.toISOString() === endAt?.toISOString() || isTimeInvalid || (isEditing && session && startAt.toISOString() === session.startAt && (endAt?.toISOString() ?? null) === (session.endAt ?? null) && (note ?? null) === (session.note ?? null));
@@ -52,7 +49,6 @@ export const NewSleepScreen = ({
 
         if (endAt) {
             const newEnd = new Date(endAt);
-            // We want to keep the relative difference (same day or next day)
             const diffDays = startAt ? Math.floor((endAt.getTime() - startAt.getTime()) / (1000 * 60 * 60 * 24)) : 0;
             newEnd.setFullYear(newDate.getFullYear(), newDate.getMonth(), newDate.getDate() + diffDays);
             setEndAt(newEnd);
@@ -66,7 +62,6 @@ export const NewSleepScreen = ({
         setStartAt(newStart);
 
         if (endAt) {
-            // Re-validate endAt relative to new startAt
             const newEnd = new Date(newStart);
             newEnd.setHours(endAt.getHours(), endAt.getMinutes(), 0, 0);
             if (newEnd <= newStart) {

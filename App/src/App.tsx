@@ -48,7 +48,7 @@ const createResetListener = (rootRouteName: string) => ({navigation}: any) => ({
 
 function RootApp() {
     const {user, loading} = useAuth();
-    const {userProfile} = useStore();
+    const {userProfile, isLoading} = useStore();
 
     const onboardingRef = useNavigationContainerRef();
     const screenOptions = useScreenOptions();
@@ -59,7 +59,7 @@ function RootApp() {
 
     useExitConfirmBackHandler(enableExitConfirm ?? false);
 
-    if (loading) {
+    if (loading || (!userProfile && isLoading)) {
         return null;
     }
 

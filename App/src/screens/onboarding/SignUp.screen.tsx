@@ -2,7 +2,7 @@ import {useRef, useState} from 'react';
 import {Pressable, Text, TextInput, View} from 'react-native';
 import {Button, TextField, useThemeColor, useToast} from 'heroui-native';
 import {ArrowUpRight, CircleAlert, Eye, EyeOff} from 'lucide-react-native';
-import {Heading} from '../../components/Text';
+import {H2} from '../../components/Text';
 import {useNavigation} from '@react-navigation/native';
 import {useAuth} from '@/contexts/useAuth';
 
@@ -55,7 +55,7 @@ export default function SignUp() {
     };
 
     return (<View className="gap-4 p-4">
-        <Heading>Sign Up</Heading>
+         <H2>Sign Up</H2>
 
         <TextField
             isRequired

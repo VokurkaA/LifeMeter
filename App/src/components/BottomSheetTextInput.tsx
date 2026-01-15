@@ -1,6 +1,6 @@
 import { useBottomSheetInternal } from '@gorhom/bottom-sheet';
 import { TextField } from 'heroui-native';
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { TextInput, type FocusEvent, type BlurEvent, findNodeHandle } from 'react-native';
 
 export const BottomSheetTextInput = (props: React.ComponentProps<typeof TextField.Input>) => {
