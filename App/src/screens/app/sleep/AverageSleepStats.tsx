@@ -9,9 +9,15 @@ interface AverageStatsProps {
     dayAmount: number;
     state: 'wakeup' | 'bedtime';
     className?: string;
+    onPress?: () => void;
 }
 
-export const AverageStats = ({sleepSessions, dayAmount, state, className}: AverageStatsProps) => {
+import { ChevronRight } from "lucide-react-native";
+import { useThemeColor } from "heroui-native";
+
+export const AverageStats = ({sleepSessions, dayAmount, state, className, onPress}: AverageStatsProps) => {
+    const mutedColor = useThemeColor('muted');
+
     const averageTime = useMemo(() => {
         const now = new Date();
         const cutoffDate = new Date();
@@ -54,12 +60,13 @@ export const AverageStats = ({sleepSessions, dayAmount, state, className}: Avera
 
     const isBedtime = state === 'bedtime';
 
-    return (<PressableFeedback className={className}>
+    return (<PressableFeedback className={className} onPress={onPress}>
         <Card className='gap-2'>
-            <Card.Header>
+            <Card.Header className="flex-row justify-between items-center">
                 <Card.Title>
                     Avg. {isBedtime ? 'Bedtime' : 'Wakeup'}
                 </Card.Title>
+                <ChevronRight size={20} color={mutedColor}/>
             </Card.Header>
             <Card.Body>
                 <Card.Title className="text-3xl font-bold">
@@ -68,7 +75,7 @@ export const AverageStats = ({sleepSessions, dayAmount, state, className}: Avera
             </Card.Body>
             <Card.Footer>
                 <Card.Description>
-                    <Muted>Avg. {isBedtime ? 'bedtime' : 'wakeup'} (7d)</Muted>
+                    <Muted>Avg. {isBedtime ? 'bedtime' : 'wakeup'} ({dayAmount}d)</Muted>
                 </Card.Description>
             </Card.Footer>
         </Card>

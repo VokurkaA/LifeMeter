@@ -7,20 +7,32 @@ import { Muted } from "@/components/Text";
 
 interface AverageDurationCardProps {
     sleepSessions: SleepSession[];
-    onPress: () => void;
+    onPress?: () => void;
+    dayAmount?: number; 
     className?: string;
 }
 
-export const AverageDurationCard = ({sleepSessions, onPress, className}: AverageDurationCardProps) => {
+export const AverageDurationCard = ({sleepSessions, onPress, dayAmount, className}: AverageDurationCardProps) => {
     const mutedColor = useThemeColor('muted');
 
     const {averageDuration, sessionCount} = useMemo(() => {
         if (!sleepSessions.length) return {averageDuration: "-- hr -- min", sessionCount: 0};
 
+        let filteredSessions = sleepSessions;
+        if (dayAmount) {
+            const now = new Date();
+            const cutoffDate = new Date();
+            cutoffDate.setDate(now.getDate() - dayAmount);
+            filteredSessions = sleepSessions.filter(s => {
+                const sessionDate = new Date(s.endAt || s.startAt || 0);
+                return sessionDate >= cutoffDate;
+            });
+        }
+
         let totalMs = 0;
         let count = 0;
 
-        sleepSessions.forEach(s => {
+        filteredSessions.forEach(s => {
             if (s.startAt && s.endAt) {
                 const start = new Date(s.startAt).getTime();
                 const end = new Date(s.endAt).getTime();
@@ -41,7 +53,7 @@ export const AverageDurationCard = ({sleepSessions, onPress, className}: Average
         return {
             averageDuration: `${hours} hr ${minutes} min`, sessionCount: count
         };
-    }, [sleepSessions]);
+    }, [sleepSessions, dayAmount]);
 
     return (<PressableFeedback onPress={onPress} className={className}>
         <Card className='gap-2'>
@@ -58,7 +70,7 @@ export const AverageDurationCard = ({sleepSessions, onPress, className}: Average
             </Card.Body>
             <Card.Footer>
                 <Card.Description>
-                    <Muted>Based on {sessionCount} total sessions</Muted>
+                    <Muted>Based on {sessionCount} total sessions {dayAmount ? `(last ${dayAmount}d)` : ''}</Muted>
                 </Card.Description>
             </Card.Footer>
         </Card>
