@@ -5,7 +5,7 @@ import {Popover, Surface, useThemeColor} from 'heroui-native';
 import {AppleIcon, DumbbellIcon, HomeIcon, MoonStarIcon, Plus} from 'lucide-react-native';
 import HomeScreen from '@/screens/app/Home.screen';
 import TrainingScreen from '@/screens/app/Training.screen';
-import NutritionScreen from '@/screens/app/Nutrition.screen';
+import NutritionScreen from '@/screens/app/nutrition/Index.screen';
 import SleepScreen from '@/screens/app/sleep/Index.screen';
 import {TabParamList} from '@/types/types';
 import Header from '@/components/Header';
