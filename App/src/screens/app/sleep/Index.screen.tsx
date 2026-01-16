@@ -1,5 +1,5 @@
 import MainLayout from "@/layouts/Main.layout";
-import { BottomSheet, Button, useThemeColor } from "heroui-native";
+import { BottomSheet, Button, Skeleton, useThemeColor } from "heroui-native";
 import { PlusIcon } from "lucide-react-native";
 import { useStore } from "@/contexts/useStore";
 import { View } from "react-native";
@@ -20,7 +20,6 @@ export default function SleepScreen() {
     const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
 
     return (<MainLayout>
-        <View className="gap-4 mb-8">
             <TimeCard
                 bedTime={timeToDate(userGoals?.bedtimeGoal)}
                 wakeUpTime={timeToDate(userGoals?.wakeupGoal)}
@@ -81,6 +80,5 @@ export default function SleepScreen() {
                 onPress={() => navigate('SleepList')}
             />
 
-        </View>
     </MainLayout>);
 }
