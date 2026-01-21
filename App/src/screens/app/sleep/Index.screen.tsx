@@ -3,14 +3,14 @@ import { BottomSheet, Button, Skeleton, useThemeColor } from "heroui-native";
 import { PlusIcon } from "lucide-react-native";
 import { useStore } from "@/contexts/useStore";
 import { View } from "react-native";
-import { TimeCard } from "@/screens/app/sleep/TimeCard";
+import { TimeCard } from "@/screens/app/sleep/components/TimeCard";
 import { useState } from "react";
-import { AverageStats } from "@/screens/app/sleep/AverageSleepStats";
-import { NewSleepScreen } from "@/screens/app/sleep/NewSleep";
-import { AverageDurationCard } from "@/screens/app/sleep/AverageDurationCard";
+import { AverageStats } from "@/screens/app/sleep/components/AverageSleepStats";
+import { NewSleepScreen } from "@/screens/app/sleep/components/NewSleep";
+import { AverageDurationCard } from "@/screens/app/sleep/components/AverageDurationCard";
 import { timeToDate } from "@/lib/dateTime";
-import { ConsistencyCard } from "@/screens/app/sleep/ConsistencyCard";
-import { HistoryCard } from "@/screens/app/sleep/HistoryCard";
+import { ConsistencyCard } from "@/screens/app/sleep/components/ConsistencyCard";
+import { HistoryCard } from "@/screens/app/sleep/components/HistoryCard";
 import { navigate } from "@/navigation/navigate";
 
 export default function SleepScreen() {

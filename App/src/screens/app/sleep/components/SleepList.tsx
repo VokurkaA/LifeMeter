@@ -5,7 +5,7 @@ import {useStore} from "@/contexts/useStore";
 import {SleepSession} from "@/types/types";
 import {formatTime, timeToDate} from "@/lib/dateTime";
 import {Edit2Icon, Trash2Icon} from "lucide-react-native";
-import {NewSleepScreen} from "@/screens/app/sleep/NewSleep";
+import {NewSleepScreen} from "@/screens/app/sleep/components/NewSleep";
 import {Muted, Text} from "@/components/Text";
 
 const DAYS_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];

@@ -16,7 +16,7 @@ import SignIn from '@/screens/onboarding/SignIn.screen';
 import SignUp from '@/screens/onboarding/SignUp.screen';
 import OnboardingInfoScreen from "@/screens/onboarding/userInfo/Index.screen";
 import {navigationRef} from '@/navigation/navigate';
-import SleepList from "@/screens/app/sleep/SleepList";
+import SleepList from "@/screens/app/sleep/components/SleepList";
 import AppTabs from '@/navigation/Tabs';
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
