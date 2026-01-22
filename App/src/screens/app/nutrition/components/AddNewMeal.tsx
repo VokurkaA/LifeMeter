@@ -9,7 +9,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import AddMeal from "./AddMeal";
 import ScanMeal from "./ScanMeal";
-import CreateFood from "./CreateFood";
 
 const AnimatedContentContainer = ({
     children,
@@ -49,9 +48,6 @@ export default function AddNewMeal() {
                                 <Tabs.Trigger value="addMeal">
                                     <Tabs.Label>Add Meal</Tabs.Label>
                                 </Tabs.Trigger>
-                                <Tabs.Trigger value="createFood">
-                                    <Tabs.Label>Create Food</Tabs.Label>
-                                </Tabs.Trigger>
                             </Tabs.List>
 
                             <Animated.View layout={LinearTransition.duration(200)}>
@@ -72,11 +68,6 @@ export default function AddNewMeal() {
                                 <Tabs.Content value="addMeal">
                                     <AnimatedContentContainer>
                                         <AddMeal />
-                                    </AnimatedContentContainer>
-                                </Tabs.Content>
-                                <Tabs.Content value="createFood">
-                                    <AnimatedContentContainer>
-                                        <CreateFood />
                                     </AnimatedContentContainer>
                                 </Tabs.Content>
                             </Animated.View>

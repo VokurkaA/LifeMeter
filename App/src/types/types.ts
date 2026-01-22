@@ -1,4 +1,4 @@
-import { CreateFoodInput, CreateMealInput, FoodDetail, UpdateFoodInput, UpdateMealInput, UserFood, UserMeal } from '@/types/food.types';
+import { CreateMealInput, UpdateMealInput, UserFood, UserMeal } from '@/types/food.types';
 import { FullWorkout } from '@/types/workout.types';
 import {
   ActivityLevel,
@@ -79,9 +79,6 @@ export interface StoreContextType {
   createUserMeal: (data: CreateMealInput) => Promise<void>;
   editUserMeal: (id: string, data: UpdateMealInput) => Promise<void>;
   deleteUserMeal: (id: string) => Promise<void>;
-
-  createFood: (data: CreateFoodInput) => Promise<FoodDetail | undefined>;
-  editFood: (id: number, data: UpdateFoodInput) => Promise<FoodDetail | undefined>;
 
   userWorkouts: FullWorkout[];
   refreshUserWorkouts: () => Promise<void>;
