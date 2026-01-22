@@ -5,18 +5,13 @@ import { Text, Heading } from '@/components/Text';
 import { Zap, ZapOff, SwitchCamera } from 'lucide-react-native';
 import { Button, useThemeColor } from 'heroui-native';
 
-export default function CameraScreen() {
-    const [isScanning, setIsScanning] = useState(true);
+export default function CameraScreen({ onFound }: { onFound: (gtin: string) => void }) {
+      const [isScanning, setIsScanning] = useState(true);
 
     const handleScan = (result: BarcodeScanningResult) => {
         if (!isScanning) return;
-        
         setIsScanning(false);
-        console.log(`Scanned code: ${result.data}`);
-        
-        Alert.alert("Code Scanned", result.data, [
-            { text: "OK", onPress: () => setIsScanning(true) }
-        ]);
+        onFound(result.data);
     };
 
     return (

@@ -7,7 +7,9 @@ import Animated, {
     FadeOut,
     LinearTransition,
 } from 'react-native-reanimated';
-import CameraScreen from "./CameraScreen";
+import AddMeal from "./AddMeal";
+import ScanMeal from "./ScanMeal";
+import CreateFood from "./CreateFood";
 
 const AnimatedContentContainer = ({
     children,
@@ -36,16 +38,19 @@ export default function AddNewMeal() {
                     <BottomSheet.Content>
                         <BottomSheet.Title>Add New Meal</BottomSheet.Title>
                         <Tabs value={activeTab} onValueChange={setActiveTab}>
-                            <Tabs.List className="w-full justify-between">
+                            <Tabs.List className="w-full justify-between overflow-scroll">
                                 <Tabs.Indicator />
                                 <Tabs.Trigger value="quickAdd">
                                     <Tabs.Label>Quick Add</Tabs.Label>
                                 </Tabs.Trigger>
                                 <Tabs.Trigger value="scanBarcode">
-                                    <Tabs.Label>Scan Barcode</Tabs.Label>
+                                    <Tabs.Label>Scan</Tabs.Label>
                                 </Tabs.Trigger>
                                 <Tabs.Trigger value="addMeal">
-                                    <Tabs.Label>Add a Meal</Tabs.Label>
+                                    <Tabs.Label>Add Meal</Tabs.Label>
+                                </Tabs.Trigger>
+                                <Tabs.Trigger value="createFood">
+                                    <Tabs.Label>Create Food</Tabs.Label>
                                 </Tabs.Trigger>
                             </Tabs.List>
 
@@ -61,16 +66,17 @@ export default function AddNewMeal() {
                                 </Tabs.Content>
                                 <Tabs.Content value="scanBarcode">
                                     <AnimatedContentContainer>
-                                        <CameraScreen />
+                                        <ScanMeal />
                                     </AnimatedContentContainer>
                                 </Tabs.Content>
                                 <Tabs.Content value="addMeal">
                                     <AnimatedContentContainer>
-                                        <Text>Add a Meal Content</Text>
-                                        <TextField>
-                                            <TextField.Label>Meal Name</TextField.Label>
-                                            <TextField.Input placeholder="Enter meal name" />
-                                        </TextField>
+                                        <AddMeal />
+                                    </AnimatedContentContainer>
+                                </Tabs.Content>
+                                <Tabs.Content value="createFood">
+                                    <AnimatedContentContainer>
+                                        <CreateFood />
                                     </AnimatedContentContainer>
                                 </Tabs.Content>
                             </Animated.View>

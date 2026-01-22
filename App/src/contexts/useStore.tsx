@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useLayoutEffe
 import { sleepService } from '@/services/sleep.service';
 import { foodService } from '@/services/food.service';
 import { userProfileService } from '@/services/user.profile.service';
-import type { CreateMealInput, UpdateMealInput, UserFood, UserMeal } from '@/types/food.types';
+import type { CreateFoodInput, CreateMealInput, FoodDetail, UpdateFoodInput, UpdateMealInput, UserFood, UserMeal } from '@/types/food.types';
 import { workoutService } from '@/services/workout.service';
 import { FullWorkout } from '@/types/workout.types';
 import { useAuth } from '@/contexts/useAuth';
@@ -200,6 +200,24 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     }
   }, []);
 
+  const createFood = useCallback(async (data: CreateFoodInput): Promise<FoodDetail | undefined> => {
+    try {
+      return await foodService.addFood(data);
+    } catch (e) {
+      console.error('Failed to create food', e);
+      return undefined;
+    }
+  }, []);
+
+  const editFood = useCallback(async (id: number, data: UpdateFoodInput): Promise<FoodDetail | undefined> => {
+    try {
+      return await foodService.editFood(id, data);
+    } catch (e) {
+      console.error('Failed to edit food', e);
+      return undefined;
+    }
+  }, []);
+
   const refreshUserWorkouts = useCallback(async () => {
     try {
       const workouts = await workoutService.getAllUserWorkouts();
@@ -311,6 +329,9 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       editUserMeal,
       deleteUserMeal,
 
+      createFood,
+      editFood,
+
       // Workouts
       userWorkouts,
       refreshUserWorkouts,
@@ -346,6 +367,8 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       createUserMeal,
       editUserMeal,
       deleteUserMeal,
+      createFood,
+      editFood,
       userWorkouts,
       refreshUserWorkouts,
       createUserWorkout,

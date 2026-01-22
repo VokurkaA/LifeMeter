@@ -104,3 +104,21 @@ export type UpdateMealInput = {
   eaten_at?: string;
   items?: MealItemInput[];
 };
+
+export type CreateFoodInput = {
+  description: string;
+  brand_owner?: string;
+  ingredients?: string;
+  portions: {
+    gram_weight: number;
+    portion_amount: number;
+    portion_unit: string;
+    modifier?: string;
+  }[];
+  nutrients: {
+    nutrient_nbr: number; // e.g., 208 for KCAL
+    amount: number;
+  }[];
+};
+
+export type UpdateFoodInput = Partial<CreateFoodInput>;

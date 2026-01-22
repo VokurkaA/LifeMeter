@@ -1,5 +1,5 @@
 import {request} from '@/lib/net';
-import type {CreateMealInput, Food, FoodDetail, FullUserMeal, UpdateMealInput, UserFood, UserMeal} from "@/types/food.types";
+import type {CreateFoodInput, CreateMealInput, Food, FoodDetail, FullUserMeal, UpdateFoodInput, UpdateMealInput, UserFood, UserMeal} from "@/types/food.types";
 import type {PaginationResult} from "@/types/types";
 
 class FoodService {
@@ -25,6 +25,16 @@ class FoodService {
   async getFoodById(id: number): Promise<FoodDetail> {
     const url = `${this.baseUrl}/food/${encodeURIComponent(String(id))}`;
     return request(url, { method: 'GET' });
+  }
+
+  async addFood(data: CreateFoodInput): Promise<FoodDetail> {
+    const url = this.baseUrl + "/food";
+    return request(url, { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async editFood(id: number, data: UpdateFoodInput): Promise<FoodDetail> {
+    const url = `${this.baseUrl}/food/${encodeURIComponent(String(id))}`;
+    return request(url, { method: 'PATCH', body: JSON.stringify(data) });
   }
 
   async getAllUserMeals(): Promise<{ userMeal: UserMeal; userFoods: UserFood[] }[]> {
