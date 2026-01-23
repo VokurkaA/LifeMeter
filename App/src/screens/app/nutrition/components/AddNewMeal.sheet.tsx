@@ -8,7 +8,8 @@ import Animated, {
     LinearTransition,
 } from 'react-native-reanimated';
 import AddMeal from "./AddMeal";
-import ScanMeal from "./ScanMeal";
+import ScanMeal from "./ScanMeal.tab";
+import QuickAddMeal from "./QuickAddMeal.tab";
 
 const AnimatedContentContainer = ({
     children,
@@ -53,11 +54,7 @@ export default function AddNewMeal() {
                             <Animated.View layout={LinearTransition.duration(200)}>
                                 <Tabs.Content value="quickAdd">
                                     <AnimatedContentContainer>
-                                        <Text>Quick Add Content</Text>
-                                        <TextField>
-                                            <TextField.Label>Calories</TextField.Label>
-                                            <TextField.Input placeholder="Enter calories" />
-                                        </TextField>
+                                        <QuickAddMeal />
                                     </AnimatedContentContainer>
                                 </Tabs.Content>
                                 <Tabs.Content value="scanBarcode">
