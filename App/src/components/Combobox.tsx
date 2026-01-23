@@ -1,11 +1,11 @@
-import { Select, TextField } from "heroui-native"; // Removed Button, ensure Icon is imported if needed
-import { Pressable, View } from "react-native";
+import { Select, TextField } from "heroui-native"; 
+import { Pressable, View, ActivityIndicator } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useState, useEffect } from "react";
 import { Text } from "@/components/Text";
 import { KeyboardController } from "react-native-keyboard-controller";
-import { ChevronDown } from "lucide-react-native"; // Or your preferred icon library
 import { foodService } from "@/services/food.service";
+import { useDebounce } from "@/lib/useDebounce";
 
 KeyboardController.preload();
 
@@ -19,10 +19,12 @@ type ComboBoxProps = {
   selectedOption?: SelectOption;
   onValueChange?: (option: SelectOption | undefined) => void;
   onSearchQueryChange?: (query: string) => void;
+  isLoading?: boolean;
 };
 
-export default function ComboBox({ items, onValueChange, selectedOption, onSearchQueryChange }: ComboBoxProps) {
+export default function ComboBox({ items, onValueChange, selectedOption, onSearchQueryChange, isLoading }: ComboBoxProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 600);
 
   const displayValue = selectedOption ? selectedOption.label : "";
 
@@ -33,12 +35,8 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
     );
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onSearchQueryChange?.(searchQuery);
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, onSearchQueryChange]);
+    onSearchQueryChange?.(debouncedSearchQuery);
+  }, [debouncedSearchQuery, onSearchQueryChange]);
 
   const handleOnChange = (option: SelectOption | undefined) => {
     onValueChange?.(option);
@@ -90,7 +88,13 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
             nestedScrollEnabled
             keyboardShouldPersistTaps="handled"
           >
-            {filteredItems.map((item) => (
+            {isLoading && (
+              <View className="p-4 items-center">
+                <ActivityIndicator />
+              </View>
+            )}
+
+            {!isLoading && filteredItems.map((item) => (
               <Select.Item
                 key={item.value}
                 value={item.value}
@@ -102,7 +106,7 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
               />
             ))}
 
-            {filteredItems.length === 0 && (
+            {!isLoading && filteredItems.length === 0 && (
               <View className="p-4 items-center opacity-50">
                 <Text>No options found</Text>
               </View>
