@@ -1,21 +1,19 @@
 import { View } from "react-native";
-import { Text } from "@/components/Text";
-import { BottomSheet, Button, Tabs, TextField } from "heroui-native";
+import { BottomSheet, Button, Tabs } from "heroui-native";
 import { useState } from "react";
 import Animated, {
     FadeIn,
     FadeOut,
     LinearTransition,
 } from 'react-native-reanimated';
-import AddMeal from "./AddMeal";
-import ScanMeal from "./ScanMeal.tab";
-import QuickAddMeal from "./QuickAddMeal.tab";
+import ScanMeal from "../tabs/ScanMeal.tab";
+import QuickAddMeal from "../tabs/QuickAddMeal.tab";
+import { useStore } from "@/contexts/useStore";
+import NewMeal from "../tabs/NewMeal";
+import FromExistingMeal from "../tabs/FromExistingMeal";
+import { ScrollView } from "react-native";
 
-const AnimatedContentContainer = ({
-    children,
-}: {
-    children: React.ReactNode;
-}) => (
+const AnimatedContentContainer = ({ children }: { children: React.ReactNode; }) => (
     <Animated.View
         entering={FadeIn.duration(200)}
         exiting={FadeOut.duration(200)}
@@ -26,45 +24,75 @@ const AnimatedContentContainer = ({
 );
 
 export default function AddNewMeal() {
+    const { createUserMeal, userMeals } = useStore();
     const [activeTab, setActiveTab] = useState("quickAdd");
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleSuccess = () => {
+        setIsOpen(false);
+    };
+
     return (
         <View>
-            <BottomSheet>
+            <BottomSheet isOpen={isOpen} onOpenChange={setIsOpen}>
                 <BottomSheet.Trigger asChild>
                     <Button>Add New Meal</Button>
                 </BottomSheet.Trigger>
                 <BottomSheet.Portal>
                     <BottomSheet.Overlay />
                     <BottomSheet.Content>
-                        <BottomSheet.Title>Add New Meal</BottomSheet.Title>
+                        <BottomSheet.Title className="mb-4">Add A New Meal</BottomSheet.Title>
                         <Tabs value={activeTab} onValueChange={setActiveTab}>
-                            <Tabs.List className="w-full justify-between overflow-scroll">
-                                <Tabs.Indicator />
-                                <Tabs.Trigger value="quickAdd">
-                                    <Tabs.Label>Quick Add</Tabs.Label>
-                                </Tabs.Trigger>
-                                <Tabs.Trigger value="scanBarcode">
-                                    <Tabs.Label>Scan</Tabs.Label>
-                                </Tabs.Trigger>
-                                <Tabs.Trigger value="addMeal">
-                                    <Tabs.Label>Add Meal</Tabs.Label>
-                                </Tabs.Trigger>
-                            </Tabs.List>
-
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <Tabs.List className="flex-row">
+                                    <Tabs.Indicator />
+                                    <Tabs.Trigger value="quickAdd" className="flex-1">
+                                        {({ isSelected }) => (<Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>Quick Add</Tabs.Label>)}
+                                    </Tabs.Trigger>
+                                    <Tabs.Trigger value="scanBarcode" className="flex-1">
+                                        {({ isSelected }) => (<Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>Scan</Tabs.Label>)}
+                                    </Tabs.Trigger>
+                                    <Tabs.Trigger value="fromExisting" className="flex-1">
+                                        {({ isSelected }) => (<Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>From Existing</Tabs.Label>)}
+                                    </Tabs.Trigger>
+                                    <Tabs.Trigger value="newMeal" className="flex-1">
+                                        {({ isSelected }) => (<Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>New Meal</Tabs.Label>)}
+                                    </Tabs.Trigger>
+                                </Tabs.List>
+                            </ScrollView>
                             <Animated.View layout={LinearTransition.duration(200)}>
                                 <Tabs.Content value="quickAdd">
                                     <AnimatedContentContainer>
-                                        <QuickAddMeal />
+                                        <QuickAddMeal
+                                            onSuccess={handleSuccess}
+                                            createUserMeal={createUserMeal}
+                                        />
                                     </AnimatedContentContainer>
                                 </Tabs.Content>
                                 <Tabs.Content value="scanBarcode">
                                     <AnimatedContentContainer>
-                                        <ScanMeal />
+                                        <ScanMeal
+                                            onSuccess={handleSuccess}
+                                            createUserMeal={createUserMeal}
+                                        />
                                     </AnimatedContentContainer>
                                 </Tabs.Content>
-                                <Tabs.Content value="addMeal">
+                                <Tabs.Content value="fromExisting">
                                     <AnimatedContentContainer>
-                                        <AddMeal />
+                                        <FromExistingMeal
+                                            onSuccess={handleSuccess}
+                                            createUserMeal={createUserMeal}
+                                            userMeals={userMeals}
+                                        />
+                                    </AnimatedContentContainer>
+                                </Tabs.Content>
+                                <Tabs.Content value="newMeal">
+                                    <AnimatedContentContainer>
+                                        <NewMeal
+                                            onSuccess={handleSuccess}
+                                            createUserMeal={createUserMeal}
+                                            userMeals={userMeals}
+                                        />
                                     </AnimatedContentContainer>
                                 </Tabs.Content>
                             </Animated.View>

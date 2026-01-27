@@ -4,7 +4,6 @@ import { ScrollView } from "react-native-gesture-handler";
 import { useState, useEffect } from "react";
 import { Text } from "@/components/Text";
 import { KeyboardController } from "react-native-keyboard-controller";
-import { foodService } from "@/services/food.service";
 import { useDebounce } from "@/lib/useDebounce";
 
 KeyboardController.preload();
@@ -40,9 +39,6 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
 
   const handleOnChange = (option: SelectOption | undefined) => {
     onValueChange?.(option);
-    foodService.getFoodById(Number(option?.value)).then((res) => {
-      console.log("Selected food item:", JSON.stringify(res));
-    });
   };
 
   return (

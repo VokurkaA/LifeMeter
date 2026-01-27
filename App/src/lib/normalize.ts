@@ -1,6 +1,4 @@
-export const normalizePositiveDecimal = (input: string, {maxDecimals = 1}: { maxDecimals?: number } = {}): {
-    text: string; value: number | undefined
-} => {
+export const normalizePositiveDecimal = (input: string, {maxDecimals = 1}: { maxDecimals?: number } = {}): {text: string; value: number | undefined} => {
     const t = (input ?? "").replace(",", ".").trim();
 
     let out = "";

@@ -17,3 +17,15 @@ export const timeToDate = (time: string | undefined | null): Date | undefined =>
     d.setHours(h, m, s, 0);
     return d;
 };
+
+export const dateToTimestamp = (date: Date | undefined | null): string | undefined => {
+    if (!date) return undefined;
+    const t = date.getTime();
+    return Number.isFinite(t) ? String(t) : undefined;
+}
+
+export const timestampToDate = (timestamp: string | undefined | null): Date | undefined => {
+    if (!timestamp) return undefined;
+    const d = new Date(timestamp);
+    return Number.isFinite(d.getTime()) ? d : undefined;
+};
