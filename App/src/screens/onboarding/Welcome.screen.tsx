@@ -3,7 +3,7 @@ import {Dimensions, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import Carousel, {ICarouselInstance, Pagination} from 'react-native-reanimated-carousel';
 import {Button, Card, PressableFeedback, useThemeColor} from 'heroui-native';
-import {H1, H3} from '@/components/Text';
+import {H1, H2, H3, Text} from '@/components/Text';
 import {LinearGradient} from 'expo-linear-gradient';
 import {Image} from 'expo-image';
 
@@ -71,10 +71,10 @@ export default function WelcomeScreen({navigation}: {
                     </PressableFeedback>
 
                     <View className="items-center justify-center mt-6">
-                        <H1 className="text-center">{item.title}</H1>
-                        <H3 className="text-center max-w-8/12">
+                        <H2 className="text-center">{item.title}</H2>
+                        <Text className="text-center text-xl mt-2">
                             {item.text}
-                        </H3>
+                        </Text>
                     </View>
                 </View>)}
             />

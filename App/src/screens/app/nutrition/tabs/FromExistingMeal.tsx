@@ -1,18 +1,22 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { View } from "react-native";
-import { Accordion, SkeletonGroup, Button } from "heroui-native";
+import { Accordion, SkeletonGroup, Button, Skeleton, useThemeColor } from "heroui-native";
 import { CreateMealInput, UserMeal, UserFood, FoodDetail } from "@/types/food.types";
-import { Text } from "@/components/Text";
+import { Muted, Text } from "@/components/Text";
 import { timestampToDate } from "@/lib/dateTime";
 import { foodService } from "@/services/food.service";
+import MealBuilder from "../components/MealBuilder";
+import { ChevronLeft } from "lucide-react-native";
 
-interface FromExistingMeal {
+interface FromExistingMealProps {
     onSuccess?: () => void;
     createUserMeal: (data: CreateMealInput) => Promise<void>;
     userMeals: { userMeal: UserMeal; userFoods: UserFood[]; }[]
 }
 
-export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals }: FromExistingMeal) {
+export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals }: FromExistingMealProps) {
+    const [selectedMeal, setSelectedMeal] = useState<{ userMeal: UserMeal; userFoods: UserFood[] } | null>(null);
+    const foregroundColor = useThemeColor('foreground');
     const uniqueUserMeals = useMemo(() => {
         const nameToMeal = new Map<string, { userMeal: UserMeal; userFoods: UserFood[] }>();
         for (let i = userMeals.length - 1; i >= 0; i--) {
@@ -24,21 +28,73 @@ export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals 
         return Array.from(nameToMeal.values()).reverse();
     }, [userMeals]);
 
+    const handleSelect = (meal: { userMeal: UserMeal; userFoods: UserFood[] }) => {
+        setSelectedMeal(meal);
+    };
+
+    const handleSave = async (data: CreateMealInput) => {
+        await createUserMeal(data);
+        onSuccess?.();
+    };
+
+    if (selectedMeal) {
+        const initialData: CreateMealInput = {
+            name: selectedMeal.userMeal.name,
+            items: selectedMeal.userFoods.map(uf => ({
+                food_id: uf.food_id,
+                total_grams: uf.total_grams,
+                portion_id: uf.portion_id,
+                quantity: uf.quantity,
+            })),
+        };
+
+        return (
+            <View className="flex-1">
+                <Button
+                    variant="ghost"
+                    onPress={() => setSelectedMeal(null)}
+                    className="self-start mb-2 -ml-4"
+                >
+                    <ChevronLeft size={20} color={foregroundColor} />
+                    <Button.Label>Back to list</Button.Label>
+                </Button>
+                <MealBuilder
+                    initialData={initialData}
+                    onSave={handleSave}
+                    onCancel={() => setSelectedMeal(null)}
+                />
+            </View>
+        );
+    }
+
     return (
         <View className="flex flex-col">
             <Accordion variant="default" isDividerVisible={true}>
-                {uniqueUserMeals.map(({ userMeal, userFoods }) => (
-                    <MealAccordion key={userMeal.id} userMeal={userMeal} userFoods={userFoods} />
+                {uniqueUserMeals.map((meal) => (
+                    <MealAccordion
+                        key={meal.userMeal.id}
+                        userMeal={meal.userMeal}
+                        userFoods={meal.userFoods}
+                        onSelect={() => handleSelect(meal)}
+                    />
                 ))}
             </Accordion>
         </View>
     );
 }
 
-const MealAccordion = React.memo(function MealAccordion({ userMeal, userFoods }: { userMeal: UserMeal; userFoods: UserFood[] }) {
+const MealAccordion = React.memo(function MealAccordion({
+    userMeal,
+    userFoods,
+    onSelect
+}: {
+    userMeal: UserMeal;
+    userFoods: UserFood[];
+    onSelect: () => void
+}) {
     const [foods, setFoods] = useState<FoodDetail[]>([]);
     const [loading, setLoading] = useState(true);
-    const [calories, setCalories] = useState<number>(0);
+    const [calories, setCalories] = useState<number | undefined>();
     const eatenAt = useMemo<Date | undefined>(() => timestampToDate(userMeal.eaten_at), [userMeal.eaten_at]);
 
     useEffect(() => {
@@ -73,9 +129,15 @@ const MealAccordion = React.memo(function MealAccordion({ userMeal, userFoods }:
     return (
         <Accordion.Item key={userMeal.id} value={userMeal.id}>
             <Accordion.Trigger>
-                {eatenAt && <Text>{eatenAt.getDate()}. {eatenAt.getMonth() + 1}.</Text>}
-                <Text className="flex-1 font-bold">{userMeal.name}</Text>
-                <Text>{Math.round(calories)} kcal</Text>
+                <View className="flex-1 flex-row items-center gap-3">
+                    {eatenAt && <Muted>{eatenAt.getDate()}. {eatenAt.getMonth() + 1}.</Muted>}
+                    <Text className="flex-1 font-bold" numberOfLines={1}>{userMeal.name}</Text>
+                    {loading ? (
+                        <Skeleton className="h-4 w-12 opacity-10 rounded-md" />
+                    ) : (
+                        <Text className="font-medium">{Math.round(calories!)} kcal</Text>
+                    )}
+                </View>
                 <Accordion.Indicator />
             </Accordion.Trigger>
             <Accordion.Content>
@@ -86,23 +148,18 @@ const MealAccordion = React.memo(function MealAccordion({ userMeal, userFoods }:
                             <SkeletonGroup.Item className="h-4 w-1/2 rounded-md" />
                         </>
                     ) : (
-                        foods.map((f) => (
-                            <View key={f.food.id}>
-                                <Text>{f.food.description}</Text>
+                        foods.map((f, idx) => (
+                            <View key={`${f.food.id}-${idx}`} className="flex-row justify-between items-center">
+                                <Text className="flex-1 text-sm" numberOfLines={1}>{f.food.description}</Text>
+                                <Muted>{userFoods[idx].total_grams}g</Muted>
                             </View>
                         ))
                     )}
-                    <Button size="sm" variant="secondary" className="mt-2">Add</Button>
+                    <Button size="sm" variant="secondary" className="mt-4" onPress={onSelect}>
+                        <Button.Label>Use This Meal</Button.Label>
+                    </Button>
                 </SkeletonGroup>
             </Accordion.Content>
         </Accordion.Item>
     );
 });
-
-const MealForm = React.memo(function MealForm({ userMeal, userFoods, foodDetails }: { userMeal: UserMeal; userFoods: UserFood[]; foodDetails: FoodDetail[] }) {
-    return (
-        <View className="flex flex-row gap-4">
-
-        </View>
-    )
-})
