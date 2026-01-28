@@ -8,7 +8,7 @@ import type { PaginationProps } from "@/types/pagination.types";
 
 export const foodRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
-// foodRouter.use("*", requireAuth());
+foodRouter.use("*", requireAuth());
 
 foodRouter.get("/search", pagination(), async (c) => {
     const paginationProps: PaginationProps = getPagination(c);
