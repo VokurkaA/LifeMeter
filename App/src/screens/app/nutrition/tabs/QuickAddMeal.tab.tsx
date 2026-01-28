@@ -1,10 +1,11 @@
 import ComboBox, { SelectOption } from "@/components/Combobox";
 import { foodService } from "@/services/food.service";
-import { CreateMealInput, FoodDetail } from "@/types/food.types";
+import { CreateMealInput, FoodDetail, FoodSearchResult } from "@/types/food.types";
 import { useState } from "react";
 import { View } from "react-native";
 import FoodDetailForm from "../components/FoodDetailForm";
 import { useFoodSearch } from "../hooks/useFoodSearch";
+import { Muted, Text } from "@/components/Text";
 
 interface QuickAddMealProps {
     onSuccess?: () => void;
@@ -37,6 +38,20 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
         onSuccess?.();
     };
 
+    const renderFoodItem = (item: SelectOption) => {
+        const food = item.data as FoodSearchResult;
+        return (
+            <View className="flex-col gap-1 py-1">
+                <Text className="font-semibold">{food.description}</Text>
+                {(food.brand_name || food.category_name || food.brand_owner) && (
+                    <Muted className="text-xs">
+                        {[food.brand_name, food.brand_owner, food.category_name].filter(Boolean).join(" • ")}
+                    </Muted>
+                )}
+            </View>
+        );
+    };
+
     return (
         <View>
             <ComboBox
@@ -46,6 +61,7 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
                 onSearchQueryChange={filterFoods}
                 isLoading={isSearching || isFetchingDetail}
                 onEndReached={loadMore}
+                renderItem={renderFoodItem}
             />
             {foodDetail && (
                 <FoodDetailForm

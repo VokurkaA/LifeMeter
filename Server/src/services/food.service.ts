@@ -3,8 +3,14 @@ import type {Food, FoodDetail, FullUserFood, FullUserMeal, UserFood, UserMeal,} 
 import {mealUpdateSchema} from "@/schemas/user.food.schema";
 import type {PaginationProps} from "@/types/pagination.types";
 
+export interface FoodSearchResult extends Food {
+    brand_owner?: string;
+    brand_name?: string;
+    category_name?: string;
+}
+
 export interface PaginatedFoodResult {
-    rows: Food[];
+    rows: FoodSearchResult[];
     total: number;
 }
 
@@ -18,12 +24,16 @@ class FoodService {
         const countQuery = `SELECT COUNT(id)::text AS total
                             FROM food`;
         const dataQuery = `
-            SELECT id, branded_food_id, food_category_id, description
-            FROM food
-            ORDER BY id
+            SELECT f.id, f.branded_food_id, f.food_category_id, f.description,
+                   bf.brand_owner, bf.brand_name,
+                   fc.name as category_name
+            FROM food f
+            LEFT JOIN branded_food bf ON f.branded_food_id = bf.id
+            LEFT JOIN food_category fc ON f.food_category_id = fc.id
+            ORDER BY f.id
             LIMIT $1 OFFSET $2
         `;
-        const [countResult, dataResult] = await Promise.all([pool.query<CountRow>(countQuery), pool.query<Food>(dataQuery, [limit, offset])]);
+        const [countResult, dataResult] = await Promise.all([pool.query<CountRow>(countQuery), pool.query<FoodSearchResult>(dataQuery, [limit, offset])]);
         return {rows: dataResult.rows, total: this.parseTotal(countResult.rows[0]?.total)};
     }
 
@@ -31,7 +41,11 @@ class FoodService {
         const trimmed = name.trim();
         if (!trimmed) return {rows: [], total: 0};
 
-        const formattedQuery = trimmed
+        // Sanitize input to prevent syntax errors in to_tsquery (e.g. "Salt & Vinegar")
+        const sanitized = trimmed.replace(/[&|!():*<>\\]/g, ' ').trim();
+        if (!sanitized) return {rows: [], total: 0};
+
+        const formattedQuery = sanitized
             .split(/\s+/)
             .filter(term => term.length > 0)
             .map(term => `${term}:*`)
@@ -44,24 +58,28 @@ class FoodService {
         `;
 
         const dataQuery = `
-            SELECT id, branded_food_id, food_category_id, description
-            FROM food
-            WHERE search_vector @@ to_tsquery('english', $1)
+            SELECT f.id, f.branded_food_id, f.food_category_id, f.description,
+                   bf.brand_owner, bf.brand_name,
+                   fc.name as category_name
+            FROM food f
+            LEFT JOIN branded_food bf ON f.branded_food_id = bf.id
+            LEFT JOIN food_category fc ON f.food_category_id = fc.id
+            WHERE f.search_vector @@ to_tsquery('english', $1)
             ORDER BY 
                 CASE 
-                    WHEN description ILIKE $4 THEN 0 
-                    WHEN description ILIKE $4 || '%' THEN 1 
+                    WHEN f.description ILIKE $4 THEN 0 
+                    WHEN f.description ILIKE $4 || '%' THEN 1 
                     ELSE 2 
                 END ASC,
-                LENGTH(description) ASC,
-                ts_rank_cd(search_vector, to_tsquery('english', $1), 32) DESC,
-                id ASC
+                LENGTH(f.description) ASC,
+                ts_rank_cd(f.search_vector, to_tsquery('english', $1), 32) DESC,
+                f.id ASC
             LIMIT $2 OFFSET $3
         `;
 
         const [countResult, dataResult] = await Promise.all([
             pool.query<CountRow>(countQuery, [formattedQuery]), 
-            pool.query<Food>(dataQuery, [formattedQuery, paginationProps.limit, paginationProps.offset, trimmed])
+            pool.query<FoodSearchResult>(dataQuery, [formattedQuery, paginationProps.limit, paginationProps.offset, trimmed])
         ]);
 
         return {rows: dataResult.rows, total: this.parseTotal(countResult.rows[0]?.total)};

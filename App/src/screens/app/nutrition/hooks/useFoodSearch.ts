@@ -14,6 +14,7 @@ export function useFoodSearch() {
         data.map(food => ({
             label: food.description,
             value: String(food.id),
+            data: food,
         })), []);
 
     const search = useCallback((newQuery: string) => {

@@ -4,7 +4,7 @@ import { TextField, Button, useToast, SkeletonGroup, useThemeColor, Card, Pressa
 import { Muted, Text } from "@/components/Text";
 import ComboBox, { SelectOption } from "@/components/Combobox";
 import { foodService } from "@/services/food.service";
-import { CreateMealInput, FoodDetail } from "@/types/food.types";
+import { CreateMealInput, FoodDetail, FoodSearchResult } from "@/types/food.types";
 import { XIcon } from "lucide-react-native";
 import { normalizePositiveDecimal } from "@/lib/normalize";
 import { SelectWithTrigger } from "@/components/SelectWithTrigger";
@@ -144,6 +144,20 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
         }
     };
 
+    const renderFoodItem = (item: SelectOption) => {
+        const food = item.data as FoodSearchResult;
+        return (
+            <View className="flex-col gap-1 py-1">
+                <Text className="font-semibold">{food.description}</Text>
+                {(food.brand_name || food.category_name || food.brand_owner) && (
+                    <Muted className="text-xs">
+                        {[food.brand_name, food.brand_owner, food.category_name].filter(Boolean).join(" • ")}
+                    </Muted>
+                )}
+            </View>
+        );
+    };
+
     if (isLoadingInitial) {
         return (
             <View className="gap-4 p-4">
@@ -179,6 +193,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
                         setSearchQuery={setSearchQuery} 
                         isLoading={isSearchingList}
                         onEndReached={loadMore}
+                        renderItem={renderFoodItem}
                     />
                 </View>
 

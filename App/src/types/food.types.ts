@@ -1,3 +1,9 @@
+export interface FoodSearchResult extends Food {
+  brand_owner?: string;
+  brand_name?: string;
+  category_name?: string;
+}
+
 export interface Food {
   id: number;
   branded_food_id: number | null;

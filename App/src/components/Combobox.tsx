@@ -1,7 +1,7 @@
 import { Select, TextField } from "heroui-native"; 
 import { Pressable, View, ActivityIndicator } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Text } from "@/components/Text";
 import { KeyboardController } from "react-native-keyboard-controller";
 import { useDebounce } from "@/lib/useDebounce";
@@ -11,6 +11,7 @@ KeyboardController.preload();
 export type SelectOption = {
   label: string;
   value: string;
+  data?: any;
 };
 
 type ComboBoxProps = {
@@ -22,9 +23,10 @@ type ComboBoxProps = {
   searchQuery?: string;
   setSearchQuery?: (q: string) => void;
   onEndReached?: () => void;
+  renderItem?: (item: SelectOption) => React.ReactNode;
 };
 
-export default function ComboBox({ items, onValueChange, selectedOption, onSearchQueryChange, isLoading, searchQuery: controlledQuery, setSearchQuery, onEndReached }: ComboBoxProps) {
+export default function ComboBox({ items, onValueChange, selectedOption, onSearchQueryChange, isLoading, searchQuery: controlledQuery, setSearchQuery, onEndReached, renderItem }: ComboBoxProps) {
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const query = controlledQuery !== undefined ? controlledQuery : localSearchQuery;
   const setQuery = setSearchQuery ?? setLocalSearchQuery;
@@ -33,11 +35,13 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
 
   const displayValue = selectedOption ? selectedOption.label : "";
 
-  const filteredItems = onSearchQueryChange
-    ? items
-    : items.filter((item) =>
-      item.label.toLowerCase().includes(query.toLowerCase())
-    );
+  const filteredItems = useMemo(() => {
+    return onSearchQueryChange
+      ? items
+      : items.filter((item) =>
+        item.label.toLowerCase().includes(query.toLowerCase())
+      );
+  }, [items, query, onSearchQueryChange]);
 
   useEffect(() => {
     onSearchQueryChange?.(debouncedQuery);
@@ -97,7 +101,9 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
                 onPress={() => {
                   KeyboardController.dismiss();
                 }}
-              />
+              >
+                {renderItem ? renderItem(item) : <Text>{item.label}</Text>}
+              </Select.Item>
             )}
             nestedScrollEnabled
             keyboardShouldPersistTaps="handled"
