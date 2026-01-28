@@ -12,6 +12,7 @@ import { useStore } from "@/contexts/useStore";
 import NewMeal from "../tabs/NewMeal";
 import FromExistingMeal from "../tabs/FromExistingMeal";
 import { ScrollView } from "react-native";
+import { BottomSheetFooter } from "@gorhom/bottom-sheet";
 
 const AnimatedContentContainer = ({ children }: { children: React.ReactNode; }) => (
     <Animated.View
@@ -31,6 +32,52 @@ export default function AddNewMeal() {
     const handleSuccess = () => {
         setIsOpen(false);
     };
+
+    const renderFooter = useCallback(
+        (props: any) => (
+            <BottomSheetFooter {...props} bottomInset={24}>
+                <Tabs className="px-4" value={activeTab} onValueChange={setActiveTab}>
+                    <Tabs.List>
+                        <Tabs.ScrollView contentContainerClassName="w-full justify-between">
+                            <Tabs.Indicator />
+                            <Tabs.Trigger value="quickAdd">
+                                {({ isSelected }) => (
+                                    <Tabs.Label className={`${isSelected ? "text-accent" : ""}`}>
+                                        Quick Add
+                                    </Tabs.Label>
+                                )}
+                            </Tabs.Trigger>
+                            <Tabs.Trigger value="scanBarcode">
+                                {({ isSelected }) => (
+                                    <Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>
+                                        Scan
+                                    </Tabs.Label>
+                                )}
+                            </Tabs.Trigger>
+                            <Tabs.Trigger value="fromExisting">
+                                {({ isSelected }) => (
+                                    <Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>
+                                        From Existing
+                                    </Tabs.Label>
+                                )}
+                            </Tabs.Trigger>
+                            <Tabs.Trigger value="newMeal">
+                                {({ isSelected }) => (
+                                    <Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>
+                                        New Meal
+                                    </Tabs.Label>
+                                )}
+                            </Tabs.Trigger>
+                        </Tabs.ScrollView>
+                    </Tabs.List>
+                </Tabs>
+            </BottomSheetFooter>
+        ),
+        [activeTab, setActiveTab]
+    );
+
+
+
     return (
         <View>
             <BottomSheet isOpen={isOpen} onOpenChange={setIsOpen}>
@@ -40,32 +87,13 @@ export default function AddNewMeal() {
                 <BottomSheet.Portal>
                     <BottomSheet.Overlay />
                     <BottomSheet.Content
-                        snapPoints={['25%', '40%', '60%', '80%']}
-                        index={1}
-                        contentContainerClassName='h-full'
+                        contentContainerClassName='h-full pb-24'
                         enableOverDrag={false}
                         enableDynamicSizing={true}
-                        // footerComponent={footerComponent}
+                        footerComponent={renderFooter}
                     >
                         <BottomSheet.Title className="mb-4">Add A New Meal</BottomSheet.Title>
                         <Tabs value={activeTab} onValueChange={setActiveTab}>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                                <Tabs.List className="flex-row">
-                                    <Tabs.Indicator />
-                                    <Tabs.Trigger value="quickAdd" className="flex-1">
-                                        {({ isSelected }) => (<Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>Quick Add</Tabs.Label>)}
-                                    </Tabs.Trigger>
-                                    <Tabs.Trigger value="scanBarcode" className="flex-1">
-                                        {({ isSelected }) => (<Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>Scan</Tabs.Label>)}
-                                    </Tabs.Trigger>
-                                    <Tabs.Trigger value="fromExisting" className="flex-1">
-                                        {({ isSelected }) => (<Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>From Existing</Tabs.Label>)}
-                                    </Tabs.Trigger>
-                                    <Tabs.Trigger value="newMeal" className="flex-1">
-                                        {({ isSelected }) => (<Tabs.Label className={` ${isSelected ? "text-accent" : ""}`}>New Meal</Tabs.Label>)}
-                                    </Tabs.Trigger>
-                                </Tabs.List>
-                            </ScrollView>
                             <Animated.View layout={LinearTransition.duration(200)}>
                                 <Tabs.Content value="quickAdd">
                                     <AnimatedContentContainer>
