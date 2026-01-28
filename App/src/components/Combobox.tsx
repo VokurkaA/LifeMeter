@@ -19,23 +19,28 @@ type ComboBoxProps = {
   onValueChange?: (option: SelectOption | undefined) => void;
   onSearchQueryChange?: (query: string) => void;
   isLoading?: boolean;
+  searchQuery?: string;
+  setSearchQuery?: (q: string) => void;
 };
 
-export default function ComboBox({ items, onValueChange, selectedOption, onSearchQueryChange, isLoading }: ComboBoxProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearchQuery = useDebounce(searchQuery, 600);
+export default function ComboBox({ items, onValueChange, selectedOption, onSearchQueryChange, isLoading, searchQuery: controlledQuery, setSearchQuery }: ComboBoxProps) {
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const query = controlledQuery !== undefined ? controlledQuery : localSearchQuery;
+  const setQuery = setSearchQuery ?? setLocalSearchQuery;
+
+  const debouncedQuery = useDebounce(query, 300);
 
   const displayValue = selectedOption ? selectedOption.label : "";
 
   const filteredItems = onSearchQueryChange
     ? items
     : items.filter((item) =>
-      item.label.toLowerCase().includes(searchQuery.toLowerCase())
+      item.label.toLowerCase().includes(query.toLowerCase())
     );
 
   useEffect(() => {
-    onSearchQueryChange?.(debouncedSearchQuery);
-  }, [debouncedSearchQuery, onSearchQueryChange]);
+    onSearchQueryChange?.(debouncedQuery);
+  }, [debouncedQuery, onSearchQueryChange]);
 
   const handleOnChange = (option: SelectOption | undefined) => {
     onValueChange?.(option);
@@ -72,8 +77,8 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
           <TextField className="mb-4">
             <TextField.Input
               placeholder="Search options..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
+              value={query}
+              onChangeText={setQuery}
               autoCorrect={false}
               autoFocus
             />
@@ -97,7 +102,6 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
                 label={item.label}
                 onPress={() => {
                   KeyboardController.dismiss();
-                  setSearchQuery(item.label);
                 }}
               />
             ))}

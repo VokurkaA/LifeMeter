@@ -4,9 +4,9 @@ import { Muted, Text } from "@/components/Text";
 import { Button, TextField, useToast } from "heroui-native";
 import { SelectWithTrigger } from "@/components/SelectWithTrigger";
 import { normalizePositiveDecimal } from "@/lib/normalize";
-import { dateToTimestamp } from "@/lib/dateTime";
 import { CreateMealInput, FoodDetail } from "@/types/food.types";
 import { SelectOption } from "@/components/Combobox";
+import { BottomSheetTextInput } from "@/components/BottomSheetTextInput";
 
 interface FoodDetailFormProps {
     foodDetail: FoodDetail;
@@ -28,7 +28,7 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
                 label: `${p.portion_amount ?? ""} ${p.portion_unit ?? ""} ${p.modifier ?? ""} (${p.gram_weight} g)`.trim(),
             }));
             setPortionsOptions(options);
-            
+
             if (foodDetail.portions.length > 0) {
                 const firstPortion = foodDetail.portions[0];
                 setSelectedPortion({
@@ -77,7 +77,7 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
 
     const handleAdd = async () => {
         if (!foodDetail || gramAmount === undefined) return;
-        
+
         setIsSubmitting(true);
         try {
             await createUserMeal({
@@ -143,7 +143,7 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
 
             <TextField>
                 <TextField.Label>Amount (grams)</TextField.Label>
-                <TextField.Input
+                <BottomSheetTextInput
                     keyboardType="numeric"
                     placeholder="100"
                     value={gramAmount !== undefined ? String(gramAmount) : ""}
@@ -160,8 +160,7 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
 
                         setGramAmount(value);
                         syncPortionFromGrams(value);
-                    }}
-                />
+                    }} />
             </TextField>
 
             {foodDetail.brandedFood?.ingredients && (

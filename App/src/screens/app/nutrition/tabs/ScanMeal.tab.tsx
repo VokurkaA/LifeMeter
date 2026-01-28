@@ -7,6 +7,7 @@ import { CreateMealInput, FoodDetail } from "@/types/food.types";
 import FoodDetailForm from "../components/FoodDetailForm";
 import { Button, useThemeColor, useToast } from "heroui-native";
 import { RefreshCcw } from "lucide-react-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
 interface ScanMealProps {
     onSuccess?: () => void;
@@ -69,7 +70,10 @@ export default function ScanMeal({ onSuccess, createUserMeal }: ScanMealProps) {
     }
 
     return (
-        <View className="flex-1 gap-4">
+        <BottomSheetScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerClassName="pb-safe-offset-16"
+        >
             {isLoading && (
                 <View className="items-center py-8">
                     <ActivityIndicator size="large" />
@@ -99,6 +103,6 @@ export default function ScanMeal({ onSuccess, createUserMeal }: ScanMealProps) {
                     </Button>
                 </View>
             )}
-        </View>
+        </BottomSheetScrollView>
     );
 }

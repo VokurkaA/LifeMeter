@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { BottomSheet, Button, Tabs } from "heroui-native";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Animated, {
     FadeIn,
     FadeOut,
@@ -31,7 +31,6 @@ export default function AddNewMeal() {
     const handleSuccess = () => {
         setIsOpen(false);
     };
-
     return (
         <View>
             <BottomSheet isOpen={isOpen} onOpenChange={setIsOpen}>
@@ -40,7 +39,14 @@ export default function AddNewMeal() {
                 </BottomSheet.Trigger>
                 <BottomSheet.Portal>
                     <BottomSheet.Overlay />
-                    <BottomSheet.Content>
+                    <BottomSheet.Content
+                        snapPoints={['25%', '40%', '60%', '80%']}
+                        index={1}
+                        contentContainerClassName='h-full'
+                        enableOverDrag={false}
+                        enableDynamicSizing={true}
+                        // footerComponent={footerComponent}
+                    >
                         <BottomSheet.Title className="mb-4">Add A New Meal</BottomSheet.Title>
                         <Tabs value={activeTab} onValueChange={setActiveTab}>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>

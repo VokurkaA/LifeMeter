@@ -4,6 +4,7 @@ import { CreateMealInput, Food, FoodDetail } from "@/types/food.types";
 import { useState, useCallback } from "react";
 import { View } from "react-native";
 import FoodDetailForm from "../components/FoodDetailForm";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
 interface QuickAddMealProps {
     onSuccess?: () => void;
@@ -14,6 +15,7 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
     const [foodOptions, setFoodOptions] = useState<SelectOption[]>([]);
     const [selectedFood, setSelectedFood] = useState<SelectOption | undefined>();
     const [foodDetail, setFoodDetail] = useState<FoodDetail>();
+    const [isSearching, setIsSearching] = useState(false);
 
     const dataToOptions = (data: Food[]): SelectOption[] =>
         data.map(food => ({
@@ -22,11 +24,13 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
         }));
 
     const filterFoods = useCallback((query: string) => {
+        setIsSearching(true);
         const task = query.trim()
             ? foodService.getFoodByName(query)
             : foodService.getAllFood();
 
-        task.then(res => setFoodOptions(dataToOptions(res.data)));
+        task.then(res => setFoodOptions(dataToOptions(res.data)))
+            .finally(() => setIsSearching(false));
     }, []);
 
     const handleFoodSelect = (value: SelectOption | undefined) => {
@@ -47,23 +51,26 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
     };
 
     return (
-        <View className="flex-1 gap-4">
-            <View className="mt-2">
+        <BottomSheetScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerClassName="pb-safe-offset-16"
+        >
+            <View className="mb-4">
                 <ComboBox
                     items={foodOptions}
                     onValueChange={handleFoodSelect}
                     selectedOption={selectedFood}
                     onSearchQueryChange={filterFoods}
+                    isLoading={isSearching}
                 />
             </View>
-
             {foodDetail && (
-                <FoodDetailForm 
-                    foodDetail={foodDetail} 
+                <FoodDetailForm
+                    foodDetail={foodDetail}
                     onSuccess={handleSuccess}
                     createUserMeal={createUserMeal}
                 />
             )}
-        </View>
+        </BottomSheetScrollView>
     );
 }

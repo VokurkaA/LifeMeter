@@ -8,6 +8,7 @@ import { CreateMealInput, Food, FoodDetail, MealItemInput } from "@/types/food.t
 import { Trash2, Plus, Calculator, XIcon } from "lucide-react-native";
 import { normalizePositiveDecimal } from "@/lib/normalize";
 import { SelectWithTrigger } from "@/components/SelectWithTrigger";
+import { BottomSheetTextInput } from "@/components/BottomSheetTextInput";
 
 interface MealBuilderProps {
     initialData?: CreateMealInput;
@@ -16,7 +17,7 @@ interface MealBuilderProps {
 }
 
 interface BuilderItem {
-    id: string; // local unique id for list
+    id: string; 
     foodDetail: FoodDetail;
     gramAmount: number;
     portionId?: number;
@@ -32,6 +33,8 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
     const [foodOptions, setFoodOptions] = useState<SelectOption[]>([]);
     const [selectedFood, setSelectedFood] = useState<SelectOption | undefined>();
     const [isSearching, setIsSearching] = useState(false);
+    const [isSearchingList, setIsSearchingList] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         if (initialData?.items && initialData.items.length > 0) {
@@ -67,11 +70,13 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
         }));
 
     const filterFoods = useCallback((query: string) => {
+        setIsSearchingList(true);
         const task = query.trim()
             ? foodService.getFoodByName(query)
             : foodService.getAllFood();
 
-        task.then(res => setFoodOptions(dataToOptions(res.data)));
+        task.then(res => setFoodOptions(dataToOptions(res.data)))
+            .finally(() => setIsSearchingList(false));
     }, []);
 
     const handleFoodSelect = async (option: SelectOption | undefined) => {
@@ -87,6 +92,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
             };
             setItems(prev => [...prev, newItem]);
             setSelectedFood(undefined);
+            setSearchQuery(""); 
         } catch (error) {
             console.error("Failed to add food:", error);
         } finally {
@@ -171,7 +177,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
             <View className="gap-4">
                 <TextField>
                     <TextField.Label>Meal Name</TextField.Label>
-                    <TextField.Input
+                    <BottomSheetTextInput
                         placeholder="e.g. Healthy Breakfast"
                         value={mealName}
                         onChangeText={setMealName}
@@ -185,12 +191,29 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
                         onValueChange={handleFoodSelect}
                         selectedOption={selectedFood}
                         onSearchQueryChange={filterFoods}
+                        searchQuery={searchQuery} 
+                        setSearchQuery={setSearchQuery} 
+                        isLoading={isSearchingList}
                     />
                 </View>
 
                 {items.length > 0 && (
+                    <Card className="gap-4">
+                        <Card.Header>
+                            <Card.Title>Macros</Card.Title>
+                        </Card.Header>
+                        <Card.Body className="flex flex-row items-center justify-between px-2">
+                            <NutrientStat label="Calories" value={totalNutrients.calories} unit="kcal" />
+                            <NutrientStat label="Protein" value={totalNutrients.protein} unit="g" />
+                            <NutrientStat label="Carbs" value={totalNutrients.carbs} unit="g" />
+                            <NutrientStat label="Fat" value={totalNutrients.fat} unit="g" />
+                        </Card.Body>
+                    </Card>
+                )}
+
+                {items.length > 0 && (
                     <View className="gap-4">
-                        <Text className="font-semibold">Selected Items</Text>
+                        <Text className="font-semibold">Selected Items ({items.length})</Text>
                         {items.map((item) => (
                             <BuilderItemRow
                                 key={item.id}
@@ -202,24 +225,9 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
                     </View>
                 )}
 
-                {items.length > 0 && (
-                    <View className="bg-accent/5 p-4 rounded-2xl border border-accent/10">
-                        <View className="flex-row items-center gap-2 mb-3">
-                            <Calculator size={18} className="text-accent" />
-                            <Text className="font-bold text-accent">Meal Summary</Text>
-                        </View>
-                        <View className="flex-row justify-between flex-wrap gap-4">
-                            <NutrientStat label="Calories" value={totalNutrients.calories} unit="kcal" />
-                            <NutrientStat label="Protein" value={totalNutrients.protein} unit="g" />
-                            <NutrientStat label="Carbs" value={totalNutrients.carbs} unit="g" />
-                            <NutrientStat label="Fat" value={totalNutrients.fat} unit="g" />
-                        </View>
-                    </View>
-                )}
-
-                <View className="flex-row gap-3">
+                <View className="flex flex-row gap-3">
                     {onCancel && (
-                        <Button onPress={onCancel} variant="ghost" className="flex-1">
+                        <Button onPress={onCancel} variant="tertiary" className="flex-1">
                             <Button.Label>Cancel</Button.Label>
                         </Button>
                     )}
@@ -282,15 +290,21 @@ function BuilderItemRow({ item, onUpdate, onRemove }: {
                         options={portionsOptions}
                         value={selectedPortionOption}
                         onValueChange={handlePortionChange}
+                        isDisabled={portionsOptions.length === 0}
                     />
                 </View>
                 <View className="flex-1">
                     <TextField>
                         <TextField.Label>Grams</TextField.Label>
-                        <TextField.Input
+                        <BottomSheetTextInput
                             keyboardType="numeric"
-                            value={String(item.gramAmount)}
+                            placeholder="0"
+                            value={String(item.gramAmount === 0 ? "" : item.gramAmount)}
                             onChangeText={(text) => {
+                                if (text === "") {
+                                    onUpdate({ gramAmount: 0, portionId: undefined });
+                                    return;
+                                }
                                 const { value } = normalizePositiveDecimal(text, { maxDecimals: 2 });
                                 if (value !== undefined) {
                                     onUpdate({ gramAmount: value, portionId: undefined });
@@ -306,8 +320,8 @@ function BuilderItemRow({ item, onUpdate, onRemove }: {
 
 function NutrientStat({ label, value, unit }: { label: string; value: number; unit: string }) {
     return (
-        <View className="items-center">
-            <Muted className="text-[10px] uppercase tracking-wider mb-0.5">{label}</Muted>
+        <View className="flex items-center">
+            <Muted>{label}</Muted>
             <View className="flex-row items-baseline">
                 <Text className="font-bold">{Math.round(value)}</Text>
                 <Text className="text-[10px] ml-0.5 text-foreground/60">{unit}</Text>

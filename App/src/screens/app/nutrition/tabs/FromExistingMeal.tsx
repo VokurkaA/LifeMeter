@@ -7,6 +7,7 @@ import { timestampToDate } from "@/lib/dateTime";
 import { foodService } from "@/services/food.service";
 import MealBuilder from "../components/MealBuilder";
 import { ChevronLeft } from "lucide-react-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
 interface FromExistingMealProps {
     onSuccess?: () => void;
@@ -49,7 +50,8 @@ export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals 
         };
 
         return (
-            <View className="flex-1">
+            <BottomSheetScrollView
+                showsVerticalScrollIndicator={false}>
                 <Button
                     variant="ghost"
                     onPress={() => setSelectedMeal(null)}
@@ -63,12 +65,13 @@ export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals 
                     onSave={handleSave}
                     onCancel={() => setSelectedMeal(null)}
                 />
-            </View>
+            </BottomSheetScrollView>
         );
     }
 
     return (
-        <View className="flex flex-col">
+        <BottomSheetScrollView
+        showsVerticalScrollIndicator={false}>
             <Accordion variant="default" isDividerVisible={true}>
                 {uniqueUserMeals.map((meal) => (
                     <MealAccordion
@@ -79,7 +82,7 @@ export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals 
                     />
                 ))}
             </Accordion>
-        </View>
+        </BottomSheetScrollView>
     );
 }
 

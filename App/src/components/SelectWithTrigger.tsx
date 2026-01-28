@@ -14,9 +14,10 @@ export type SelectWithTriggerProps = {
     label?: string;
     placeholder?: string;
     className?: string;
+    isDisabled?: boolean;
 };
 
-export function SelectWithTrigger({ options, value, initialValue, onValueChange, label, placeholder, className }: SelectWithTriggerProps) {
+export function SelectWithTrigger({ options, value, initialValue, onValueChange, label, placeholder, className, isDisabled }: SelectWithTriggerProps) {
     const valueByKey = useMemo(() => {
         const map = new Map<string, SelectWithTriggerOption>();
         for (const o of options) map.set(o.value, o);
@@ -29,13 +30,12 @@ export function SelectWithTrigger({ options, value, initialValue, onValueChange,
     const Trigger = () => {
         const { progress } = useSelectAnimation();
         const { value: selected } = useSelect();
-
+        const muted = useThemeColor('muted');
         return (
-            <View className="justify-center h-12 w-full px-3 shadow-md bg-field rounded-2xl shadow-black/5">
-                <Text className={selected ? '' : 'text-muted'}>
+            <View className={`justify-center h-12 w-full px-3 shadow-md rounded-2xl shadow-black/5 ${isDisabled ? 'bg-field/50' : 'bg-field'}`}>
+                <Text className={selected ? '' : 'text-muted'} style={isDisabled ? { color: muted } : undefined}>
                     {selected?.label ?? (placeholder ?? 'Select...')}
                 </Text>
-
                 <Animated.View
                     className="absolute right-3"
                     style={useAnimatedStyle(() => ({
@@ -44,7 +44,7 @@ export function SelectWithTrigger({ options, value, initialValue, onValueChange,
                         },],
                     }))}
                 >
-                    <ChevronDown color={useThemeColor('muted')} size={18} />
+                    <ChevronDown color={muted} size={18} />
                 </Animated.View>
             </View>
         );
@@ -52,7 +52,7 @@ export function SelectWithTrigger({ options, value, initialValue, onValueChange,
 
     return (
         <View className={['gap-2', className].filter(Boolean).join(' ')}>
-            {label && <Text>{label}</Text>}
+            {label && <Text className={isDisabled ? 'text-muted' : ''}>{label}</Text>}
 
             <Select
                 value={selectedValue}
@@ -63,8 +63,9 @@ export function SelectWithTrigger({ options, value, initialValue, onValueChange,
                     if (value === undefined) setInternalValue(resolved);
                     onValueChange?.(resolved);
                 }}
+                isDisabled={isDisabled}
             >
-                <Select.Trigger>
+                <Select.Trigger isDisabled={isDisabled}>
                     <Trigger />
                 </Select.Trigger>
 
