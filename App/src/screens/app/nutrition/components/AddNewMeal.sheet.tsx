@@ -31,11 +31,12 @@ export default function AddNewMeal() {
     }, [activeTab]);
 
     useEffect(() => {
-        setSnapIndex(1);
+        const targetIndex = snapPoints.length > 1 ? 1 : 0;
+        setSnapIndex(targetIndex);
         if (bottomSheetRef.current && typeof bottomSheetRef.current.snapToIndex === 'function') {
-            bottomSheetRef.current.snapToIndex(1);
+            bottomSheetRef.current.snapToIndex(targetIndex);
         }
-    }, [activeTab]);
+    }, [activeTab, snapPoints]);
 
     const handleSuccess = () => setIsOpen(false);
 

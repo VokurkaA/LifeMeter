@@ -1,10 +1,10 @@
 import ComboBox, { SelectOption } from "@/components/Combobox";
 import { foodService } from "@/services/food.service";
-import { CreateMealInput, Food, FoodDetail } from "@/types/food.types";
-import { useState, useCallback } from "react";
-import { ScrollView, View } from "react-native";
+import { CreateMealInput, FoodDetail } from "@/types/food.types";
+import { useState } from "react";
+import { View } from "react-native";
 import FoodDetailForm from "../components/FoodDetailForm";
-import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { useFoodSearch } from "../hooks/useFoodSearch";
 
 interface QuickAddMealProps {
     onSuccess?: () => void;
@@ -12,26 +12,10 @@ interface QuickAddMealProps {
 }
 
 export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMealProps) {
-    const [foodOptions, setFoodOptions] = useState<SelectOption[]>([]);
+    const { options: foodOptions, isLoading: isSearching, search: filterFoods } = useFoodSearch();
     const [selectedFood, setSelectedFood] = useState<SelectOption | undefined>();
     const [foodDetail, setFoodDetail] = useState<FoodDetail>();
-    const [isSearching, setIsSearching] = useState(false);
-
-    const dataToOptions = (data: Food[]): SelectOption[] =>
-        data.map(food => ({
-            label: food.description,
-            value: String(food.id),
-        }));
-
-    const filterFoods = useCallback((query: string) => {
-        setIsSearching(true);
-        const task = query.trim()
-            ? foodService.getFoodByName(query)
-            : foodService.getAllFood();
-
-        task.then(res => setFoodOptions(dataToOptions(res.data)))
-            .finally(() => setIsSearching(false));
-    }, []);
+    const [isFetchingDetail, setIsFetchingDetail] = useState(false);
 
     const handleFoodSelect = (value: SelectOption | undefined) => {
         setSelectedFood(value);
@@ -39,9 +23,12 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
 
         if (!value) return;
 
-        foodService.getFoodById(Number(value.value)).then(res => {
-            setFoodDetail(res);
-        });
+        setIsFetchingDetail(true);
+        foodService.getFoodById(Number(value.value))
+            .then(res => {
+                setFoodDetail(res);
+            })
+            .finally(() => setIsFetchingDetail(false));
     };
 
     const handleSuccess = () => {
@@ -57,7 +44,7 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
                 onValueChange={handleFoodSelect}
                 selectedOption={selectedFood}
                 onSearchQueryChange={filterFoods}
-                isLoading={isSearching}
+                isLoading={isSearching || isFetchingDetail}
             />
             {foodDetail && (
                 <FoodDetailForm

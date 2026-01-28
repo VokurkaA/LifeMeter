@@ -65,7 +65,7 @@ function Scanner({ onScan, isScanning }: ScannerProps) {
 
     return (
         // <View className="w-full aspect-square bg-background rounded-3xl overflow-hidden relative border border-foreground/20">
-        <View className="h-96 aspect-square bg-background rounded-3xl overflow-hidden relative border border-foreground/20">
+        <View className="w-full aspect-square bg-background rounded-3xl overflow-hidden relative border border-foreground/20">
             <CameraView
                 style={{ flex: 1 }}
                 facing={facing}

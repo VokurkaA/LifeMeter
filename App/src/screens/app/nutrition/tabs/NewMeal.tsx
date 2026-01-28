@@ -2,7 +2,6 @@ import React from "react";
 import { View } from "react-native";
 import { CreateMealInput, UserMeal, UserFood } from "@/types/food.types";
 import MealBuilder from "../components/MealBuilder";
-import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
 interface AddMealProps {
     onSuccess?: () => void;

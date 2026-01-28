@@ -1,14 +1,15 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { View, ScrollView, TouchableOpacity } from "react-native";
-import { TextField, Button, useToast, SkeletonGroup, useThemeColor, Surface, Card, PressableFeedback } from "heroui-native";
+import React, { useState, useMemo, useEffect } from "react";
+import { View, ScrollView } from "react-native";
+import { TextField, Button, useToast, SkeletonGroup, useThemeColor, Card, PressableFeedback } from "heroui-native";
 import { Muted, Text } from "@/components/Text";
 import ComboBox, { SelectOption } from "@/components/Combobox";
 import { foodService } from "@/services/food.service";
-import { CreateMealInput, Food, FoodDetail, MealItemInput } from "@/types/food.types";
-import { Trash2, Plus, Calculator, XIcon } from "lucide-react-native";
+import { CreateMealInput, FoodDetail } from "@/types/food.types";
+import { XIcon } from "lucide-react-native";
 import { normalizePositiveDecimal } from "@/lib/normalize";
 import { SelectWithTrigger } from "@/components/SelectWithTrigger";
 import { BottomSheetTextInput } from "@/components/BottomSheetTextInput";
+import { useFoodSearch } from "../hooks/useFoodSearch";
 
 interface MealBuilderProps {
     initialData?: CreateMealInput;
@@ -30,10 +31,9 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
     const [isSaving, setIsSaving] = useState(false);
     const [isLoadingInitial, setIsLoadingInitial] = useState(false);
 
-    const [foodOptions, setFoodOptions] = useState<SelectOption[]>([]);
+    const { options: foodOptions, isLoading: isSearchingList, search: filterFoods } = useFoodSearch();
     const [selectedFood, setSelectedFood] = useState<SelectOption | undefined>();
     const [isSearching, setIsSearching] = useState(false);
-    const [isSearchingList, setIsSearchingList] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
@@ -62,22 +62,6 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
             loadItems();
         }
     }, [initialData]);
-
-    const dataToOptions = (data: Food[]): SelectOption[] =>
-        data.map(food => ({
-            label: food.description,
-            value: String(food.id),
-        }));
-
-    const filterFoods = useCallback((query: string) => {
-        setIsSearchingList(true);
-        const task = query.trim()
-            ? foodService.getFoodByName(query)
-            : foodService.getAllFood();
-
-        task.then(res => setFoodOptions(dataToOptions(res.data)))
-            .finally(() => setIsSearchingList(false));
-    }, []);
 
     const handleFoodSelect = async (option: SelectOption | undefined) => {
         if (!option) return;

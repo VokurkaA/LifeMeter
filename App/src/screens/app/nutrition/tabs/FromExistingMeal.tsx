@@ -7,7 +7,6 @@ import { timestampToDate } from "@/lib/dateTime";
 import { foodService } from "@/services/food.service";
 import MealBuilder from "../components/MealBuilder";
 import { ChevronLeft } from "lucide-react-native";
-import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
 interface FromExistingMealProps {
     onSuccess?: () => void;
