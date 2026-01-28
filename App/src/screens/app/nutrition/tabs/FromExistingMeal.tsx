@@ -12,7 +12,7 @@ import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 interface FromExistingMealProps {
     onSuccess?: () => void;
     createUserMeal: (data: CreateMealInput) => Promise<void>;
-    userMeals: { userMeal: UserMeal; userFoods: UserFood[]; }[]
+    userMeals: { userMeal: UserMeal; userFoods: UserFood[]; }[];
 }
 
 export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals }: FromExistingMealProps) {
