@@ -12,7 +12,7 @@ interface QuickAddMealProps {
 }
 
 export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMealProps) {
-    const { options: foodOptions, isLoading: isSearching, search: filterFoods } = useFoodSearch();
+    const { options: foodOptions, isLoading: isSearching, search: filterFoods, loadMore } = useFoodSearch();
     const [selectedFood, setSelectedFood] = useState<SelectOption | undefined>();
     const [foodDetail, setFoodDetail] = useState<FoodDetail>();
     const [isFetchingDetail, setIsFetchingDetail] = useState(false);
@@ -45,6 +45,7 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
                 selectedOption={selectedFood}
                 onSearchQueryChange={filterFoods}
                 isLoading={isSearching || isFetchingDetail}
+                onEndReached={loadMore}
             />
             {foodDetail && (
                 <FoodDetailForm

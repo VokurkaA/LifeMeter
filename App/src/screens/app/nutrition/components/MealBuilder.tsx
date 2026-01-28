@@ -31,7 +31,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
     const [isSaving, setIsSaving] = useState(false);
     const [isLoadingInitial, setIsLoadingInitial] = useState(false);
 
-    const { options: foodOptions, isLoading: isSearchingList, search: filterFoods } = useFoodSearch();
+    const { options: foodOptions, isLoading: isSearchingList, search: filterFoods, loadMore } = useFoodSearch();
     const [selectedFood, setSelectedFood] = useState<SelectOption | undefined>();
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -178,6 +178,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
                         searchQuery={searchQuery} 
                         setSearchQuery={setSearchQuery} 
                         isLoading={isSearchingList}
+                        onEndReached={loadMore}
                     />
                 </View>
 

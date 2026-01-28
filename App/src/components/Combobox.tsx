@@ -1,6 +1,6 @@
 import { Select, TextField } from "heroui-native"; 
 import { Pressable, View, ActivityIndicator } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { FlatList } from "react-native-gesture-handler";
 import { useState, useEffect } from "react";
 import { Text } from "@/components/Text";
 import { KeyboardController } from "react-native-keyboard-controller";
@@ -21,9 +21,10 @@ type ComboBoxProps = {
   isLoading?: boolean;
   searchQuery?: string;
   setSearchQuery?: (q: string) => void;
+  onEndReached?: () => void;
 };
 
-export default function ComboBox({ items, onValueChange, selectedOption, onSearchQueryChange, isLoading, searchQuery: controlledQuery, setSearchQuery }: ComboBoxProps) {
+export default function ComboBox({ items, onValueChange, selectedOption, onSearchQueryChange, isLoading, searchQuery: controlledQuery, setSearchQuery, onEndReached }: ComboBoxProps) {
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const query = controlledQuery !== undefined ? controlledQuery : localSearchQuery;
   const setQuery = setSearchQuery ?? setLocalSearchQuery;
@@ -84,18 +85,11 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
             />
           </TextField>
 
-          <ScrollView
+          <FlatList
             className="h-64"
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-          >
-            {isLoading && (
-              <View className="p-4 items-center">
-                <ActivityIndicator />
-              </View>
-            )}
-
-            {!isLoading && filteredItems.map((item) => (
+            data={filteredItems}
+            keyExtractor={(item) => item.value}
+            renderItem={({ item }) => (
               <Select.Item
                 key={item.value}
                 value={item.value}
@@ -104,14 +98,22 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
                   KeyboardController.dismiss();
                 }}
               />
-            ))}
-
-            {!isLoading && filteredItems.length === 0 && (
+            )}
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+            onEndReached={onEndReached}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={isLoading ? (
+              <View className="p-4 items-center">
+                <ActivityIndicator />
+              </View>
+            ) : null}
+            ListEmptyComponent={!isLoading ? (
               <View className="p-4 items-center opacity-50">
                 <Text>No options found</Text>
               </View>
-            )}
-          </ScrollView>
+            ) : null}
+          />
         </Select.Content>
       </Select.Portal>
     </Select>
