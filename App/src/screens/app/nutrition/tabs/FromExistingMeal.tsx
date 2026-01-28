@@ -50,8 +50,7 @@ export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals 
         };
 
         return (
-            <BottomSheetScrollView
-                showsVerticalScrollIndicator={false}>
+            <View>
                 <Button
                     variant="ghost"
                     onPress={() => setSelectedMeal(null)}
@@ -65,24 +64,21 @@ export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals 
                     onSave={handleSave}
                     onCancel={() => setSelectedMeal(null)}
                 />
-            </BottomSheetScrollView>
+            </View>
         );
     }
 
     return (
-        <BottomSheetScrollView
-        showsVerticalScrollIndicator={false}>
-            <Accordion variant="default" isDividerVisible={true}>
-                {uniqueUserMeals.map((meal) => (
-                    <MealAccordion
-                        key={meal.userMeal.id}
-                        userMeal={meal.userMeal}
-                        userFoods={meal.userFoods}
-                        onSelect={() => handleSelect(meal)}
-                    />
-                ))}
-            </Accordion>
-        </BottomSheetScrollView>
+        <Accordion variant="default" isDividerVisible={true}>
+            {uniqueUserMeals.map((meal) => (
+                <MealAccordion
+                    key={meal.userMeal.id}
+                    userMeal={meal.userMeal}
+                    userFoods={meal.userFoods}
+                    onSelect={() => handleSelect(meal)}
+                />
+            ))}
+        </Accordion>
     );
 }
 

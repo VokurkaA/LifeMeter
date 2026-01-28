@@ -17,8 +17,6 @@ export default function NewMeal({ onSuccess, createUserMeal }: AddMealProps) {
     };
 
     return (
-        <BottomSheetScrollView showsVerticalScrollIndicator={false} >
-            <MealBuilder onSave={handleSave} />
-        </BottomSheetScrollView>
+        <MealBuilder onSave={handleSave} />
     );
 }

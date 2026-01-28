@@ -173,7 +173,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
     }
 
     return (
-        <ScrollView className="flex-1" contentContainerClassName="pb-20">
+        <ScrollView className="flex-1">
             <View className="gap-4">
                 <TextField>
                     <TextField.Label>Meal Name</TextField.Label>

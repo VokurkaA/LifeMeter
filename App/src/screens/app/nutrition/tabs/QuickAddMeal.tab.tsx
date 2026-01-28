@@ -2,7 +2,7 @@ import ComboBox, { SelectOption } from "@/components/Combobox";
 import { foodService } from "@/services/food.service";
 import { CreateMealInput, Food, FoodDetail } from "@/types/food.types";
 import { useState, useCallback } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import FoodDetailForm from "../components/FoodDetailForm";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
@@ -51,19 +51,14 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
     };
 
     return (
-        <BottomSheetScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerClassName="pb-safe-offset-16"
-        >
-            <View className="mb-4">
-                <ComboBox
-                    items={foodOptions}
-                    onValueChange={handleFoodSelect}
-                    selectedOption={selectedFood}
-                    onSearchQueryChange={filterFoods}
-                    isLoading={isSearching}
-                />
-            </View>
+        <View>
+            <ComboBox
+                items={foodOptions}
+                onValueChange={handleFoodSelect}
+                selectedOption={selectedFood}
+                onSearchQueryChange={filterFoods}
+                isLoading={isSearching}
+            />
             {foodDetail && (
                 <FoodDetailForm
                     foodDetail={foodDetail}
@@ -71,6 +66,6 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
                     createUserMeal={createUserMeal}
                 />
             )}
-        </BottomSheetScrollView>
+        </View>
     );
 }

@@ -67,42 +67,35 @@ export default function ScanMeal({ onSuccess, createUserMeal }: ScanMealProps) {
 
     if (isScanning) {
         return <CameraScreen onFound={handleFound} />;
+    } if (isLoading) {
+        return (
+            <View className="items-center py-8">
+                <ActivityIndicator size="large" />
+                <Text className="mt-2">Fetching food details...</Text>
+            </View>
+        )
+    } if (error) {
+        return (
+            <View className="items-center py-8 gap-4">
+                <Text className="text-danger-foreground font-semibold">{error}</Text>
+                <Button onPress={handleReset} variant="tertiary" className="flex-row gap-2">
+                    <RefreshCcw color={foregroundColor} size={18} />
+                    <Text>Try Again</Text>
+                </Button>
+            </View>
+        )
+    } if (foodDetail) {
+        return (
+            <View className="gap-4">
+                <FoodDetailForm
+                    foodDetail={foodDetail}
+                    onSuccess={handleSuccess}
+                    createUserMeal={createUserMeal}
+                />
+                <Button onPress={handleReset} variant="ghost">
+                    Scan Another
+                </Button>
+            </View>
+        );
     }
-
-    return (
-        <BottomSheetScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerClassName="pb-safe-offset-16"
-        >
-            {isLoading && (
-                <View className="items-center py-8">
-                    <ActivityIndicator size="large" />
-                    <Text className="mt-2">Fetching food details...</Text>
-                </View>
-            )}
-
-            {error && (
-                <View className="items-center py-8 gap-4">
-                    <Text className="text-danger-foreground font-semibold">{error}</Text>
-                    <Button onPress={handleReset} variant="tertiary" className="flex-row gap-2">
-                        <RefreshCcw color={foregroundColor} size={18} />
-                        <Text>Try Again</Text>
-                    </Button>
-                </View>
-            )}
-
-            {foodDetail && (
-                <View className="gap-4">
-                    <FoodDetailForm 
-                        foodDetail={foodDetail} 
-                        onSuccess={handleSuccess} 
-                        createUserMeal={createUserMeal}
-                    />
-                    <Button onPress={handleReset} variant="ghost">
-                        Scan Another
-                    </Button>
-                </View>
-            )}
-        </BottomSheetScrollView>
-    );
 }
