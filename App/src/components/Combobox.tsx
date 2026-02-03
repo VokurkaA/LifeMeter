@@ -84,7 +84,7 @@ export default function ComboBox({ items, onValueChange, selectedOption, onSearc
               placeholder="Search options..."
               value={query}
               onChangeText={setQuery}
-              autoCorrect={false}
+              autoCorrect
               autoFocus
             />
           </TextField>
