@@ -5,7 +5,6 @@ import { Button, TextField, Label, useToast } from "heroui-native";
 import { SelectWithTrigger } from "@/components/SelectWithTrigger";
 import { normalizePositiveDecimal } from "@/lib/normalize";
 import { CreateMealInput, FoodDetail } from "@/types/food.types";
-import { SelectOption } from "@/components/Combobox";
 import { BottomSheetTextInput } from "@/components/BottomSheetTextInput";
 
 interface FoodDetailFormProps {
@@ -13,6 +12,7 @@ interface FoodDetailFormProps {
     onSuccess?: () => void;
     createUserMeal: (data: CreateMealInput) => Promise<void>;
 }
+type SelectOption = { value: string; label: string };
 
 export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }: FoodDetailFormProps) {
     const { toast } = useToast();
