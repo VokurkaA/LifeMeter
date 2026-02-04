@@ -1,5 +1,5 @@
 import {BackHandler, View} from "react-native";
-import {H1, H3} from "@/components/Text";
+import {H1, H2, H3} from "@/components/Text";
 import {useCallback, useEffect, useState} from "react";
 import {Button} from "heroui-native";
 import Animated, {SharedValue, useAnimatedStyle, useDerivedValue, withTiming,} from "react-native-reanimated";
@@ -153,8 +153,8 @@ export default function Onboarding() {
 
     return (<View className="items-center flex-1 px-4">
         <ProgressBar step={step} totalSteps={totalSteps}/>
-        <H1 className="mt-8">Almost there</H1>
-        <H3>{defaultSubheadings[step]}</H3>
+        <H2 className="mt-8">Almost there</H2>
+        <H3 className="text-2xl">{defaultSubheadings[step]}</H3>
 
         <View className="flex-1 w-full">
             {fillComponent[step]}

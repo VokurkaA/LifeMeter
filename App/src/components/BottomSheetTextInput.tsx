@@ -1,9 +1,9 @@
 import { useBottomSheetInternal } from '@gorhom/bottom-sheet';
-import { TextField } from 'heroui-native';
+import { Input } from 'heroui-native';
 import { useCallback } from 'react';
 import { TextInput, type FocusEvent, type BlurEvent, findNodeHandle } from 'react-native';
 
-export const BottomSheetTextInput = (props: React.ComponentProps<typeof TextField.Input>) => {
+export const BottomSheetTextInput = (props: React.ComponentProps<typeof Input>) => {
   const { animatedKeyboardState, textInputNodesRef } = useBottomSheetInternal();
   
   const handleOnFocus = useCallback(
@@ -39,7 +39,7 @@ export const BottomSheetTextInput = (props: React.ComponentProps<typeof TextFiel
   );
 
   return (
-    <TextField.Input
+    <Input
       {...props}
       onFocus={handleOnFocus}
       onBlur={handleOnBlur}

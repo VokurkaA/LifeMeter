@@ -1,4 +1,4 @@
-import {Button, TextField, useThemeColor, useToast} from "heroui-native";
+import {Button, TextField, Label, useThemeColor, useToast} from "heroui-native";
 import {SleepSession} from "@/types/types";
 import {useState} from "react";
 import {BottomSheetScrollView} from "@gorhom/bottom-sheet";
@@ -117,7 +117,7 @@ export const NewSleepScreen = ({
             rightIconOnPress={() => setEndAt(undefined)}
         />
         <TextField>
-            <TextField.Label>Description</TextField.Label>
+            <Label>Description</Label>
             <BottomSheetTextInput
                 value={note}
                 onChangeText={setNote}

@@ -1,5 +1,5 @@
 import {TextInput, View} from "react-native";
-import {TextField, useThemeColor} from "heroui-native";
+import {TextField, Input, Label, useThemeColor} from "heroui-native";
 import {SelectWithTrigger, SelectWithTriggerOption} from "./SelectWithTrigger";
 import {useEffect, useRef, useState} from "react";
 import {normalizePositiveDecimal} from "@/lib/normalize";
@@ -180,7 +180,7 @@ export default function WeightSelect({
 
             <View className="flex-row gap-3 items-center">
                 <TextField className="flex-1">
-                    <TextField.Input
+                    <Input
                         value={stText}
                         onChangeText={(text) => {
                             const cleaned = digitsOnly(text);
@@ -201,7 +201,7 @@ export default function WeightSelect({
                 </TextField>
 
                 <TextField className="flex-1">
-                    <TextField.Input
+                    <Input
                         ref={stLbInputRef}
                         value={stLbText}
                         onChangeText={(text) => {
@@ -238,8 +238,8 @@ export default function WeightSelect({
                 </TextField>
             </View>
         </View>) : (<TextField isRequired={required} className="flex-1">
-            <TextField.Label>{label}</TextField.Label>
-            <TextField.Input
+            <Label>{label}</Label>
+            <Input
                 value={weightUnit === "kg" ? kgText : lbText}
                 onChangeText={(text) => {
                     const {text: nextText, value} = normalizePositiveDecimal(text, {maxDecimals: 1});

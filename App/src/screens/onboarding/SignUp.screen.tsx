@@ -1,6 +1,6 @@
 import {useRef, useState} from 'react';
 import {Pressable, Text, TextInput, View} from 'react-native';
-import {Button, TextField, useThemeColor, useToast} from 'heroui-native';
+import {Button, TextField, Input, Label, Description, FieldError, useThemeColor, useToast} from 'heroui-native';
 import {ArrowUpRight, CircleAlert, Eye, EyeOff} from 'lucide-react-native';
 import {H2} from '../../components/Text';
 import {useNavigation} from '@react-navigation/native';
@@ -62,8 +62,8 @@ export default function SignUp() {
             isDisabled={isSubmitting}
             isInvalid={username !== '' && !isUsernameValid}
         >
-            <TextField.Label>Username</TextField.Label>
-            <TextField.Input
+            <Label>Username</Label>
+            <Input
                 accessibilityLabel="Username"
                 placeholderTextColor={placeholderColor}
                 ref={usernameRef}
@@ -80,8 +80,8 @@ export default function SignUp() {
                 blurOnSubmit={false}
                 onSubmitEditing={() => emailRef.current?.focus()}
             />
-            <TextField.Description>Choose your username</TextField.Description>
-            <TextField.ErrorMessage>Username must be between 3 and 20 characters</TextField.ErrorMessage>
+            <Description hideOnInvalid>Choose your username</Description>
+            <FieldError>Username must be between 3 and 20 characters</FieldError>
         </TextField>
 
         <TextField
@@ -89,8 +89,8 @@ export default function SignUp() {
             isDisabled={isSubmitting}
             isInvalid={email !== '' && !isEmailValid}
         >
-            <TextField.Label>Email</TextField.Label>
-            <TextField.Input
+            <Label>Email</Label>
+            <Input
                 accessibilityLabel="Email"
                 ref={emailRef}
                 placeholderTextColor={placeholderColor}
@@ -108,8 +108,8 @@ export default function SignUp() {
                 blurOnSubmit={false}
                 onSubmitEditing={() => passwordRef.current?.focus()}
             />
-            <TextField.Description>Enter your email address</TextField.Description>
-            <TextField.ErrorMessage>Please enter a valid email address</TextField.ErrorMessage>
+            <Description hideOnInvalid>Enter your email address</Description>
+            <FieldError>Please enter a valid email address</FieldError>
         </TextField>
 
         <TextField
@@ -117,9 +117,9 @@ export default function SignUp() {
             isDisabled={isSubmitting}
             isInvalid={password !== '' && !isPasswordValid}
         >
-            <TextField.Label>Password</TextField.Label>
+            <Label>Password</Label>
             <View className="flex-row items-center w-full">
-                <TextField.Input
+                <Input
                     accessibilityLabel="Password"
                     ref={passwordRef}
                     className="flex-1 pr-12"
@@ -149,8 +149,8 @@ export default function SignUp() {
                         <Eye color={themeColorMuted} size={20}/>)}
                 </Pressable>
             </View>
-            <TextField.Description>Choose your password</TextField.Description>
-            <TextField.ErrorMessage>Password must be at least 8 characters</TextField.ErrorMessage>
+            <Description hideOnInvalid>Choose your password</Description>
+            <FieldError>Password must be at least 8 characters</FieldError>
         </TextField>
 
         <TextField
@@ -158,9 +158,9 @@ export default function SignUp() {
             isDisabled={isSubmitting}
             isInvalid={confirmPassword !== '' && !isConfirmValid}
         >
-            <TextField.Label>Confirm Password</TextField.Label>
+            <Label>Confirm Password</Label>
             <View className="flex-row items-center w-full">
-                <TextField.Input
+                <Input
                     accessibilityLabel="Confirm Password"
                     ref={confirmPasswordRef}
                     className="flex-1 pr-12"
@@ -189,8 +189,8 @@ export default function SignUp() {
                         <Eye color={themeColorMuted} size={20}/>)}
                 </Pressable>
             </View>
-            <TextField.Description>Enter your password again</TextField.Description>
-            <TextField.ErrorMessage>Passwords must match</TextField.ErrorMessage>
+            <Description hideOnInvalid>Enter your password again</Description>
+            <FieldError>Passwords must match</FieldError>
         </TextField>
 
         <Button isDisabled={!canSubmit || isSubmitting} onPress={handleSubmit}>

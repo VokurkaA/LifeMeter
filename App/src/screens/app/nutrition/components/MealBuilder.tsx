@@ -1,8 +1,16 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { View, ScrollView } from "react-native";
-import { TextField, Button, useToast, SkeletonGroup, useThemeColor, Card, PressableFeedback } from "heroui-native";
+import {
+    TextField,
+    Label,
+    Button,
+    useToast,
+    SkeletonGroup,
+    useThemeColor,
+    Card,
+    PressableFeedback,
+} from "heroui-native";
 import { Muted, Text } from "@/components/Text";
-import ComboBox, { SelectOption } from "@/components/Combobox";
 import { foodService } from "@/services/food.service";
 import { CreateMealInput, FoodDetail, FoodSearchResult } from "@/types/food.types";
 import { XIcon } from "lucide-react-native";
@@ -10,6 +18,18 @@ import { normalizePositiveDecimal } from "@/lib/normalize";
 import { SelectWithTrigger } from "@/components/SelectWithTrigger";
 import { BottomSheetTextInput } from "@/components/BottomSheetTextInput";
 import { useFoodSearch } from "../hooks/useFoodSearch";
+import { Combobox } from "@/components/Combobox";
+
+type ComboboxOption<TData = unknown> = {
+    value: string;
+    label: string;
+    data?: TData;
+};
+
+type SimpleOption = {
+    value: string;
+    label: string;
+};
 
 interface MealBuilderProps {
     initialData?: CreateMealInput;
@@ -18,7 +38,7 @@ interface MealBuilderProps {
 }
 
 interface BuilderItem {
-    id: string; 
+    id: string;
     foodDetail: FoodDetail;
     gramAmount: number;
     portionId?: number;
@@ -31,8 +51,10 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
     const [isSaving, setIsSaving] = useState(false);
     const [isLoadingInitial, setIsLoadingInitial] = useState(false);
 
-    const { options: foodOptions, isLoading: isSearchingList, search: filterFoods, loadMore } = useFoodSearch();
-    const [selectedFood, setSelectedFood] = useState<SelectOption | undefined>();
+    const { options: foodOptionsRaw, isLoading: isSearchingList, search: filterFoods, loadMore } = useFoodSearch();
+    const foodOptions = foodOptionsRaw as readonly ComboboxOption<FoodSearchResult>[];
+
+    const [selectedFood, setSelectedFood] = useState<ComboboxOption<FoodSearchResult> | undefined>();
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -63,7 +85,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
         }
     }, [initialData]);
 
-    const handleFoodSelect = async (option: SelectOption | undefined) => {
+    const handleFoodSelect = async (option: ComboboxOption<FoodSearchResult> | undefined) => {
         if (!option) return;
         setIsSearching(true);
         try {
@@ -74,9 +96,9 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
                 gramAmount: detail.portions.length > 0 ? detail.portions[0].gram_weight : 100,
                 portionId: detail.portions.length > 0 ? detail.portions[0].id : undefined,
             };
-            setItems(prev => [...prev, newItem]);
+            setItems((prev) => [...prev, newItem]);
             setSelectedFood(undefined);
-            setSearchQuery(""); 
+            setSearchQuery("");
         } catch (error) {
             console.error("Failed to add food:", error);
         } finally {
@@ -85,24 +107,19 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
     };
 
     const removeItem = (id: string) => {
-        setItems(prev => prev.filter(item => item.id !== id));
+        setItems((prev) => prev.filter((item) => item.id !== id));
     };
 
     const updateItem = (id: string, updates: Partial<BuilderItem>) => {
-        setItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+        setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
     };
 
     const totalNutrients = useMemo(() => {
-        const summary = {
-            calories: 0,
-            protein: 0,
-            carbs: 0,
-            fat: 0
-        };
+        const summary = { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
-        items.forEach(item => {
+        items.forEach((item) => {
             const factor = item.gramAmount / 100;
-            item.foodDetail.nutrients.forEach(n => {
+            item.foodDetail.nutrients.forEach((n) => {
                 const amount = (n.amount || 0) * factor;
                 if (n.nutrient_nbr === 208) summary.calories += amount;
                 if (n.nutrient_nbr === 203) summary.protein += amount;
@@ -128,7 +145,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
         try {
             const payload: CreateMealInput = {
                 name: mealName,
-                items: items.map(item => ({
+                items: items.map((item) => ({
                     food_id: item.foodDetail.food.id,
                     total_grams: item.gramAmount,
                     portion_id: item.portionId || null,
@@ -144,8 +161,16 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
         }
     };
 
-    const renderFoodItem = (item: SelectOption) => {
-        const food = item.data as FoodSearchResult;
+    const renderFoodItem = (item: ComboboxOption<FoodSearchResult>) => {
+        const food = item.data;
+        if (!food) {
+            return (
+                <View className="flex-col gap-1 py-1">
+                    <Text className="font-semibold">{item.label}</Text>
+                </View>
+            );
+        }
+
         return (
             <View className="flex-col gap-1 py-1">
                 <Text className="font-semibold">{food.description}</Text>
@@ -174,8 +199,9 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
         <ScrollView className="flex-1">
             <View className="gap-4">
                 <TextField>
-                    <TextField.Label>Meal Name</TextField.Label>
-                    <BottomSheetTextInput
+                    <Label>Meal Name</Label>
+                    <BottomSheetTextInput 
+                        variant="secondary"
                         placeholder="e.g. Healthy Breakfast"
                         value={mealName}
                         onChangeText={setMealName}
@@ -184,23 +210,25 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
 
                 <View className="gap-2">
                     <Text className="font-semibold">Add Foods</Text>
-                    <ComboBox
-                        items={foodOptions}
-                        onValueChange={handleFoodSelect}
-                        selectedOption={selectedFood}
+                    <Combobox<ComboboxOption<FoodSearchResult>>
+                        options={foodOptions}
+                        value={selectedFood}
+                        onChange={handleFoodSelect}
+                        getOptionValue={(opt) => String(opt.value)}
+                        getOptionLabel={(opt) => opt.label}
                         onSearchQueryChange={filterFoods}
-                        searchQuery={searchQuery} 
-                        setSearchQuery={setSearchQuery} 
-                        isLoading={isSearchingList}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        isLoading={isSearchingList || isSearching}
                         onEndReached={loadMore}
-                        renderItem={renderFoodItem}
+                        renderOption={(opt) => renderFoodItem(opt)}
                     />
                 </View>
 
                 {items.length > 0 && (
-                    <Card className="gap-4">
+                    <Card className="gap-4" variant="tertiary">
                         <Card.Header>
-                            <Card.Title>Macros</Card.Title>
+                            <Card.Title>Macronutrients</Card.Title>
                         </Card.Header>
                         <Card.Body className="flex flex-row items-center justify-between px-2">
                             <NutrientStat label="Calories" value={totalNutrients.calories} unit="kcal" />
@@ -244,33 +272,38 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
     );
 }
 
-function BuilderItemRow({ item, onUpdate, onRemove }: {
+function BuilderItemRow({
+    item,
+    onUpdate,
+    onRemove,
+}: {
     item: BuilderItem;
     onUpdate: (updates: Partial<BuilderItem>) => void;
-    onRemove: () => void
+    onRemove: () => void;
 }) {
-    const dangerColor = useThemeColor('danger');
-    const portionsOptions = useMemo(() => {
-        return item.foodDetail.portions.map(p => ({
+    const foregroundColor = useThemeColor("foreground");
+
+    const portionsOptions: SimpleOption[] = useMemo(() => {
+        return item.foodDetail.portions.map((p) => ({
             value: String(p.id),
             label: `${p.portion_amount ?? ""} ${p.portion_unit ?? ""} ${p.modifier ?? ""} (${p.gram_weight} g)`.trim(),
         }));
     }, [item.foodDetail]);
 
-    const selectedPortionOption = useMemo(() => {
-        return portionsOptions.find(o => o.value === String(item.portionId));
+    const selectedPortionOption: SimpleOption | undefined = useMemo(() => {
+        return portionsOptions.find((o) => o.value === String(item.portionId));
     }, [portionsOptions, item.portionId]);
 
-    const handlePortionChange = (option?: SelectOption) => {
+    const handlePortionChange = (option?: SimpleOption) => {
         if (!option) return;
-        const portion = item.foodDetail.portions.find(p => String(p.id) === option.value);
+        const portion = item.foodDetail.portions.find((p) => String(p.id) === option.value);
         if (portion) {
             onUpdate({ portionId: portion.id, gramAmount: portion.gram_weight });
         }
     };
 
     return (
-        <Card>
+        <Card variant="transparent" className="border border-border shadow-none">
             <Card.Header>
                 <View className="flex flex-row gap-2 items-start">
                     <View className="flex-1">
@@ -278,7 +311,7 @@ function BuilderItemRow({ item, onUpdate, onRemove }: {
                         <Card.Description className="text-sm">{item.foodDetail.category?.name}</Card.Description>
                     </View>
                     <PressableFeedback onPress={onRemove}>
-                        <XIcon color={dangerColor} />
+                        <XIcon color={foregroundColor} />
                     </PressableFeedback>
                 </View>
             </Card.Header>
@@ -295,8 +328,9 @@ function BuilderItemRow({ item, onUpdate, onRemove }: {
                 </View>
                 <View className="flex-1">
                     <TextField>
-                        <TextField.Label>Grams</TextField.Label>
-                        <BottomSheetTextInput
+                        <Label>Grams</Label>
+                        <BottomSheetTextInput 
+                            variant="secondary"
                             keyboardType="numeric"
                             placeholder="0"
                             value={String(item.gramAmount === 0 ? "" : item.gramAmount)}

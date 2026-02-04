@@ -1,12 +1,11 @@
 import MainLayout from '@/layouts/Main.layout';
 import AddNewMeal from './components/AddNewMeal.sheet';
 import NutritionWheel from './components/NutritionWheel';
-import MacroProgress from './components/MacroProgress';
 import MicronutrientsSheet from './components/MicronutrientsSheet';
 import { useDailyNutrition } from './hooks/useDailyNutrition';
 import { useStore } from '@/contexts/useStore';
-import { View } from 'react-native';
-import { Text } from '@/components/Text';
+import { Card, PressableFeedback } from 'heroui-native';
+import { MacroCard } from './components/MacroCard';
 
 export default function NutritionScreen() {
     const { nutrition, micros } = useDailyNutrition();
@@ -48,11 +47,39 @@ export default function NutritionScreen() {
 
     return (
         <MainLayout>
-            <NutritionWheel consumed={nutrition.calories} goal={goals.calories} />
-            <View className="gap-4">
-                <Text className="text-xl font-bold">Today's Macros</Text>
-                <MacroProgress nutrition={nutrition} goals={goals} />
-            </View>
+            <Card className='flex flex-col gap-4'>
+                <Card.Header>
+                    <Card.Title className='text-center text-2xl'>Nutrients</Card.Title>
+                </Card.Header>
+                <Card.Body className="items-center">
+                    <NutritionWheel
+                        consumed={nutrition.calories}
+                        goal={goals.calories}
+                        size={240}
+                        strokeWidth={15}
+                    />
+                </Card.Body>
+                <Card.Footer className="flex flex-row justify-center gap-8">
+                    <MacroCard
+                        name="Protein"
+                        consumed={nutrition.protein}
+                        goal={goals.protein}
+                        underlineColor="#F43F5E"
+                    />
+                    <MacroCard
+                        name="Carbs"
+                        consumed={nutrition.carbs}
+                        goal={goals.carbs}
+                        underlineColor="#0EA5E9"
+                    />
+                    <MacroCard
+                        name="Fat"
+                        consumed={nutrition.fat}
+                        goal={goals.fat}
+                        underlineColor="#EAB308"
+                    />
+                </Card.Footer>
+            </Card>
             <MicronutrientsSheet micros={micros} />
             <AddNewMeal />
         </MainLayout>

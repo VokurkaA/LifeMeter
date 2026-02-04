@@ -1,4 +1,3 @@
-import ComboBox, { SelectOption } from "@/components/Combobox";
 import { foodService } from "@/services/food.service";
 import { CreateMealInput, FoodDetail, FoodSearchResult } from "@/types/food.types";
 import { useState } from "react";
@@ -6,6 +5,13 @@ import { View } from "react-native";
 import FoodDetailForm from "../components/FoodDetailForm";
 import { useFoodSearch } from "../hooks/useFoodSearch";
 import { Muted, Text } from "@/components/Text";
+import { Combobox } from "@/components/Combobox";
+
+type ComboboxOption<TData = unknown> = {
+    value: string;
+    label: string;
+    data?: TData;
+};
 
 interface QuickAddMealProps {
     onSuccess?: () => void;
@@ -13,20 +19,23 @@ interface QuickAddMealProps {
 }
 
 export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMealProps) {
-    const { options: foodOptions, isLoading: isSearching, search: filterFoods, loadMore } = useFoodSearch();
-    const [selectedFood, setSelectedFood] = useState<SelectOption | undefined>();
+    const { options: foodOptionsRaw, isLoading: isSearching, search: filterFoods, loadMore } = useFoodSearch();
+    const foodOptions = foodOptionsRaw as readonly ComboboxOption<FoodSearchResult>[];
+
+    const [selectedFood, setSelectedFood] = useState<ComboboxOption<FoodSearchResult> | undefined>();
     const [foodDetail, setFoodDetail] = useState<FoodDetail>();
     const [isFetchingDetail, setIsFetchingDetail] = useState(false);
 
-    const handleFoodSelect = (value: SelectOption | undefined) => {
+    const handleFoodSelect = (value: ComboboxOption<FoodSearchResult> | undefined) => {
         setSelectedFood(value);
         setFoodDetail(undefined);
 
         if (!value) return;
 
         setIsFetchingDetail(true);
-        foodService.getFoodById(Number(value.value))
-            .then(res => {
+        foodService
+            .getFoodById(Number(value.value))
+            .then((res) => {
                 setFoodDetail(res);
             })
             .finally(() => setIsFetchingDetail(false));
@@ -38,8 +47,16 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
         onSuccess?.();
     };
 
-    const renderFoodItem = (item: SelectOption) => {
-        const food = item.data as FoodSearchResult;
+    const renderFoodItem = (item: ComboboxOption<FoodSearchResult>) => {
+        const food = item.data;
+        if (!food) {
+            return (
+                <View className="flex-col gap-1 py-1">
+                    <Text className="font-semibold">{item.label}</Text>
+                </View>
+            );
+        }
+
         return (
             <View className="flex-col gap-1 py-1">
                 <Text className="font-semibold">{food.description}</Text>
@@ -54,21 +71,20 @@ export default function QuickAddMeal({ onSuccess, createUserMeal }: QuickAddMeal
 
     return (
         <View>
-            <ComboBox
-                items={foodOptions}
-                onValueChange={handleFoodSelect}
-                selectedOption={selectedFood}
+            <Combobox<ComboboxOption<FoodSearchResult>>
+                options={foodOptions}
+                value={selectedFood}
+                onChange={handleFoodSelect}
+                getOptionValue={(opt) => String(opt.value)}
+                getOptionLabel={(opt) => opt.label}
                 onSearchQueryChange={filterFoods}
                 isLoading={isSearching || isFetchingDetail}
                 onEndReached={loadMore}
-                renderItem={renderFoodItem}
+                renderOption={(opt) => renderFoodItem(opt)}
             />
+
             {foodDetail && (
-                <FoodDetailForm
-                    foodDetail={foodDetail}
-                    onSuccess={handleSuccess}
-                    createUserMeal={createUserMeal}
-                />
+                <FoodDetailForm foodDetail={foodDetail} onSuccess={handleSuccess} createUserMeal={createUserMeal} />
             )}
         </View>
     );

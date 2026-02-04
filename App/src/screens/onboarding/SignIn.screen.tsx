@@ -1,4 +1,4 @@
-import {Button, TextField, useThemeColor, useToast} from "heroui-native";
+import {Button, TextField, Input, Label, Description, FieldError, useThemeColor, useToast} from "heroui-native";
 import {Pressable, Text, TextInput, View} from "react-native";
 import {useRef, useState} from "react";
 import {ArrowUpRight, CircleAlert, Eye, EyeOff} from "lucide-react-native";
@@ -55,8 +55,8 @@ export default function SignIn() {
             isDisabled={isSubmitting}
             isInvalid={email !== "" && !isEmailValid}
         >
-            <TextField.Label>Email</TextField.Label>
-            <TextField.Input
+            <Label>Email</Label>
+            <Input
                 accessibilityLabel="Email"
                 ref={emailRef}
                 placeholderTextColor={placeholderColor}
@@ -74,8 +74,8 @@ export default function SignIn() {
                 blurOnSubmit={false}
                 onSubmitEditing={() => passwordRef.current?.focus()}
             />
-            <TextField.Description>Enter your email address</TextField.Description>
-            <TextField.ErrorMessage>Please enter a valid email address</TextField.ErrorMessage>
+            <Description hideOnInvalid>Enter your email address</Description>
+            <FieldError>Please enter a valid email address</FieldError>
         </TextField>
 
         <TextField
@@ -83,9 +83,9 @@ export default function SignIn() {
             isDisabled={isSubmitting}
             isInvalid={password !== "" && !isPasswordValid}
         >
-            <TextField.Label>Password</TextField.Label>
+            <Label>Password</Label>
             <View className="flex-row items-center w-full">
-                <TextField.Input
+                <Input
                     accessibilityLabel="Password"
                     ref={passwordRef}
                     className="flex-1 pr-12"
@@ -114,7 +114,7 @@ export default function SignIn() {
                         <Eye color={themeColorMuted} size={20}/>)}
                 </Pressable>
             </View>
-            <TextField.ErrorMessage>Password must be at least 6 characters</TextField.ErrorMessage>
+            <FieldError>Password must be at least 6 characters</FieldError>
         </TextField>
 
         <Button className="mt-2" isDisabled={!canSubmit || isSubmitting} onPress={handleSubmit}>

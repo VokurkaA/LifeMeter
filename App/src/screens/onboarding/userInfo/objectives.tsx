@@ -5,7 +5,7 @@ import {BasicInfoData} from "./basicInfo";
 import {BodyInfoData} from "./bodyInfo";
 import {LifestyleData} from "./lifestyleInfo";
 import DateTimePicker from "@/components/DateTimePicker";
-import {Divider, TextField, useThemeColor} from "heroui-native";
+import {Separator, TextField, Input, Label, useThemeColor} from "heroui-native";
 import {X} from "lucide-react-native";
 import MacroSlider from "@/components/MacroSlider";
 import mifflinStJeor from "@/lib/bmr";
@@ -201,7 +201,7 @@ export default function Objectives({
                 isDisabled={goalWeight === undefined}
             />
         </View>
-        <Divider/>
+        <Separator/>
         <MacroSlider
             tdee={dailyCaloriesToReachGoal}
             proteinPercentage={proteinPercentage}
@@ -211,12 +211,12 @@ export default function Objectives({
             carbsPercentage={carbsPercentage}
             setCarbsPercentage={setCarbsPercentage}
         />
-        <Divider/>
+        <Separator/>
         <View>
             {/* TODO: Replace with heroui-native Slider when available */}
             <TextField>
-                <TextField.Label>Goal steps</TextField.Label>
-                <TextField.Input
+                <Label>Goal steps</Label>
+                <Input
                     value={goalSteps ? String(goalSteps) : undefined}
                     onChangeText={(text => {
                         const cleaned = text.replace(/[^0-9]/g, '');
@@ -234,7 +234,7 @@ export default function Objectives({
                 />
             </TextField>
         </View>
-        <Divider/>
+        <Separator/>
         <View className="gap-4">
             <DateTimePicker
                 label="Bedtime Time Goal"

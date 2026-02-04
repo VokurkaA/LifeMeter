@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View } from "react-native";
 import { Muted, Text } from "@/components/Text";
-import { Button, TextField, useToast } from "heroui-native";
+import { Button, TextField, Label, useToast } from "heroui-native";
 import { SelectWithTrigger } from "@/components/SelectWithTrigger";
 import { normalizePositiveDecimal } from "@/lib/normalize";
 import { CreateMealInput, FoodDetail } from "@/types/food.types";
@@ -142,7 +142,7 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
             )}
 
             <TextField>
-                <TextField.Label>Amount (grams)</TextField.Label>
+                <Label>Amount (grams)</Label>
                 <BottomSheetTextInput
                     keyboardType="numeric"
                     placeholder="100"

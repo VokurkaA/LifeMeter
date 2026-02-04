@@ -1,4 +1,4 @@
-import {TextField, useThemeColor} from "heroui-native";
+import {TextField, Input, Label, useThemeColor} from "heroui-native";
 import {SelectWithTrigger, SelectWithTriggerOption} from "./SelectWithTrigger";
 import {useEffect, useRef, useState} from "react";
 import {TextInput, View} from "react-native";
@@ -133,8 +133,8 @@ export default function HeightSelect({height, setHeight, heightUnit, setHeightUn
 
     return (<View className="flex-row gap-3">
         {heightUnit === "cm" ? (<TextField isRequired className="flex-1">
-            <TextField.Label>Enter your height</TextField.Label>
-            <TextField.Input
+            <Label>Enter your height</Label>
+            <Input
                 value={cmText}
                 onChangeText={(text) => {
                     const {text: nextText, value} = normalizePositiveDecimal(text, {maxDecimals: 1});
@@ -153,7 +153,7 @@ export default function HeightSelect({height, setHeight, heightUnit, setHeightUn
 
             <View className="flex-row gap-3 items-center">
                 <TextField className="flex-1">
-                    <TextField.Input
+                    <Input
                         value={ftText}
                         onChangeText={(text) => {
                             const cleaned = digitsOnly(text);
@@ -174,7 +174,7 @@ export default function HeightSelect({height, setHeight, heightUnit, setHeightUn
                 </TextField>
 
                 <TextField className="flex-1">
-                    <TextField.Input
+                    <Input
                         ref={inchesInputRef}
                         value={inText}
                         onChangeText={(text) => {

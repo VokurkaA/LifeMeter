@@ -1,4 +1,4 @@
-import { BottomSheet, Button, Tabs } from "heroui-native";
+import { BottomSheet, Button, Tabs, useThemeColor } from "heroui-native";
 import { useCallback, useState, useRef, useEffect, useMemo } from "react";
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useStore } from "@/contexts/useStore";
@@ -7,8 +7,10 @@ import QuickAddMeal from "../tabs/QuickAddMeal.tab";
 import ScanMeal from "../tabs/ScanMeal.tab";
 import FromExistingMeal from "../tabs/FromExistingMeal";
 import NewMeal from "../tabs/NewMeal";
+import { PlusIcon } from "lucide-react-native";
 
 export default function AddNewMeal() {
+    const foregroundColor = useThemeColor('foreground');
     const { createUserMeal, userMeals } = useStore();
     const [activeTab, setActiveTab] = useState("quickAdd");
     const [isOpen, setIsOpen] = useState(false);
@@ -86,7 +88,10 @@ export default function AddNewMeal() {
     return (
         <BottomSheet ref={bottomSheetRef} isOpen={isOpen} onOpenChange={setIsOpen}>
             <BottomSheet.Trigger asChild>
-                <Button>Add New Meal</Button>
+                <Button variant="tertiary">
+                    <PlusIcon color={foregroundColor} size={20} />
+                     <Button.Label>New Meal</Button.Label>
+                    </Button>
             </BottomSheet.Trigger>
             <BottomSheet.Portal>
                 <BottomSheet.Overlay />

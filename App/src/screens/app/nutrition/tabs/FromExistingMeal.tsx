@@ -68,7 +68,7 @@ export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals 
     }
 
     return (
-        <Accordion variant="default" isDividerVisible={true}>
+        <Accordion variant="default" hideSeparator={false}>
             {uniqueUserMeals.map((meal) => (
                 <MealAccordion
                     key={meal.userMeal.id}

@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {FlatList, Pressable, View} from "react-native";
-import {Accordion, BottomSheet, Button, Dialog, Divider, useThemeColor, useToast} from "heroui-native";
+import {Accordion, BottomSheet, Button, Dialog, Separator, useThemeColor, useToast} from "heroui-native";
 import {useStore} from "@/contexts/useStore";
 import {SleepSession} from "@/types/types";
 import {formatTime, timeToDate} from "@/lib/dateTime";
@@ -151,7 +151,7 @@ export default function SleepList() {
                     onEdit={handleEdit}
                 />)}
                 keyExtractor={(item) => item.id}
-                ItemSeparatorComponent={() => <Divider/>}
+                ItemSeparatorComponent={() => <Separator/>}
                 showsVerticalScrollIndicator={false}
             />
         </Accordion>

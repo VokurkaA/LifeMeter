@@ -1,7 +1,7 @@
 // TODO: Replace with heroui-native DateTimePicker when available
 
 import RnDateTimePicker, {type DateTimePickerEvent} from '@react-native-community/datetimepicker';
-import {ErrorView} from 'heroui-native';
+import {FieldError} from 'heroui-native';
 import {type ReactNode, useMemo, useState} from 'react';
 import {Platform, Pressable, View} from 'react-native';
 import {Text} from '@/components/Text';
@@ -95,9 +95,9 @@ export default function DateTimePicker({
             </View>
         </Pressable>
 
-        <ErrorView isInvalid={isInvalid}>
+        <FieldError isInvalid={isInvalid}>
             <Text className='text-danger'>{errorMessage}</Text>
-        </ErrorView>
+        </FieldError>
         {description && !isInvalid && <Text className="text-muted">{description}</Text>}
 
         {isOpen && (<RnDateTimePicker

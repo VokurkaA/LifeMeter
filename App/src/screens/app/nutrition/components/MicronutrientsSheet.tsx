@@ -23,7 +23,7 @@ export default function MicronutrientsSheet({ micros }: MicronutrientsSheetProps
                     <Card>
                         <Card.Header className='flex flex-row-reverse justify-between items-center'>
                             <ChevronRight size={20} color={foregroundColor} />
-                            <Card.Title>Micronutrients</Card.Title>
+                            <Card.Title>All Micronutrients</Card.Title>
                         </Card.Header>
                         <Card.Body>
                             <Card.Description>Vitamins, minerals, and other nutrients</Card.Description>
@@ -41,6 +41,7 @@ export default function MicronutrientsSheet({ micros }: MicronutrientsSheetProps
                 >
                     <BottomSheet.Title className="mb-4">Daily Micronutrients</BottomSheet.Title>
                     <BottomSheetFlatList
+                        showVerticalScrollIndicator={false}
                         className="flex-1"
                         data={nutrientList}
                         keyExtractor={(item: NutrientTotal) => item.id.toString()}
@@ -50,7 +51,6 @@ export default function MicronutrientsSheet({ micros }: MicronutrientsSheetProps
                                 <Text>{formatAmount(item.amount)} {item.unit}</Text>
                             </View>
                         )}
-                        contentContainerClassName="pb-10"
                         ListEmptyComponent={
                             <Text className="text-center mt-8 text-muted">No micronutrient data available for today.</Text>
                         }

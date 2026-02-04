@@ -2,7 +2,7 @@ import {ScrollView, Text, TextInput, View} from "react-native";
 import {useEffect, useMemo, useRef, useState} from "react";
 import HeightSelect from "@/components/HeightSelect";
 import WeightSelect from "@/components/WeightSelect";
-import {Divider, TextField, useThemeColor} from "heroui-native";
+import {Separator, TextField, Input, Label, useThemeColor} from "heroui-native";
 import {normalizePercentInput} from "@/lib/normalize";
 
 export interface BodyInfoData {
@@ -108,16 +108,16 @@ export default function BodyInfo({
         <WeightSelect weight={weight} setWeight={setWeight} weightUnit={weightUnit} setWeightUnit={setWeightUnit}
                       label="Enter your weight" required={true}/>
         <View className="flex-row items-center gap-3 my-4">
-            <Divider className="w-6"/>
+            <Separator className="w-6"/>
             <Text className="text-sm text-muted">Optional fields</Text>
-            <Divider className="flex-1"/>
+            <Separator className="flex-1"/>
         </View>
 
         <View className="gap-3 flex flex-col">
             <View className="flex gap-3 flex-row">
                 <TextField className="flex-1">
-                    <TextField.Label>Body fat %</TextField.Label>
-                    <TextField.Input
+                    <Label>Body fat %</Label>
+                    <Input
                         ref={bfRef}
                         value={bfText}
                         onChangeText={(text) => {
@@ -136,8 +136,8 @@ export default function BodyInfo({
                 </TextField>
 
                 <TextField className="flex-1">
-                    <TextField.Label>Lean tissue %</TextField.Label>
-                    <TextField.Input
+                    <Label>Lean tissue %</Label>
+                    <Input
                         ref={leanRef}
                         value={leanText}
                         onChangeText={(text) => {
@@ -158,8 +158,8 @@ export default function BodyInfo({
 
             <View className="flex gap-3 flex-row">
                 <TextField className="flex-1">
-                    <TextField.Label>Water %</TextField.Label>
-                    <TextField.Input
+                    <Label>Water %</Label>
+                    <Input
                         ref={waterRef}
                         value={waterText}
                         onChangeText={(text) => {
@@ -178,8 +178,8 @@ export default function BodyInfo({
                 </TextField>
 
                 <TextField className="flex-1">
-                    <TextField.Label>Bone mass %</TextField.Label>
-                    <TextField.Input
+                    <Label>Bone mass %</Label>
+                    <Input
                         ref={boneRef}
                         value={boneText}
                         onChangeText={(text) => {

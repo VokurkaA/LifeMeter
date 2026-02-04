@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { useThemeColor } from 'heroui-native';
 import { Text, Muted } from '@/components/Text';
-import Animated, { useAnimatedProps, useSharedValue, withTiming, withDelay } from 'react-native-reanimated';
+import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -14,15 +14,17 @@ interface NutritionWheelProps {
     strokeWidth?: number;
 }
 
-export default function NutritionWheel({ consumed, goal, size = 200, strokeWidth = 15 }: NutritionWheelProps) {
+export default function NutritionWheel({ consumed, goal, size = 250, strokeWidth = 20 }: NutritionWheelProps) {
     const primaryColor = useThemeColor('accent');
     const mutedColor = useThemeColor('muted');
 
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
-    
+
+    const ARC_PERCENTAGE = 0.75;
+    const arcLength = circumference * ARC_PERCENTAGE;
+
     const progress = goal > 0 ? Math.min(consumed / goal, 1) : 0;
-    
     const animatedProgress = useSharedValue(0);
 
     React.useEffect(() => {
@@ -30,7 +32,7 @@ export default function NutritionWheel({ consumed, goal, size = 200, strokeWidth
     }, [progress]);
 
     const animatedProps = useAnimatedProps(() => {
-        const offset = circumference * (1 - animatedProgress.value);
+        const offset = arcLength * (1 - animatedProgress.value);
         return {
             strokeDashoffset: offset,
         };
@@ -40,15 +42,17 @@ export default function NutritionWheel({ consumed, goal, size = 200, strokeWidth
         <View className="items-center justify-center">
             <View style={{ width: size, height: size, position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
                 <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-                    <G rotation="-90" origin={`${size / 2}, ${size / 2}`}>
+                    <G rotation="135" origin={`${size / 2}, ${size / 2}`}>
                         <Circle
                             cx={size / 2}
-                            cy={size / 2}   
+                            cy={size / 2}
                             r={radius}
                             stroke={mutedColor}
                             strokeWidth={strokeWidth}
                             fill="transparent"
                             opacity={0.2}
+                            strokeLinecap="round"
+                            strokeDasharray={[arcLength, circumference]}
                         />
                         <AnimatedCircle
                             cx={size / 2}
@@ -57,16 +61,20 @@ export default function NutritionWheel({ consumed, goal, size = 200, strokeWidth
                             stroke={primaryColor}
                             strokeWidth={strokeWidth}
                             fill="transparent"
-                            strokeDasharray={circumference}
                             strokeLinecap="round"
+                            strokeDasharray={[arcLength, circumference]}
                             animatedProps={animatedProps}
                         />
                     </G>
                 </Svg>
-                
+
                 <View className="absolute items-center justify-center">
-                    <Text className="text-3xl font-bold">{Math.round(consumed)}</Text>
-                    <Muted className="text-sm">/ {Math.round(goal)} kcal</Muted>
+                    <Text className="text-5xl font-bold text-center">{Math.round(consumed)}</Text>
+                    <Muted className="text-base text-center">Consumed</Muted>
+                </View>
+                <View className='absolute flex bottom-2 justify-center'>
+                    <Text className='text-center font-semibold text-2xl'>{Math.round(goal)}</Text>
+                    <Muted className='text-center text-md'>Target</Muted>
                 </View>
             </View>
         </View>
