@@ -16,7 +16,7 @@ import SignIn from '@/screens/onboarding/SignIn.screen';
 import SignUp from '@/screens/onboarding/SignUp.screen';
 import OnboardingInfoScreen from "@/screens/onboarding/userInfo/Index.screen";
 import { navigationRef } from '@/navigation/navigate';
-import SleepList from "@/screens/app/sleep/components/SleepList";
+import SleepListScreen from "@/screens/app/sleep/SleepList.screen";
 import AppTabs from '@/navigation/Tabs';
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
@@ -89,7 +89,7 @@ function RootApp() {
                 screenOptions={screenOptions}
             >
                 <AppStack.Screen name="Tabs" component={AppTabs} />
-                <AppStack.Screen name="SleepList" component={SleepList} />
+                <AppStack.Screen name="SleepList" component={SleepListScreen} />
             </AppStack.Navigator>
         </NavigationContainer>
     </View>);

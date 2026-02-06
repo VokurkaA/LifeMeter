@@ -23,6 +23,8 @@ export type DatePickerWithTriggerProps = {
 
     rightIcon?: ReactNode;
     rightIconOnPress?: () => void;
+
+    variant?: 'primary' | 'secondary';
 };
 
 const defaultFormatValue = (d: Date) => {
@@ -47,7 +49,8 @@ export default function DateTimePicker({
                                            errorMessage,
                                            isInvalid,
                                            rightIcon,
-                                           rightIconOnPress
+                                           rightIconOnPress,
+                                           variant = 'primary',
                                        }: DatePickerWithTriggerProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -63,6 +66,7 @@ export default function DateTimePicker({
     };
 
     const isRightIconDisabled = !!isDisabled || !rightIconOnPress;
+    const backgroundColor = isDisabled ? 'bg-surface' : variant === 'primary' ? 'bg-field' : 'bg-default';
 
     return (<View className="gap-2">
         {label && <Text className={isDisabled ? 'text-muted' : ''}>{label}</Text>}
@@ -74,7 +78,7 @@ export default function DateTimePicker({
             accessibilityState={{disabled: !!isDisabled}}
         >
             <View
-                className={`${isDisabled ? 'bg-surface' : 'bg-field'} flex-row items-center justify-between w-full h-12 px-3 shadow-md rounded-2xl shadow-black/5`}
+                className={`${backgroundColor} flex-row items-center justify-between w-full h-12 px-3 shadow-md rounded-2xl shadow-black/5`}
             >
                 <Text className={`${!value && 'text-muted'} text-sm flex-1`}>
                     {value ? formatted : placeholder}

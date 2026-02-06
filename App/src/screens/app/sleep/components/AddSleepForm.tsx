@@ -93,6 +93,7 @@ export const AddSleepForm = ({
             placeholder="Select day"
             mode="date"
             formatValue={formatDate}
+            variant="secondary"
         />
         <DateTimePicker
             value={startAt}
@@ -103,6 +104,7 @@ export const AddSleepForm = ({
             formatValue={formatTime}
             rightIcon={startAt && <X color={mutedColor} size={18}/>}
             rightIconOnPress={() => setStartAt(undefined)}
+            variant="secondary"
         />
         <DateTimePicker
             value={endAt}
@@ -115,6 +117,7 @@ export const AddSleepForm = ({
             errorMessage="Wake up time must be after bed time"
             rightIcon={endAt && <X color={mutedColor} size={18}/>}
             rightIconOnPress={() => setEndAt(undefined)}
+            variant="secondary"
         />
         <TextField>
             <Label>Description</Label>
@@ -123,6 +126,7 @@ export const AddSleepForm = ({
                 onChangeText={setNote}
                 placeholder="Add sleep notes"
                 placeholderTextColor={placeholderColor}
+                variant="secondary"
             />
         </TextField>
         <Button

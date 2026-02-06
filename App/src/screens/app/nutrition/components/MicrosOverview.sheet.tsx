@@ -6,7 +6,7 @@ import { Text } from '@/components/Text';
 import { ChevronRight } from 'lucide-react-native';
 import { CompleteNutrient } from '@/types/food.types';
 
-interface MicronutrientsSheetProps {
+interface MicrosOverviewProps {
     micros: Record<number, CompleteNutrient>;
 }
 
