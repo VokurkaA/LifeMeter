@@ -3,17 +3,19 @@ import { View } from 'react-native';
 import { BottomSheet, Card, PressableFeedback, useThemeColor } from 'heroui-native';
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Text } from '@/components/Text';
-import { NutrientTotal } from '../hooks/useDailyNutrition';
 import { ChevronRight } from 'lucide-react-native';
+import { CompleteNutrient } from '@/types/food.types';
 
 interface MicronutrientsSheetProps {
-    micros: Record<number, NutrientTotal>;
+    micros: Record<number, CompleteNutrient>;
 }
 
-export default function MicronutrientsSheet({ micros }: MicronutrientsSheetProps) {
+export default function MicrosOverview({ micros }: MicrosOverviewProps) {
     const foregroundColor = useThemeColor('foreground');
     const nutrientList = useMemo(() => {
-        return Object.values(micros).sort((a, b) => a.name.localeCompare(b.name)).filter(n => n.amount > 0);
+        return Object.values(micros)
+            .sort((a, b) => a.nutrient_nbr - b.nutrient_nbr)
+            .filter(n => n.amount > 0);
     }, [micros]);
 
     return (
@@ -44,8 +46,8 @@ export default function MicronutrientsSheet({ micros }: MicronutrientsSheetProps
                         showVerticalScrollIndicator={false}
                         className="flex-1"
                         data={nutrientList}
-                        keyExtractor={(item: NutrientTotal) => item.id.toString()}
-                        renderItem={({ item }: { item: NutrientTotal }) => (
+                        keyExtractor={(item: CompleteNutrient) => item.nutrient_nbr.toString()}
+                        renderItem={({ item }: { item: CompleteNutrient }) => (
                             <View className="flex-row justify-between items-center py-3">
                                 <Text className='text-muted'>{item.name}</Text>
                                 <Text>{formatAmount(item.amount)} {item.unit}</Text>

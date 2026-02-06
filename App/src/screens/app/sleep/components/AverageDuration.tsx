@@ -5,14 +5,14 @@ import {ChevronRight} from "lucide-react-native";
 import {View} from "react-native";
 import { Muted } from "@/components/Text";
 
-interface AverageDurationCardProps {
+interface AverageDurationProps {
     sleepSessions: SleepSession[];
     onPress?: () => void;
     dayAmount?: number; 
     className?: string;
 }
 
-export const AverageDurationCard = ({sleepSessions, onPress, dayAmount, className}: AverageDurationCardProps) => {
+export const AverageDuration = ({sleepSessions, onPress, dayAmount, className}: AverageDurationProps) => {
     const mutedColor = useThemeColor('muted');
 
     const {averageDuration, sessionCount} = useMemo(() => {

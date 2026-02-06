@@ -1,17 +1,21 @@
 import { BottomSheet, Button, Tabs, useThemeColor } from "heroui-native";
 import { useCallback, useState, useRef, useEffect, useMemo } from "react";
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
-import { useStore } from "@/contexts/useStore";
 import { BottomSheetFooter, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import QuickAddMeal from "../tabs/QuickAddMeal.tab";
 import ScanMeal from "../tabs/ScanMeal.tab";
 import FromExistingMeal from "../tabs/FromExistingMeal";
 import NewMeal from "../tabs/NewMeal";
 import { PlusIcon } from "lucide-react-native";
+import { CreateMealInput, UserFood, UserMeal } from "@/types/food.types";
 
-export default function AddNewMeal() {
+interface AddMealProps {
+    createUserMeal: (data: CreateMealInput) => Promise<void>;
+    userMeals: { userMeal: UserMeal; userFoods: UserFood[] }[];
+}
+
+export default function AddMeal({ createUserMeal, userMeals }: AddMealProps) {
     const foregroundColor = useThemeColor('foreground');
-    const { createUserMeal, userMeals } = useStore();
     const [activeTab, setActiveTab] = useState("quickAdd");
     const [isOpen, setIsOpen] = useState(false);
     const [snapIndex, setSnapIndex] = useState(1);

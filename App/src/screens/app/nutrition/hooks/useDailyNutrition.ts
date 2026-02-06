@@ -2,20 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useStore } from "@/contexts/useStore";
 import { foodService } from "@/services/food.service";
 import { timestampToDate } from "@/lib/dateTime";
-import { FoodDetail } from "@/types/food.types";
+import { FoodDetail, CompleteNutrient } from "@/types/food.types";
 
 export interface DailyNutrition {
     calories: number;
     protein: number;
     carbs: number;
     fat: number;
-}
-
-export interface NutrientTotal {
-    name: string;
-    amount: number;
-    unit: string;
-    id: number;
 }
 
 function toLocalDateKey(d: Date) {
@@ -43,7 +36,7 @@ export function useDailyNutrition() {
         carbs: 0,
         fat: 0,
     });
-    const [micros, setMicros] = useState<Record<number, NutrientTotal>>({});
+    const [micros, setMicros] = useState<Record<number, CompleteNutrient>>({});
     const [foodDetails, setFoodDetails] = useState<Record<number, FoodDetail>>({});
     const [isLoading, setIsLoading] = useState(true);
 
@@ -90,7 +83,7 @@ export function useDailyNutrition() {
                     fat: 0,
                 };
 
-                const microTotals: Record<number, NutrientTotal> = {};
+                const microTotals: Record<number, CompleteNutrient> = {};
 
                 todaysMeals.forEach((m) => {
                     m.userFoods.forEach((f) => {
@@ -108,12 +101,14 @@ export function useDailyNutrition() {
 
                             if (!microTotals[n.nutrient_nbr]) {
                                 microTotals[n.nutrient_nbr] = {
-                                    id: n.nutrient_nbr,
+                                    food_id: 0,
+                                    nutrient_nbr: n.nutrient_nbr,
                                     name: n.name,
                                     unit: n.unit,
                                     amount: 0,
                                 };
                             }
+
                             microTotals[n.nutrient_nbr].amount += amount;
                         });
                     });

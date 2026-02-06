@@ -10,7 +10,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { HeroUINativeProvider, useThemeColor } from 'heroui-native';
 import '../global.css';
 import { AuthProvider, useAuth } from '@/contexts/useAuth';
-import { StoreProvider, useStore } from './contexts/useStore';
+import { StoreProvider, useStore } from '@/contexts/useStore';
 import WelcomeScreen from '@/screens/onboarding/Welcome.screen';
 import SignIn from '@/screens/onboarding/SignIn.screen';
 import SignUp from '@/screens/onboarding/SignUp.screen';

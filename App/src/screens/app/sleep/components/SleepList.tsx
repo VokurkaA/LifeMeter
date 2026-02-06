@@ -1,16 +1,22 @@
 import React, {useState} from "react";
 import {FlatList, Pressable, View} from "react-native";
 import {Accordion, BottomSheet, Button, Dialog, Separator, useThemeColor, useToast} from "heroui-native";
-import {useStore} from "@/contexts/useStore";
 import {SleepSession} from "@/types/types";
 import {formatTime, timeToDate} from "@/lib/dateTime";
 import {Edit2Icon, Trash2Icon} from "lucide-react-native";
-import {NewSleepScreen} from "@/screens/app/sleep/components/NewSleep";
+import {AddSleepForm} from "@/screens/app/sleep/components/AddSleepForm";
 import {Muted, Text} from "@/components/Text";
 
 const DAYS_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+interface SleepListProps {
+    sleepSessions: SleepSession[];
+    deleteSleepSession: (id: string) => Promise<void>;
+    createSleepSession: (startAt: string, endAt?: string, note?: string) => Promise<void>;
+    editSleepSession: (id: string, patch: { startAt?: string; endAt?: string | null; note?: string | null }) => Promise<void>;
+}
 
 function RenderItem({item, deleteSleepSession, onEdit}: {
     item: SleepSession; deleteSleepSession: (id: string) => Promise<void>; onEdit: (item: SleepSession) => void;
@@ -128,8 +134,7 @@ function RenderItem({item, deleteSleepSession, onEdit}: {
     </Accordion.Item>);
 }
 
-export default function SleepList() {
-    const {sleepSessions, deleteSleepSession, createSleepSession, editSleepSession} = useStore();
+export default function SleepList({ sleepSessions, deleteSleepSession, createSleepSession, editSleepSession }: SleepListProps) {
     const [selectedSession, setSelectedSession] = useState<SleepSession | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -162,7 +167,7 @@ export default function SleepList() {
                 <BottomSheet.Content snapPoints={['90%']} keyboardBehavior="extend">
                     <BottomSheet.Title className="text-2xl font-semibold">Edit Sleep</BottomSheet.Title>
                     <BottomSheet.Description>Update your sleep session details</BottomSheet.Description>
-                    <NewSleepScreen
+                    <AddSleepForm
                         session={selectedSession}
                         createSleepSession={createSleepSession}
                         editSleepSession={editSleepSession}

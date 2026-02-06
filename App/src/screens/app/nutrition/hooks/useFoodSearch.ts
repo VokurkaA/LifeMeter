@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { foodService } from "@/services/food.service";
 import { Food } from "@/types/food.types";
-import { SelectOption } from "@/components/Combobox";
 
+type SelectOption = { value: string; label: string; data: Food };
 export function useFoodSearch() {
     const [options, setOptions] = useState<SelectOption[]>([]);
     const [isLoading, setIsLoading] = useState(false);

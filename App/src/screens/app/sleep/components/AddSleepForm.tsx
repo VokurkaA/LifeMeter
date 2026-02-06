@@ -18,7 +18,7 @@ interface NewSleepScreenProps {
     closeSheet: () => void
 }
 
-export const NewSleepScreen = ({
+export const AddSleepForm = ({
                                    session, createSleepSession, editSleepSession, closeSheet
                                }: NewSleepScreenProps) => {
     const {toast} = useToast();

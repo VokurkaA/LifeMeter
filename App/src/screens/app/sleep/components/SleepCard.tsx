@@ -2,13 +2,16 @@ import {Button, Card, PressableFeedback} from "heroui-native";
 import {useEffect, useMemo, useState} from "react";
 import {Text, View} from "react-native";
 import Svg, {Defs, RadialGradient, Rect, Stop} from "react-native-svg";
-import {useStore} from "@/contexts/useStore";
 import { timeToDate } from "@/lib/dateTime";
 import { Muted } from "@/components/Text";
+import { SleepSession } from "@/types/types";
 
-interface TimeCardProps {
+interface SleepCardProps {
     bedTime?: Date;
     wakeUpTime?: Date;
+    ongoingSleepSession: SleepSession | null;
+    startSleep: () => Promise<void>;
+    endSleep: () => Promise<void>;
 }
 
 type Keyframe = {
@@ -97,11 +100,11 @@ const getSleepDurationText = (startDate: Date | undefined, currentDate: Date) =>
     return `Sleeping for ${timeString}`;
 };
 
-export const TimeCard = ({
+export const SleepCard = ({
                              bedTime = new Date(new Date().setHours(22, 0, 0, 0)),
                              wakeUpTime = new Date(new Date().setHours(7, 0, 0, 0)),
-                         }: TimeCardProps) => {
-    const {ongoingSleepSession, startSleep, endSleep} = useStore();
+                             ongoingSleepSession, startSleep, endSleep
+                         }: SleepCardProps) => {
 
     const [currentTime, setCurrentTime] = useState(new Date());
     useEffect(() => {
