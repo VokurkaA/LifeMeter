@@ -1,15 +1,11 @@
-import React, {useState} from "react";
-import {FlatList, Pressable, View} from "react-native";
-import {Accordion, BottomSheet, Button, Dialog, Separator, useThemeColor, useToast} from "heroui-native";
-import {SleepSession} from "@/types/types";
-import {formatTime, timeToDate} from "@/lib/dateTime";
-import {Edit2Icon, Trash2Icon} from "lucide-react-native";
-import {AddSleepForm} from "@/screens/app/sleep/components/AddSleepForm";
-import {Muted, Text} from "@/components/Text";
-
-const DAYS_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+import React, { useState } from "react";
+import { FlatList, Pressable, View } from "react-native";
+import { Accordion, BottomSheet, Button, Dialog, Separator, useThemeColor, useToast } from "heroui-native";
+import { SleepSession } from "@/types/types";
+import { DAYS, DAYS_SHORT, formatTime, MONTHS, timeToDate } from "@/lib/dateTime";
+import { Edit2Icon, Trash2Icon } from "lucide-react-native";
+import { AddSleepForm } from "@/screens/app/sleep/components/AddSleepForm";
+import { Muted, Text } from "@/components/Text";
 
 interface SleepListProps {
     sleepSessions: SleepSession[];
@@ -18,7 +14,7 @@ interface SleepListProps {
     editSleepSession: (id: string, patch: { startAt?: string; endAt?: string | null; note?: string | null }) => Promise<void>;
 }
 
-function RenderItem({item, deleteSleepSession, onEdit}: {
+function RenderItem({ item, deleteSleepSession, onEdit }: {
     item: SleepSession; deleteSleepSession: (id: string) => Promise<void>; onEdit: (item: SleepSession) => void;
 }) {
 
@@ -42,7 +38,7 @@ function RenderItem({item, deleteSleepSession, onEdit}: {
     const dayNumber = startDate.getDate();
 
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-    const {toast} = useToast();
+    const { toast } = useToast();
 
     return (<Accordion.Item
         key={item.id}
@@ -59,7 +55,7 @@ function RenderItem({item, deleteSleepSession, onEdit}: {
                     {formatTime(startDate)} - {formatTime(endDate)}
                 </Text>
 
-                <Accordion.Indicator/>
+                <Accordion.Indicator />
             </View>
         </Accordion.Trigger>
         <Accordion.Content>
@@ -77,22 +73,22 @@ function RenderItem({item, deleteSleepSession, onEdit}: {
                 <View className="flex items-end gap-3">
                     <Pressable className="flex items-center flex-row gap-1" onPress={() => onEdit(item)}>
                         <Text className="text-sm">Edit</Text>
-                        <Edit2Icon color={foregroundColor} size={14}/>
+                        <Edit2Icon color={foregroundColor} size={14} />
                     </Pressable>
                     <Dialog isOpen={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                         <Dialog.Trigger asChild>
                             <Pressable className="flex items-center flex-row gap-1">
                                 <Text className="text-sm text-danger">Delete</Text>
-                                <Trash2Icon color={dangerColor} size={14}/>
+                                <Trash2Icon color={dangerColor} size={14} />
                             </Pressable>
                         </Dialog.Trigger>
                         <Dialog.Portal>
-                            <Dialog.Overlay/>
+                            <Dialog.Overlay />
                             <Dialog.Content>
                                 <View className="flex flex-col gap-4">
                                     <View className="flex flex-row justify-between">
                                         <Dialog.Title>Are you sure?</Dialog.Title>
-                                        <Dialog.Close/>
+                                        <Dialog.Close />
                                     </View>
                                     <Dialog.Description><Muted className="text-sm">Do you really want to remove the following sleep entry?</Muted></Dialog.Description>
                                     <View>
@@ -106,23 +102,23 @@ function RenderItem({item, deleteSleepSession, onEdit}: {
                                     <View className="flex flex-row gap-2">
                                         <Button variant="tertiary" className="flex-1" onPress={() => setIsDeleteOpen(false)}>Cancel</Button>
                                         <Button variant="danger" className="flex-1"
-                                                onPress={async () => {
-                                                    try {
-                                                        await deleteSleepSession(item.id);
-                                                        toast.show({
-                                                            variant: "success",
-                                                            label: 'Sleep entry deleted',
-                                                            description: 'The sleep session has been removed.',
-                                                        });
-                                                    } catch (error) {
-                                                        toast.show({
-                                                            variant: 'danger',
-                                                            label: 'Failed to delete sleep entry',
-                                                            description: error instanceof Error ? error.message : 'An error occurred.',
-                                                        });
-                                                    }
-                                                    setIsDeleteOpen(false);
-                                                }}>Delete</Button>
+                                            onPress={async () => {
+                                                try {
+                                                    await deleteSleepSession(item.id);
+                                                    toast.show({
+                                                        variant: "success",
+                                                        label: 'Sleep entry deleted',
+                                                        description: 'The sleep session has been removed.',
+                                                    });
+                                                } catch (error) {
+                                                    toast.show({
+                                                        variant: 'danger',
+                                                        label: 'Failed to delete sleep entry',
+                                                        description: error instanceof Error ? error.message : 'An error occurred.',
+                                                    });
+                                                }
+                                                setIsDeleteOpen(false);
+                                            }}>Delete</Button>
                                     </View>
                                 </View>
                             </Dialog.Content>
@@ -143,38 +139,39 @@ export default function SleepList({ sleepSessions, deleteSleepSession, createSle
         setIsSheetOpen(true);
     };
 
-    return (<View className="flex-1 bg-background p-4">
-        <Accordion
-            selectionMode="multiple"
-            variant="surface"
-        >
-            <FlatList
-                data={sleepSessions}
-                renderItem={({item}) => (<RenderItem
-                    item={item}
-                    deleteSleepSession={deleteSleepSession}
-                    onEdit={handleEdit}
-                />)}
-                keyExtractor={(item) => item.id}
-                ItemSeparatorComponent={() => <Separator/>}
-                showsVerticalScrollIndicator={false}
-            />
-        </Accordion>
+    return (
+        <View className="flex-1">
+            <Accordion
+                selectionMode="multiple"
+                variant="surface"
+            >
+                <FlatList
+                    data={sleepSessions}
+                    renderItem={({ item }) => (<RenderItem
+                        item={item}
+                        deleteSleepSession={deleteSleepSession}
+                        onEdit={handleEdit}
+                    />)}
+                    keyExtractor={(item) => item.id}
+                    ItemSeparatorComponent={() => <Separator />}
+                    showsVerticalScrollIndicator={false}
+                />
+            </Accordion>
 
-        <BottomSheet isOpen={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <BottomSheet.Portal>
-                <BottomSheet.Overlay/>
-                <BottomSheet.Content snapPoints={['90%']} keyboardBehavior="extend">
-                    <BottomSheet.Title className="text-2xl font-semibold">Edit Sleep</BottomSheet.Title>
-                    <BottomSheet.Description>Update your sleep session details</BottomSheet.Description>
-                    <AddSleepForm
-                        session={selectedSession}
-                        createSleepSession={createSleepSession}
-                        editSleepSession={editSleepSession}
-                        closeSheet={() => setIsSheetOpen(false)}
-                    />
-                </BottomSheet.Content>
-            </BottomSheet.Portal>
-        </BottomSheet>
-    </View>);
+            <BottomSheet isOpen={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <BottomSheet.Portal>
+                    <BottomSheet.Overlay />
+                    <BottomSheet.Content snapPoints={['90%']} keyboardBehavior="extend">
+                        <BottomSheet.Title className="text-2xl font-semibold">Edit Sleep</BottomSheet.Title>
+                        <BottomSheet.Description>Update your sleep session details</BottomSheet.Description>
+                        <AddSleepForm
+                            session={selectedSession}
+                            createSleepSession={createSleepSession}
+                            editSleepSession={editSleepSession}
+                            closeSheet={() => setIsSheetOpen(false)}
+                        />
+                    </BottomSheet.Content>
+                </BottomSheet.Portal>
+            </BottomSheet>
+        </View>);
 }

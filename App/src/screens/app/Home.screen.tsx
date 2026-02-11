@@ -1,59 +1,46 @@
-import { H1, H2, Text } from "@/components/Text";
-import React, { useState } from "react";
-import { useAuth } from "@/contexts/useAuth";
 import MainLayout from "@/layouts/Main.layout";
-import { Combobox } from "@/components/Combobox";
-import { View } from "react-native";
-
-type CountryOption = { value: string; label: string; flag: string; code: string };
-
-const COUNTRIES: readonly CountryOption[] = [
-  { value: "US", label: "United States", flag: "🇺🇸", code: "+1" },
-  { value: "GB", label: "United Kingdom", flag: "🇬🇧", code: "+44" },
-  { value: "CA", label: "Canada", flag: "🇨🇦", code: "+1" },
-  { value: "AU", label: "Australia", flag: "🇦🇺", code: "+61" },
-  { value: "DE", label: "Germany", flag: "🇩🇪", code: "+49" },
-  { value: "FR", label: "France", flag: "🇫🇷", code: "+33" },
-  { value: "JP", label: "Japan", flag: "🇯🇵", code: "+81" },
-  { value: "CN", label: "China", flag: "🇨🇳", code: "+86" },
-  { value: "IN", label: "India", flag: "🇮🇳", code: "+91" },
-  { value: "BR", label: "Brazil", flag: "🇧🇷", code: "+55" },
-];
+import { BarChart, LineChart } from "@/components/graphs/Chart";
 
 export default function Home() {
-  const { signOut } = useAuth();
-
-  const [country, setCountry] = useState<CountryOption | undefined>();
-
+  const chartData = [
+    { value: 50, label: "A" },
+    { value: 80, label: "B" },
+    { value: 90, label: "C" },
+    { value: 70, label: "D" },
+    { value: 60, label: "E" },
+    { value: 70, label: "F" },
+    { value: 80, label: "G" }
+  ];
   return (
     <MainLayout>
-      <H1>Heading!</H1>
-      <H2>Subheading!</H2>
-
-      <Combobox<CountryOption>
-        options={COUNTRIES}
-        value={country}
-        onChange={setCountry}
-        dialogTitle="Country"
-        placeholder="Pick a country…"
-        searchPlaceholder="Search country…"
-        getOptionValue={(c) => c.value}
-        getOptionLabel={(c) => c.label}
-        renderOption={(c) => (
-          <>
-            <Text className="text-2xl">{c.flag}</Text>
-            <Text className="text-sm text-muted w-12">{c.code}</Text>
-            <Text className="text-base text-foreground flex-1">{c.label}</Text>
-          </>
-        )}
-        filterOption={(c, q) =>
-          c.label.toLowerCase().includes(q) ||
-          c.code.toLowerCase().includes(q) ||
-          c.value.toLowerCase().includes(q)
-        }
+      <BarChart
+        title="Bar graph"
+        description="Past 7 days"
+        averageDescription="Steps"
+        showAverage
+        openDetails={() => console.log('pressed')}
+        data={chartData}
       />
-
-      {/*<Button variant='danger' onPress={signOut}>Sign Out</Button>*/}
+      <LineChart
+        title="Line graph"
+        description="Linear with dots"
+        showDots={false}
+        averageDescription="Steps"
+        curveType="linear"
+        showAverage
+        openDetails={() => console.log('pressed')}
+        data={chartData}
+      />
+      <LineChart
+        title="Line graph"
+        description="Curved with dots"
+        showDots={false}
+        averageDescription="Steps"
+        curveType="curved"
+        showAverage
+        openDetails={() => console.log('pressed')}
+        data={chartData}
+      />
     </MainLayout>
   );
 }

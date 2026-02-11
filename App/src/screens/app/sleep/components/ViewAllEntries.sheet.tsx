@@ -31,7 +31,7 @@ export default function ViewAllEntries({ sleepSessions, deleteSleepSession, crea
                     <BottomSheet.Overlay />
                     <BottomSheet.Content snapPoints={['90%']}>
                         <BottomSheet.Title className="mb-4">Sleep History</BottomSheet.Title>
-                        <SleepList 
+                        <SleepList
                             sleepSessions={sleepSessions} 
                             deleteSleepSession={deleteSleepSession}
                             createSleepSession={createSleepSession}
