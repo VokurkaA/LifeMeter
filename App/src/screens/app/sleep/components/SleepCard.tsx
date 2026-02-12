@@ -108,8 +108,8 @@ export const SleepCard = ({
 
     const [currentTime, setCurrentTime] = useState(new Date());
     useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
-        let intervalId: NodeJS.Timeout;
+        let timeoutId: ReturnType<typeof setTimeout>;
+        let intervalId: ReturnType<typeof setInterval>;
 
         const syncToMinute = () => {
             const now = new Date();

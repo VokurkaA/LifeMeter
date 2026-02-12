@@ -3,11 +3,11 @@ import { View } from "react-native";
 import { useStore } from "@/contexts/useStore";
 import { timeToDate } from "@/lib/dateTime";
 import AddSleep from "./components/AddSleep.sheet";
-import { AverageStats } from "./components/AverageStats";
+import { AverageStats } from "./components/cards/AverageStats";
 import ViewAllEntries from "./components/ViewAllEntries.sheet";
-import { ConsistencyCard } from "./components/ConsistencyCard";
+import { ConsistencyCard } from "./components/cards/ConsistencyCard";
 import { SleepCard } from "./components/SleepCard";
-import { AverageDuration } from "./components/AverageDuration";
+import { AverageDuration } from "./components/cards/AverageDuration";
 
 export default function SleepScreen() {
     const { 
