@@ -155,7 +155,8 @@ export const SleepCard = ({
         variant: "default" as const
     };
 
-    return (<PressableFeedback>
+    return (
+    // <PressableFeedback>
         <Card className="overflow-hidden aspect-square rounded-3xl">
             <View className="absolute inset-0">
                 <Svg height="100%" width="100%">
@@ -206,5 +207,6 @@ export const SleepCard = ({
                 </View>
             </Card.Footer>
         </Card>
-    </PressableFeedback>);
+    // </PressableFeedback>
+    );
 };

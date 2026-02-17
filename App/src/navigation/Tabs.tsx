@@ -1,17 +1,17 @@
-import React, {ReactNode, useState} from 'react';
-import {Pressable, StyleSheet, View} from 'react-native';
-import {BottomTabBarProps, createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {Popover, PressableFeedback, Surface, useThemeColor} from 'heroui-native';
-import {AppleIcon, DumbbellIcon, HomeIcon, MoonStarIcon, Plus} from 'lucide-react-native';
-import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import React, { ReactNode, useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Popover, PressableFeedback, Surface, useThemeColor } from 'heroui-native';
+import { AppleIcon, DumbbellIcon, HomeIcon, MoonStarIcon, Plus } from 'lucide-react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import HomeScreen from '@/screens/app/Home.screen';
 import TrainingScreen from '@/screens/app/Training.screen';
 import NutritionScreen from '@/screens/app/nutrition/Index.screen';
 import SleepScreen from '@/screens/app/sleep/Index.screen';
-import {TabParamList} from '@/types/types';
+import { TabParamList } from '@/types/types';
 import Header from '@/components/Header';
-import {Muted, Text} from '@/components/Text';
-import {BlurView} from 'expo-blur';
+import { Muted, Text } from '@/components/Text';
+import { BlurView } from 'expo-blur';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -21,27 +21,27 @@ export default function AppTabs() {
     return (<Tab.Navigator
         tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{
-            headerShown: true, header: () => <Header/>, sceneStyle: {backgroundColor}, lazy: false, freezeOnBlur: true,
+            headerShown: true, header: () => <Header />, sceneStyle: { backgroundColor }, lazy: false, freezeOnBlur: true,
         }}
     >
-        <Tab.Screen name="Home" component={HomeScreen}/>
-        <Tab.Screen name="Training" component={TrainingScreen}/>
-        <Tab.Screen name="Nutrition" component={NutritionScreen}/>
-        <Tab.Screen name="Sleep" component={SleepScreen}/>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Training" component={TrainingScreen} />
+        <Tab.Screen name="Nutrition" component={NutritionScreen} />
+        <Tab.Screen name="Sleep" component={SleepScreen} />
     </Tab.Navigator>);
 }
 
-function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const activeColor = useThemeColor('foreground');
     const inactiveColor = useThemeColor('muted');
     const backgroundColor = useThemeColor('background');
     const showTabText = true;
 
-    return (<View style={{backgroundColor}}>
-        <Surface className="flex flex-row items-start justify-between w-full h-20 px-8 rounded-b-none pb-4">
+    return (<View style={{ backgroundColor }}>
+        <Surface className="flex flex-row justify-between w-full rounded-b-none min-h-19.25">
             {/* Home */}
             <TabIcon
-                icon={<HomeIcon/>}
+                icon={<HomeIcon />}
                 name="Home"
                 showName={showTabText}
                 active={state.index === 0}
@@ -52,7 +52,7 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
 
             {/* Training */}
             <TabIcon
-                icon={<DumbbellIcon/>}
+                icon={<DumbbellIcon />}
                 name="Training"
                 showName={showTabText}
                 active={state.index === 1}
@@ -62,11 +62,11 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
             />
 
             {/* Spacer for FAB */}
-            <View className='mx-8'/>
+            <View className='mx-14' />
 
             {/* Nutrition */}
             <TabIcon
-                icon={<AppleIcon/>}
+                icon={<AppleIcon />}
                 name="Nutrition"
                 showName={showTabText}
                 active={state.index === 2}
@@ -77,7 +77,7 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
 
             {/* Sleep */}
             <TabIcon
-                icon={<MoonStarIcon/>}
+                icon={<MoonStarIcon />}
                 name="Sleep"
                 showName={showTabText}
                 active={state.index === 3}
@@ -87,7 +87,7 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
             />
         </Surface>
 
-        <PlusActionPopover/>
+        <PlusActionPopover />
     </View>);
 }
 
@@ -101,7 +101,7 @@ interface TabIconProps {
     inactiveColor: string;
 }
 
-function TabIcon({icon, name, showName, active, onPress, activeColor, inactiveColor}: TabIconProps) {
+function TabIcon({ icon, name, showName, active, onPress, activeColor, inactiveColor }: TabIconProps) {
     const color = active ? activeColor : inactiveColor;
     const styledIcon = React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<{
         color?: string; size?: number; strokeWidth?: number
@@ -109,10 +109,14 @@ function TabIcon({icon, name, showName, active, onPress, activeColor, inactiveCo
         color: color, size: 28, strokeWidth: active ? 2.5 : 2,
     }) : icon;
 
-    return (<Pressable onPress={onPress} className="items-center justify-center gap-1 mt-3">
+    return (<PressableFeedback
+        className="items-center justify-start gap-0.5 flex-1"
+        animation={{ scale: { value: 0.9975 } }}
+        onPress={onPress}
+    >
         {styledIcon}
         {showName && (<Muted className={`${active && 'text-foreground'} text-xs`}>{name}</Muted>)}
-    </Pressable>);
+    </  PressableFeedback>);
 }
 
 function PlusActionPopover() {
@@ -122,7 +126,7 @@ function PlusActionPopover() {
     const rotationDeg = useSharedValue(0);
 
     const rIconStyle = useAnimatedStyle(() => ({
-        transform: [{rotate: `${rotationDeg.value}deg`}],
+        transform: [{ rotate: `${rotationDeg.value}deg` }],
     }));
 
     const handleOpenChange = (open: boolean) => {
@@ -143,18 +147,18 @@ function PlusActionPopover() {
             <Popover.Trigger asChild>
                 <PressableFeedback
                     className="absolute bottom-2 w-20 h-20 items-center justify-center bg-border rounded-full"
-                    style={{left: '50%', marginLeft: -40}}
+                    style={{ left: '50%', marginLeft: -40 }}
                     onPressIn={openPopover}
-                    onPress={openPopover}  
+                    onPress={openPopover}
                 >
                     <Animated.View style={rIconStyle}>
-                        <Plus color={iconColor} size={50} strokeWidth={1.5}/>
+                        <Plus color={iconColor} size={50} strokeWidth={1.5} />
                     </Animated.View>
                 </PressableFeedback>
             </Popover.Trigger>
 
             <Popover.Portal>
-                <Popover.Overlay className="bg-transparent"/>
+                <Popover.Overlay className="bg-transparent" />
 
                 {isOpen && (
                     <BlurView
@@ -170,17 +174,17 @@ function PlusActionPopover() {
                     <View className="flex flex-col gap-6 p-4">
                         <Pressable className="flex flex-row items-center gap-4" onPress={closePopover}>
                             <Text>Add a workout</Text>
-                            <DumbbellIcon size={32} color={iconColor}/>
+                            <DumbbellIcon size={32} color={iconColor} />
                         </Pressable>
 
                         <Pressable className="flex flex-row items-center gap-4" onPress={closePopover}>
                             <Text>Log nutrition</Text>
-                            <AppleIcon size={32} color={iconColor}/>
+                            <AppleIcon size={32} color={iconColor} />
                         </Pressable>
 
                         <Pressable className="flex flex-row items-center gap-4" onPress={closePopover}>
                             <Text>Track sleep</Text>
-                            <MoonStarIcon size={32} color={iconColor}/>
+                            <MoonStarIcon size={32} color={iconColor} />
                         </Pressable>
                     </View>
                 </Popover.Content>

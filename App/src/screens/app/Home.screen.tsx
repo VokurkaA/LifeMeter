@@ -1,6 +1,7 @@
 import MainLayout from "@/layouts/Main.layout";
-import { BarChart, LineChart } from "@/components/graphs/Chart";
+import { useChartData } from "@/components/graphs/useChartData";
 import { ChartCard } from "@/components/graphs/ChartsCard";
+import { BarChart, LineChart } from "@/components/graphs/Chart";
 
 export default function Home() {
   const chartData = [
@@ -13,36 +14,54 @@ export default function Home() {
     { value: 80, label: "G" }
   ];
 
+  const { averageValue } = useChartData({ data: chartData });
+
   return (
     <MainLayout>
       <ChartCard
         title="Bar graph"
         description="Past 7 days"
-        averageDescription="Steps"
-        showAverage
-        openDetails={() => console.log("pressed")}
+        averageLabel="Avg Steps"
+        averageValue={averageValue}
+        onPress={() => console.log("pressed")}
       >
-        <BarChart showAverage data={chartData} />
+        <BarChart
+          data={chartData}
+          showAverageLine
+          averageValue={averageValue}
+        />
       </ChartCard>
 
       <ChartCard
         title="Line graph"
         description="Linear with dots"
-        averageDescription="Steps"
-        showAverage
-        openDetails={() => console.log("pressed")}
+        averageLabel="Avg Steps"
+        averageValue={averageValue}
+        onPress={() => console.log("pressed")}
       >
-        <LineChart showDots={false} curveType="linear" showAverage data={chartData} />
+        <LineChart
+          data={chartData}
+          curveType="linear"
+          showDots={false}
+          showAverageLine
+          averageValue={averageValue}
+        />
       </ChartCard>
 
       <ChartCard
         title="Line graph"
         description="Curved with dots"
-        averageDescription="Steps"
-        showAverage
-        openDetails={() => console.log("pressed")}
+        averageLabel="Avg Steps"
+        averageValue={averageValue}
+        onPress={() => console.log("pressed")}
       >
-        <LineChart showDots={false} curveType="curved" showAverage data={chartData} />
+        <LineChart
+          data={chartData}
+          curveType="curved"
+          showDots={false}
+          showAverageLine
+          averageValue={averageValue}
+        />
       </ChartCard>
     </MainLayout>
   );

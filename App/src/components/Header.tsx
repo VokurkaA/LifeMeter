@@ -15,9 +15,9 @@ export default function Header() {
     <View className="bg-background">
     <Surface className='flex flex-row items-center justify-between w-full px-6 rounded-t-none'>
         <View className='flex flex-row items-center gap-4'>
-            <Pressable className='flex items-center justify-center h-10 rounded-full aspect-square bg-field'>
+            {/* <Pressable className='flex items-center justify-center h-10 rounded-full aspect-square bg-field'>
                 <TextAlignStart color={mutedColor} size={24}/>
-            </Pressable>
+            </Pressable> */}
             <H2>LifeMeter</H2>
         </View>
         <Dialog>
