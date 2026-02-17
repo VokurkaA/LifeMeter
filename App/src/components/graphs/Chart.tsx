@@ -1,25 +1,25 @@
 import { useThemeColor } from "heroui-native";
-import { ChartCard } from "./ChartsCard";
 import { LineChart as BaseLineChart } from "react-native-gifted-charts";
 import { BarChart as BaseBarChart } from "react-native-gifted-charts";
-import { useMemo } from "react";
-import { View } from "react-native";
-import { Muted, Text } from "@/components/Text";
-type ChartData = {
+import { useMemo, useEffect } from "react";
+import { useChartCardContext } from "./ChartsCard";
+
+export type ChartData = {
     value: number;
     label: string;
 };
 
-type ChartProps = {
-    title?: string;
-    description?: string;
-    averageDescription?: string;
-    showAverage?: boolean;
+type BaseChartProps = {
     data: ChartData[];
-    openDetails?: () => void;
+    showAverage?: boolean;
+};
+
+type LineChartProps = BaseChartProps & {
     curveType?: "linear" | "curved";
     showDots?: boolean;
 };
+
+type BarChartProps = BaseChartProps;
 
 function useCharts(data: ChartData[]) {
     const mutedColor = useThemeColor("muted");
@@ -45,108 +45,92 @@ function useCharts(data: ChartData[]) {
 }
 
 export const LineChart = ({
-    title,
-    description,
-    averageDescription,
     showAverage,
     data,
-    openDetails,
     curveType,
     showDots
-}: ChartProps) => {
+}: LineChartProps) => {
     const { mutedColor, foregroundColor, backgroundColor, averageValue, maxValue } = useCharts(data);
+    const chartCard = useChartCardContext();
+
+    useEffect(() => {
+        chartCard?.setAverageValue(averageValue);
+    }, [chartCard, averageValue]);
 
     return (
-        <ChartCard
-            title={title}
-            description={description}
-            averageDescription={averageDescription}
-            showAverage={showAverage}
-            averageValue={averageValue}
-            openDetails={openDetails}
-        >
-            <BaseLineChart
-                data={data}
-                backgroundColor={backgroundColor}
-                rulesColor="transparent"
-                color={foregroundColor}
-                disableScroll
-                thickness={2}
-                hideYAxisText
-                hideRules
-                yAxisThickness={0}
-                xAxisThickness={0}
-                xAxisLabelTextStyle={{ color: mutedColor, fontSize: 10 }}
-                height={100}
-                adjustToWidth
-                maxValue={maxValue}
-                curved={curveType === "curved"}
-                hideDataPoints={!showDots}
-                dataPointsColor={foregroundColor}
-                showReferenceLine1={showAverage}
-                referenceLine1Position={averageValue}
-                referenceLine1Config={{
-                    color: mutedColor,
-                    thickness: 1,
-                    dashWidth: 2,
-                    dashGap: 4,
-                    labelText: "",
-                }}
-                spacing={22.5}
-                initialSpacing={10}
-                endSpacing={0}
-            />
-        </ChartCard>
+        <BaseLineChart
+            data={data}
+            backgroundColor={backgroundColor}
+            rulesColor="transparent"
+            color={foregroundColor}
+            disableScroll
+            thickness={2}
+            hideYAxisText
+            hideRules
+            yAxisThickness={0}
+            xAxisThickness={0}
+            xAxisLabelTextStyle={{ color: mutedColor, fontSize: 10 }}
+            height={100}
+            adjustToWidth
+            maxValue={maxValue}
+            curved={curveType === "curved"}
+            hideDataPoints={!showDots}
+            dataPointsColor={foregroundColor}
+            showReferenceLine1={showAverage}
+            referenceLine1Position={averageValue}
+            referenceLine1Config={{
+                color: mutedColor,
+                thickness: 1,
+                dashWidth: 2,
+                dashGap: 4,
+                labelText: "",
+            }}
+            spacing={22.5}
+            initialSpacing={10}
+            endSpacing={0}
+        />
     );
 };
 
 export const BarChart = ({
-    title,
-    description,
-    averageDescription,
     showAverage,
-    data,
-    openDetails
-}: ChartProps) => {
+    data
+}: BarChartProps) => {
     const { mutedColor, foregroundColor, backgroundColor, averageValue, maxValue } = useCharts(data);
+    const chartCard = useChartCardContext();
+
+    useEffect(() => {
+        chartCard?.setAverageValue(averageValue);
+    }, [chartCard, averageValue]);
 
     return (
-        <ChartCard
-            title={title}
-            description={description}
-            averageDescription={averageDescription}
-            showAverage={showAverage}
-            averageValue={averageValue}
-            openDetails={openDetails}
-        >
-            <BaseBarChart
-                data={data}
-                backgroundColor={backgroundColor}
-                frontColor={foregroundColor}
-                rulesColor="transparent"
-                disableScroll
-                barWidth={12}
-                spacing={10}
-                hideYAxisText
-                hideRules
-                yAxisThickness={0}
-                xAxisThickness={0}
-                xAxisLabelTextStyle={{
-                    color: mutedColor,
-                    fontSize: 10,
-                }}
-                height={100}
-                maxValue={maxValue}
-                noOfSections={3}
-                showReferenceLine1={showAverage}
-                referenceLine1Position={averageValue}
-                referenceLine1Config={{
-                    color: mutedColor,
-                    thickness: 1,
-                    dashWidth: 2,
-                    dashGap: 4,
-                }}
-            />
-        </ChartCard>
+        <BaseBarChart
+            data={data}
+            backgroundColor={backgroundColor}
+            frontColor={foregroundColor}
+            rulesColor="transparent"
+            disableScroll
+            barWidth={12}
+            spacing={10}
+            hideYAxisText
+            hideRules
+            yAxisThickness={0}
+            xAxisThickness={0}
+            xAxisLabelTextStyle={{
+                color: mutedColor,
+                fontSize: 10,
+            }}
+            height={100}
+            maxValue={maxValue}
+            noOfSections={3}
+            showReferenceLine1={showAverage}
+            referenceLine1Position={averageValue}
+            referenceLine1Config={{
+                color: mutedColor,
+                thickness: 1,
+                dashWidth: 2,
+                dashGap: 4,
+            }}
+        />
     );
 };

@@ -39,7 +39,7 @@ export default function SleepScreen() {
 
             <AverageDuration
                 sleepSessions={sleepSessions}
-                dayAmount={7}
+                dayAmount={1000}
             />
             <View className="flex-row gap-4">
                 <AverageStats

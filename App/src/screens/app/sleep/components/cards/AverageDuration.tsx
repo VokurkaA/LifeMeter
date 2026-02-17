@@ -1,78 +1,134 @@
-import {useMemo} from "react";
-import {SleepSession} from "@/types/types";
-import {Card, PressableFeedback, useThemeColor} from "heroui-native";
-import {ChevronRight} from "lucide-react-native";
-import {View} from "react-native";
+import { useMemo, useState } from "react";
+import { SleepSession } from "@/types/types";
+import { BottomSheet, Card, PressableFeedback, Tabs, useThemeColor } from "heroui-native";
+import { ChevronRight } from "lucide-react-native";
+import { View } from "react-native";
 import { Muted } from "@/components/Text";
+import { timestampToDate } from "@/lib/dateTime";
+import { ChartData, LineChart } from "@/components/graphs/Chart";
 
 interface AverageDurationProps {
     sleepSessions: SleepSession[];
     onPress?: () => void;
-    dayAmount?: number; 
+    dayAmount?: number;
     className?: string;
 }
 
-export const AverageDuration = ({sleepSessions, onPress, dayAmount, className}: AverageDurationProps) => {
+export const AverageDuration = ({ sleepSessions, onPress, dayAmount = 7, className }: AverageDurationProps) => {
     const mutedColor = useThemeColor('muted');
+    const [selectedDayAmount, setSelectedDayAmount] = useState(dayAmount);
 
-    const {averageDuration, sessionCount} = useMemo(() => {
-        if (!sleepSessions.length) return {averageDuration: "-- hr -- min", sessionCount: 0};
-
-        let filteredSessions = sleepSessions;
-        if (dayAmount) {
-            const now = new Date();
-            const cutoffDate = new Date();
-            cutoffDate.setDate(now.getDate() - dayAmount);
-            filteredSessions = sleepSessions.filter(s => {
-                const sessionDate = new Date(s.endAt || s.startAt || 0);
-                return sessionDate >= cutoffDate;
-            });
-        }
-
-        let totalMs = 0;
+    const { averageDailyDuration, dayCount, chartData } = useMemo(() => {
+        let totalLengthMs = 0;
         let count = 0;
+        const chartData: ChartData[] = [];
 
-        filteredSessions.forEach(s => {
-            if (s.startAt && s.endAt) {
-                const start = new Date(s.startAt).getTime();
-                const end = new Date(s.endAt).getTime();
-                const diff = end - start;
-                if (diff > 0) {
-                    totalMs += diff;
-                    count++;
-                }
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - selectedDayAmount);
+
+        let date = new Date();
+
+        sleepSessions.forEach(session => {
+            const startDate = timestampToDate(session.startAt);
+            const endDate = session.endAt ? timestampToDate(session.endAt) : new Date();
+            if (!startDate || !endDate || startDate < cutoffDate) return;
+
+            const durationHours = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+            totalLengthMs += durationHours * 60 * 60 * 1000;
+
+            const isSameDay =
+                date.getFullYear() === startDate.getFullYear() &&
+                date.getMonth() === startDate.getMonth() &&
+                date.getDate() === startDate.getDate();
+
+            if (isSameDay) {
+                chartData[chartData.length - 1].value += durationHours;
+            } else {
+                // const daysDelta = Math.floor((date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                // const prevValue = chartData.length > 0 ? chartData[chartData.length - 1].value : durationHours;
+
+                // for (let i = 1; i < daysDelta; i++) {
+                //     const interpolatedValue = prevValue + ((durationHours - prevValue) * (i / daysDelta));
+                //     const missingDate = new Date(date);
+                //     missingDate.setDate(date.getDate() - i);
+
+                //     chartData.push({
+                //         value: interpolatedValue,
+                //         label: missingDate.getDate().toString()
+                //     });
+                // }
+
+                chartData.push({
+                    value: durationHours,
+                    label: startDate.getDate().toString()
+                });
+
+                count++;
+                date = startDate;
             }
         });
 
-        if (count === 0) return {averageDuration: "-- hr -- min", sessionCount: 0};
-
-        const avgMs = totalMs / count;
-        const hours = Math.floor(avgMs / (1000 * 60 * 60));
-        const minutes = Math.round((avgMs % (1000 * 60 * 60)) / (1000 * 60));
-
         return {
-            averageDuration: `${hours} hr ${minutes} min`, sessionCount: count
+            averageDailyDuration: count === 0 ? undefined : new Date(totalLengthMs / count),
+            dayCount: count,
+            chartData: chartData.reverse()
         };
-    }, [sleepSessions, dayAmount]);
+    }, [sleepSessions, selectedDayAmount]);
 
-    return (<PressableFeedback onPress={onPress} className={className}>
-        <Card className='gap-2'>
-            <Card.Header className="flex-row justify-between items-center">
-                <Card.Title>Average Duration</Card.Title>
-                <ChevronRight size={20} color={mutedColor}/>
-            </Card.Header>
-            <Card.Body className="gap-1">
-                <View className="flex-row items-center gap-2">
-                    <Card.Title className="text-3xl font-bold">
-                        {averageDuration}
-                    </Card.Title>
-                </View>
-            </Card.Body>
-            <Card.Footer>
-                <Card.Description>
-                    <Muted>Based on {sessionCount} total sessions {dayAmount ? `(last ${dayAmount}d)` : ''}</Muted>
-                </Card.Description>
-            </Card.Footer>
-        </Card>
-    </PressableFeedback>);
+
+
+    return (
+        <BottomSheet>
+            <BottomSheet.Trigger asChild>
+                <PressableFeedback onPress={onPress} className={className}>
+                    <Card className='gap-2'>
+                        <Card.Header className="flex-row justify-between items-center">
+                            <Card.Title>Average Duration</Card.Title>
+                            <ChevronRight size={20} color={mutedColor} />
+                        </Card.Header>
+                        <Card.Body className="gap-1">
+                            <View className="flex-row items-center gap-2">
+                                <Card.Title className="text-3xl font-bold">
+                                    {averageDailyDuration?.getHours() ?? '--'}h {averageDailyDuration?.getMinutes() ?? '--'}m
+                                </Card.Title>
+                            </View>
+                        </Card.Body>
+                        <Card.Footer>
+                            <Card.Description>
+                                <Muted>Based on {dayCount} total sessions {selectedDayAmount ? `(last ${selectedDayAmount}d)` : ''}</Muted>
+                            </Card.Description>
+                        </Card.Footer>
+                    </Card>
+                </PressableFeedback>
+            </BottomSheet.Trigger>
+            <BottomSheet.Portal>
+                <BottomSheet.Overlay />
+                <BottomSheet.Content>
+                    <Tabs value={selectedDayAmount.toString()} onValueChange={(val) => setSelectedDayAmount(Number(val))}>
+                        <Tabs.List>
+                            <Tabs.ScrollView contentContainerClassName="flex-1 justify-around">
+                                <Tabs.Indicator />
+                                <Tabs.Trigger value="7">
+                                    <Tabs.Label>7 Days</Tabs.Label>
+                                </Tabs.Trigger>
+                                <Tabs.Trigger value="30">
+                                    <Tabs.Label>30 Days</Tabs.Label>
+                                </Tabs.Trigger>
+                                <Tabs.Trigger value="90">
+                                    <Tabs.Label>90 Days</Tabs.Label>
+                                </Tabs.Trigger>
+                            </Tabs.ScrollView>
+                        </Tabs.List>
+                        <Tabs.Content value={selectedDayAmount.toString()}>
+                            <LineChart
+                                data={chartData}
+                                showAverage
+                                curveType="curved"
+                            />
+                        </Tabs.Content>
+                    </Tabs>
+                </BottomSheet.Content>
+            </BottomSheet.Portal>
+        </BottomSheet>
+    );
 }
