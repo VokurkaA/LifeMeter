@@ -1,72 +1,67 @@
-import {Avatar, Button, Dialog, Surface, useThemeColor} from "heroui-native";
-import {useAuth} from "@/contexts/useAuth";
-import {TextAlignStart, UserIcon} from "lucide-react-native";
-import {Pressable, View} from 'react-native'
+import { Avatar, Button, Chip, Dialog, Surface, useThemeColor } from "heroui-native";
+import { useAuth } from "@/contexts/useAuth";
+import { LogOutIcon, MoonIcon, SettingsIcon, SunIcon, UserIcon } from "lucide-react-native";
+import { View } from 'react-native'
 import { useStore } from "@/contexts/useStore";
-import ThemeToggle from "./ThemeToggle";
 import { H2, Muted, Text } from "@/components/Text";
+import { ButtonGroup } from "./ButtonGroup";
+import { Uniwind, useUniwind } from 'uniwind';
 
 export default function Header() {
-    const {user, session, signOut} = useAuth(); 
-    const {userProfile, userGoals} = useStore(); 
+    const { user, session, signOut } = useAuth();
+    const { userProfile, userGoals } = useStore();
+    const { theme } = useUniwind()
     const mutedColor = useThemeColor('muted');
+    const foregroundColor = useThemeColor('foreground');
 
     return (
-    <View className="bg-background">
-    <Surface className='flex flex-row items-center justify-between w-full px-6 rounded-t-none'>
-        <View className='flex flex-row items-center gap-4'>
-            {/* <Pressable className='flex items-center justify-center h-10 rounded-full aspect-square bg-field'>
-                <TextAlignStart color={mutedColor} size={24}/>
-            </Pressable> */}
-            <H2>LifeMeter</H2>
+        <View className="bg-background">
+            <Surface className='flex flex-row items-center justify-between w-full px-6 rounded-t-none'>
+                <View className='flex flex-row items-center gap-4'>
+                    <H2>LifeMeter</H2>
+                </View>
+                <Dialog>
+                    <Dialog.Trigger>
+                        <Avatar animation="disable-all" size="sm" alt={user?.name ?? "User avatar"}>
+                            {user?.image && (<Avatar.Image source={{ uri: user.image }} />)}
+                            <Avatar.Fallback>
+                                <UserIcon color={mutedColor} size={24} />
+                            </Avatar.Fallback>
+                        </Avatar>
+                    </Dialog.Trigger>
+                    <Dialog.Portal>
+                        <Dialog.Overlay />
+                        <Dialog.Content isSwipeable={false} className="relative flex items-center gap-2">
+                            <Dialog.Title className="text-center text-base">{user?.email}</Dialog.Title>
+                            <Dialog.Close className="absolute right-2 top-2" variant="ghost" />
+                            <Avatar alt={user?.name ?? "User avatar"} className="h-22 aspect-square">
+                                <Avatar.Image source={{ uri: user?.image ?? undefined }} />
+                                <Avatar.Fallback>
+                                    <UserIcon color={mutedColor} size={48} />
+                                </Avatar.Fallback>
+                            </Avatar>
+                            <Dialog.Title>Hello, {user?.name}</Dialog.Title>
+                            <Chip className="mx-auto" variant="soft" color={user?.role === "admin" ? "warning" : "accent"}>
+                                <Chip.Label>{user?.role}</Chip.Label>
+                            </Chip>
+                            <ButtonGroup orientation="vertical">
+                                <ButtonGroup.Item
+                                    icon={theme === 'light' ? <MoonIcon size={20} color={foregroundColor} /> : <SunIcon size={20} color={foregroundColor} />}
+                                    onPress={() => Uniwind.setTheme(theme === 'light' ? 'dark' : 'light')}
+                                >
+                                    Switch to {theme === 'light' ? 'dark' : 'light'} mode
+                                </ButtonGroup.Item>
+                                <ButtonGroup.Item
+                                    icon={<LogOutIcon color={foregroundColor} size={20} />}
+                                    onPress={() => { signOut() }}
+                                >
+                                    Sign out
+                                </ButtonGroup.Item>
+                            </ButtonGroup>
+                        </Dialog.Content>
+                    </Dialog.Portal>
+                </Dialog>
+            </Surface>
         </View>
-        <Dialog>
-            <Dialog.Trigger>
-                <Avatar animation="disable-all" size="sm" alt={user?.name ?? "User avatar"}>
-                    {user?.image && (<Avatar.Image source={{uri: user.image}}/>)}
-                    <Avatar.Fallback>
-                        <UserIcon color={mutedColor} size={24}/>
-                    </Avatar.Fallback>
-                </Avatar>
-            </Dialog.Trigger>
-            <Dialog.Portal>
-                <Dialog.Overlay/>
-                <Dialog.Content>
-                    <View>
-                        <Text className="mt-2">User</Text>
-                        {user && Object.entries(user).map(([key, value]) => (
-                            <View key={key} className="flex flex-row items-center justify-between pb-px">
-                                <Muted className="flex-1">{key}</Muted>
-                                <Muted className="flex-2">{String(value)}</Muted>
-                            </View>
-                        ))}
-                        <Text className="mt-2">Session</Text>
-                        {session && Object.entries(session).map(([key, value]) => (
-                            <View key={key} className="flex flex-row items-center justify-between pb-px">
-                                <Muted className="flex-1">{key}</Muted>
-                                <Muted className="flex-2">{String(value)}</Muted>
-                            </View>
-                        ))}
-                        <Text className="mt-2">UserProfile</Text>
-                        {userProfile && Object.entries(userProfile).map(([key, value]) => (
-                            <View key={key} className="flex flex-row items-center justify-between pb-px">
-                                <Muted className="flex-1">{key}</Muted>
-                                <Muted className="flex-2">{String(value)}</Muted>
-                            </View>
-                        ))}
-                        <Text className="mt-2">UserGoal</Text>
-                        {userGoals && Object.entries(userGoals).map(([key, value]) => (
-                            <View key={key} className="flex flex-row items-center justify-between pb-px">
-                                <Muted className="flex-1">{key}</Muted>
-                                <Muted className="flex-2">{String(value)}</Muted>
-                            </View>
-                        ))}
-                    </View>
-                    <Button onPress={signOut} size="sm" variant="danger-soft" className="my-4">Sign out</Button>
-                    <ThemeToggle />
-                </Dialog.Content>
-            </Dialog.Portal>
-        </Dialog>
-    </Surface>
-    </View>)
+    )
 }
