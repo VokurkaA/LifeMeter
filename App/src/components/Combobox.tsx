@@ -5,7 +5,7 @@ import React, { type FC, type ReactNode, useEffect, useMemo, useState } from 're
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, useWindowDimensions, View, } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { KeyboardAvoidingView, KeyboardController, } from 'react-native-keyboard-controller';
-import Animated, { Easing, FadeInDown, FadeOutDown, interpolate, type SharedValue, useAnimatedProps, useDerivedValue, } from 'react-native-reanimated';
+import Animated, { Easing, interpolate, type SharedValue, useAnimatedProps, useDerivedValue, } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUniwind } from 'uniwind';
 import { Text } from '@/components/Text';
@@ -91,7 +91,7 @@ export function Combobox<TOption>(props: ComboboxProps<TOption>) {
 
     return (
         <Select presentation="dialog" value={selectedSelectValue} onValueChange={handleValueChange}>
-            <Select.Trigger asChild>
+            <Select.Trigger variant="unstyled" asChild>
                 <Pressable>
                     {renderTrigger ? (
                         renderTrigger(selectedOption)
@@ -108,7 +108,7 @@ export function Combobox<TOption>(props: ComboboxProps<TOption>) {
             </Select.Trigger>
 
             <Select.Portal>
-                <SelectBlurBackdrop isDark={isDark} maxIntensity={maxBackdropBlurIntensity} />
+                <SelectBlurOverlay isDark={isDark} maxIntensity={maxBackdropBlurIntensity} />
                 <ComboboxContent
                     isDark={isDark}
                     options={options}
@@ -230,15 +230,13 @@ function ComboboxContent<TOption>(props: ComboboxContentProps<TOption>) {
                 classNames={{
                     content: cn('gap-2 rounded-3xl', isDark && 'bg-surface'),
                 }}
-                style={{ marginTop: insetTop, height: maxDialogHeight }}
-                animation={{
-                    entering: FadeInDown.duration(250).easing(Easing.out(Easing.ease)),
-                    exiting: FadeOutDown.duration(200).easing(Easing.in(Easing.ease)),
+                styles={{
+                    content: { marginTop: insetTop, height: maxDialogHeight }
                 }}
             >
                 <View className="flex-row items-center justify-between mb-2">
                     <Select.ListLabel>{dialogTitle}</Select.ListLabel>
-                    <Select.Close variant="ghost" />
+                    <Select.Close variant='ghost' />
                 </View>
 
                 <View className="w-full mb-2">
@@ -310,7 +308,7 @@ function ComboboxContent<TOption>(props: ComboboxContentProps<TOption>) {
     );
 }
 
-const SelectBlurBackdrop = ({
+const SelectBlurOverlay = ({
     maxIntensity,
     isDark,
 }: {
@@ -332,19 +330,21 @@ const SelectBlurBackdrop = ({
     });
 
     return (
-        <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => {
-                KeyboardController.dismiss();
-                onOpenChange(false);
-            }}
-        >
-            <AnimatedBlurView
-                blurIntensity={blurIntensity}
-                tint={isDark ? 'dark' : 'light'}
+        <Select.Overlay closeOnPress asChild>
+            <Pressable
                 style={StyleSheet.absoluteFill}
-            />
-        </Pressable>
+                onPress={() => {
+                    KeyboardController.dismiss();
+                    onOpenChange(false);
+                }}
+            >
+                <AnimatedBlurView
+                    blurIntensity={blurIntensity}
+                    tint={isDark ? 'dark' : 'light'}
+                    style={StyleSheet.absoluteFill}
+                />
+            </Pressable>
+        </Select.Overlay>
     );
 };
 

@@ -196,7 +196,7 @@ export const SleepCard = ({
                             size="sm"
                             className={footerData.variant === 'danger' ? "bg-danger-soft" : "bg-white"}
                             onPress={footerData.action}
-                            pressableFeedbackVariant="ripple"
+                            feedbackVariant="scale-ripple"
                         >
                             <Button.Label
                                 className={`${footerData.variant === 'danger' ? "text-white" : "text-black"}`}>

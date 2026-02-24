@@ -2,6 +2,8 @@ import MainLayout from "@/layouts/Main.layout";
 import { useChartData } from "@/components/graphs/useChartData";
 import { ChartCard } from "@/components/graphs/ChartsCard";
 import { BarChart, LineChart } from "@/components/graphs/Chart";
+import { Label, Slider } from "heroui-native";
+import { View } from "react-native";
 
 export default function Home() {
   const chartData = [
@@ -63,6 +65,16 @@ export default function Home() {
           averageValue={averageValue}
         />
       </ChartCard>
+      <Slider defaultValue={50}>
+        <View className="flex-row items-center justify-between">
+          <Label>Volume</Label>
+          <Slider.Output />
+        </View>
+        <Slider.Track>
+          <Slider.Fill />
+          <Slider.Thumb />
+        </Slider.Track>
+      </Slider>
     </MainLayout>
   );
 }

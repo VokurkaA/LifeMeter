@@ -1,16 +1,16 @@
-import {TextInput, View} from "react-native";
-import {TextField, Input, Label, useThemeColor} from "heroui-native";
-import {SelectWithTrigger, SelectWithTriggerOption} from "./SelectWithTrigger";
-import {useEffect, useRef, useState} from "react";
-import {normalizePositiveDecimal} from "@/lib/normalize";
-import {Text} from '@/components/Text';
+import { TextInput, View } from "react-native";
+import { TextField, Input, Label, useThemeColor, Select, Separator } from "heroui-native";
+import React, { useEffect, useRef, useState } from "react";
+import { normalizePositiveDecimal } from "@/lib/normalize";
+import { Text } from '@/components/Text';
 
 const LB_PER_KG = 2.2046226218;
 const LB_PER_ST = 14;
 
-const weightUnitOptions: SelectWithTriggerOption[] = [{label: "kg", value: "kg"}, {
+type SelectOption = { label: string; value: string };
+const weightUnitOptions: SelectOption[] = [{ label: "kg", value: "kg" }, {
     label: "lbs", value: "lbs"
-}, {label: "st", value: "st"},];
+}, { label: "st", value: "st" },];
 
 type WeightUnit = "kg" | "lbs" | "st";
 
@@ -47,7 +47,7 @@ function lbToStLb(lb: number) {
         remLb = 0;
     }
 
-    return {st, lb: remLb};
+    return { st, lb: remLb };
 }
 
 function stToStLb(stones: number) {
@@ -59,7 +59,7 @@ function stToStLb(stones: number) {
         lb = 0;
     }
 
-    return {st, lb};
+    return { st, lb };
 }
 
 function stLbToStones(st?: number, lb?: number) {
@@ -79,13 +79,13 @@ interface WeightSelectProps {
 }
 
 export default function WeightSelect({
-                                         weight,
-                                         setWeight,
-                                         weightUnit,
-                                         setWeightUnit,
-                                         required = false,
-                                         label = "Enter your weight"
-                                     }: WeightSelectProps) {
+    weight,
+    setWeight,
+    weightUnit,
+    setWeightUnit,
+    required = false,
+    label = "Enter your weight"
+}: WeightSelectProps) {
     const placeholderColor = useThemeColor("field-placeholder");
 
     const [kgText, setKgText] = useState("");
@@ -126,13 +126,13 @@ export default function WeightSelect({
         const asLb = toLb(prev, weight);
 
         if (next === "st") {
-            const {st, lb} = lbToStLb(asLb);
+            const { st, lb } = lbToStLb(asLb);
             setStText(st > 0 ? String(st) : "");
             setStLbText(String(lb));
             setWeight(stLbToStones(st, lb));
         } else {
             const nextValue = fromLb(next, asLb);
-            const {text: nextText, value} = normalizePositiveDecimal(String(nextValue), {maxDecimals: 1});
+            const { text: nextText, value } = normalizePositiveDecimal(String(nextValue), { maxDecimals: 1 });
             if (next === "kg") setKgText(nextText);
             if (next === "lbs") setLbText(nextText);
             setWeight(value);
@@ -152,20 +152,20 @@ export default function WeightSelect({
 
         if (weightUnit === "kg") {
             if (kgText !== "") return;
-            const {text} = normalizePositiveDecimal(String(weight), {maxDecimals: 1});
+            const { text } = normalizePositiveDecimal(String(weight), { maxDecimals: 1 });
             setKgText(text);
             return;
         }
 
         if (weightUnit === "lbs") {
             if (lbText !== "") return;
-            const {text} = normalizePositiveDecimal(String(weight), {maxDecimals: 1});
+            const { text } = normalizePositiveDecimal(String(weight), { maxDecimals: 1 });
             setLbText(text);
             return;
         }
 
         if (stText !== "" || stLbText !== "") return;
-        const {st, lb} = stToStLb(weight);
+        const { st, lb } = stToStLb(weight);
         setStText(st > 0 ? String(st) : "");
         setStLbText(String(lb));
     }, [weight, weightUnit, kgText, lbText, stText, stLbText]);
@@ -242,7 +242,7 @@ export default function WeightSelect({
             <Input
                 value={weightUnit === "kg" ? kgText : lbText}
                 onChangeText={(text) => {
-                    const {text: nextText, value} = normalizePositiveDecimal(text, {maxDecimals: 1});
+                    const { text: nextText, value } = normalizePositiveDecimal(text, { maxDecimals: 1 });
                     if (weightUnit === "kg") setKgText(nextText); else setLbText(nextText);
                     setWeight(value);
                 }}
@@ -253,13 +253,31 @@ export default function WeightSelect({
             />
         </TextField>)}
 
-        <SelectWithTrigger
-            className="w-28"
-            label="Unit"
-            options={weightUnitOptions}
-            value={unitOption}
-            initialValue={unitOption}
-            onValueChange={(val) => setWeightUnit((val?.value as WeightUnit) ?? "kg")}
-        />
+        <View className="w-28 gap-2">
+            <Label>Unit</Label>
+            <Select
+                value={unitOption}
+                onValueChange={(val) => setWeightUnit((val?.value as WeightUnit) ?? "kg")}
+            >
+                <Select.Trigger>
+                    <Select.Value placeholder="Select" />
+                    <Select.TriggerIndicator />
+                </Select.Trigger>
+                <Select.Portal>
+                    <Select.Overlay />
+                    <Select.Content presentation="popover" width="trigger">
+                        {weightUnitOptions.map((opt, index) => (
+                            <React.Fragment key={opt.value}>
+                                <Select.Item value={opt.value} label={opt.label}>
+                                    <Select.ItemLabel />
+                                    <Select.ItemIndicator />
+                                </Select.Item>
+                                {index < weightUnitOptions.length - 1 && <Separator />}
+                            </React.Fragment>
+                        ))}
+                    </Select.Content>
+                </Select.Portal>
+            </Select>
+        </View>
     </View>);
 }

@@ -1,10 +1,9 @@
-import { Avatar, Button, Chip, Dialog, Surface, useThemeColor } from "heroui-native";
+import { Avatar, Button, Chip, Dialog, ListGroup, PressableFeedback, Separator, Surface, useThemeColor } from "heroui-native";
 import { useAuth } from "@/contexts/useAuth";
 import { LogOutIcon, MoonIcon, SettingsIcon, SunIcon, UserIcon } from "lucide-react-native";
 import { View } from 'react-native'
 import { useStore } from "@/contexts/useStore";
 import { H2, Muted, Text } from "@/components/Text";
-import { ButtonGroup } from "./ButtonGroup";
 import { Uniwind, useUniwind } from 'uniwind';
 
 export default function Header() {
@@ -44,20 +43,41 @@ export default function Header() {
                             <Chip className="mx-auto" variant="soft" color={user?.role === "admin" ? "warning" : "accent"}>
                                 <Chip.Label>{user?.role}</Chip.Label>
                             </Chip>
-                            <ButtonGroup orientation="vertical">
-                                <ButtonGroup.Item
-                                    icon={theme === 'light' ? <MoonIcon size={20} color={foregroundColor} /> : <SunIcon size={20} color={foregroundColor} />}
+                            <ListGroup variant="secondary" className="w-full">
+                                <PressableFeedback
+                                    animation={false}
                                     onPress={() => Uniwind.setTheme(theme === 'light' ? 'dark' : 'light')}
                                 >
-                                    Switch to {theme === 'light' ? 'dark' : 'light'} mode
-                                </ButtonGroup.Item>
-                                <ButtonGroup.Item
-                                    icon={<LogOutIcon color={foregroundColor} size={20} />}
+                                    <PressableFeedback.Scale>
+                                        <ListGroup.Item disabled>
+                                            <ListGroup.ItemPrefix>
+                                                {theme === 'light' ? <MoonIcon size={20} color={foregroundColor} /> : <SunIcon size={20} color={foregroundColor} />}
+                                            </ListGroup.ItemPrefix>
+                                            <ListGroup.ItemContent>
+                                                <ListGroup.ItemTitle>Switch to {theme === 'light' ? 'dark' : 'light'} mode</ListGroup.ItemTitle>
+                                            </ListGroup.ItemContent>
+                                        </ListGroup.Item>
+                                    </PressableFeedback.Scale>
+                                    <PressableFeedback.Ripple />
+                                </PressableFeedback>
+                                <Separator />
+                                <PressableFeedback
+                                    animation={false}
                                     onPress={() => { signOut() }}
                                 >
-                                    Sign out
-                                </ButtonGroup.Item>
-                            </ButtonGroup>
+                                    <PressableFeedback.Scale>
+                                        <ListGroup.Item disabled>
+                                            <ListGroup.ItemPrefix>
+                                                <LogOutIcon color={foregroundColor} size={20} />
+                                            </ListGroup.ItemPrefix>
+                                            <ListGroup.ItemContent>
+                                                <ListGroup.ItemTitle>Sign out</ListGroup.ItemTitle>
+                                            </ListGroup.ItemContent>
+                                        </ListGroup.Item>
+                                    </PressableFeedback.Scale>
+                                    <PressableFeedback.Ripple />
+                                </PressableFeedback>
+                            </ListGroup>
                         </Dialog.Content>
                     </Dialog.Portal>
                 </Dialog>

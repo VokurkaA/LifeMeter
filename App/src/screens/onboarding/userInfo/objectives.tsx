@@ -1,12 +1,12 @@
 import WeightSelect from "@/components/WeightSelect";
-import {useEffect, useMemo, useState} from "react";
-import {ScrollView, View} from "react-native";
-import {BasicInfoData} from "./basicInfo";
-import {BodyInfoData} from "./bodyInfo";
-import {LifestyleData} from "./lifestyleInfo";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, View } from "react-native";
+import { BasicInfoData } from "./basicInfo";
+import { BodyInfoData } from "./bodyInfo";
+import { LifestyleData } from "./lifestyleInfo";
 import DateTimePicker from "@/components/DateTimePicker";
-import {Separator, TextField, Input, Label, useThemeColor} from "heroui-native";
-import {X} from "lucide-react-native";
+import { Separator, TextField, Input, Label, useThemeColor } from "heroui-native";
+import { X } from "lucide-react-native";
 import MacroSlider from "@/components/MacroSlider";
 import mifflinStJeor from "@/lib/bmr";
 import { formatDate, formatTime } from "@/lib/dateTime";
@@ -35,14 +35,14 @@ interface ObjectivesProps {
 }
 
 export default function Objectives({
-                                       onSubmit,
-                                       setNextEnabled,
-                                       registerOnNext,
-                                       initialData,
-                                       basicInfoData,
-                                       bodyInfoData,
-                                       lifeStyleData
-                                   }: ObjectivesProps) {
+    onSubmit,
+    setNextEnabled,
+    registerOnNext,
+    initialData,
+    basicInfoData,
+    bodyInfoData,
+    lifeStyleData
+}: ObjectivesProps) {
     const mutedColor = useThemeColor("muted");
     const placeholderColor = useThemeColor("field-placeholder");
 
@@ -171,7 +171,7 @@ export default function Objectives({
 
         return () => registerOnNext(null);
     }, [isValid, setNextEnabled, registerOnNext]);
-    
+
     return (<ScrollView
         className="flex-1"
         contentContainerClassName="flex flex-col gap-4"
@@ -201,7 +201,7 @@ export default function Objectives({
                 isDisabled={goalWeight === undefined}
             />
         </View>
-        <Separator/>
+        <Separator />
         <MacroSlider
             tdee={dailyCaloriesToReachGoal}
             proteinPercentage={proteinPercentage}
@@ -211,9 +211,8 @@ export default function Objectives({
             carbsPercentage={carbsPercentage}
             setCarbsPercentage={setCarbsPercentage}
         />
-        <Separator/>
+        <Separator />
         <View>
-            {/* TODO: Replace with heroui-native Slider when available */}
             <TextField>
                 <Label>Goal steps</Label>
                 <Input
@@ -234,7 +233,7 @@ export default function Objectives({
                 />
             </TextField>
         </View>
-        <Separator/>
+        <Separator />
         <View className="gap-4">
             <DateTimePicker
                 label="Bedtime Time Goal"
@@ -243,7 +242,7 @@ export default function Objectives({
                 onValueChange={setGoalBedtime}
                 mode="time"
                 formatValue={formatTime}
-                rightIcon={goalBedtime && <X color={mutedColor} size={18}/>}
+                rightIcon={goalBedtime && <X color={mutedColor} size={18} />}
                 rightIconOnPress={() => setGoalBedtime(undefined)}
             />
             <DateTimePicker
@@ -253,7 +252,7 @@ export default function Objectives({
                 onValueChange={setGoalWakeUpTime}
                 mode="time"
                 formatValue={formatTime}
-                rightIcon={goalWakeUpTime && <X color={mutedColor} size={18}/>}
+                rightIcon={goalWakeUpTime && <X color={mutedColor} size={18} />}
                 rightIconOnPress={() => setGoalWakeUpTime(undefined)}
             />
         </View>

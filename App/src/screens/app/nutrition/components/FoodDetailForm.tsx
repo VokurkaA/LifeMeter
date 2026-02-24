@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View } from "react-native";
 import { Muted, Text } from "@/components/Text";
-import { Button, TextField, Label, useToast } from "heroui-native";
-import { SelectWithTrigger } from "@/components/SelectWithTrigger";
+import { Button, TextField, Label, useToast, Select, Separator } from "heroui-native";
 import { normalizePositiveDecimal } from "@/lib/normalize";
 import { CreateMealInput, FoodDetail } from "@/types/food.types";
 import { BottomSheetTextInput } from "@/components/BottomSheetTextInput";
@@ -133,12 +132,33 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
             </View>
 
             {foodDetail.portions.length > 0 && (
-                <SelectWithTrigger
-                    label="Select Portion"
-                    options={portionsOptions}
-                    value={selectedPortion}
-                    onValueChange={handlePortionChange}
-                />
+                <View className="gap-2">
+                    <Label>Select Portion</Label>
+                    <Select
+                        value={selectedPortion}
+                        onValueChange={handlePortionChange}
+                    >
+                        <Select.Trigger>
+                            <Select.Value placeholder="Select..." />
+                            <Select.TriggerIndicator />
+                        </Select.Trigger>
+                        <Select.Portal>
+                            <Select.Overlay />
+                            <Select.Content presentation="popover">
+                                <Select.ListLabel>Portions</Select.ListLabel>
+                                {portionsOptions.map((opt, index) => (
+                                    <React.Fragment key={opt.value}>
+                                        <Select.Item value={opt.value} label={opt.label}>
+                                            <Select.ItemLabel />
+                                            <Select.ItemIndicator />
+                                        </Select.Item>
+                                        {index < portionsOptions.length - 1 && <Separator />}
+                                    </React.Fragment>
+                                ))}
+                            </Select.Content>
+                        </Select.Portal>
+                    </Select>
+                </View>
             )}
 
             <TextField>

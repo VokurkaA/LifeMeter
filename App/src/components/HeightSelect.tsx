@@ -1,13 +1,13 @@
-import {TextField, Input, Label, useThemeColor} from "heroui-native";
-import {SelectWithTrigger, SelectWithTriggerOption} from "./SelectWithTrigger";
-import {useEffect, useRef, useState} from "react";
-import {TextInput, View} from "react-native";
-import {normalizePositiveDecimal} from "@/lib/normalize";
-import {Text} from "@/components/Text";
+import { TextField, Input, Label, useThemeColor, Select, Separator } from "heroui-native";
+import React, { useEffect, useRef, useState } from "react";
+import { TextInput, View } from "react-native";
+import { normalizePositiveDecimal } from "@/lib/normalize";
+import { Text } from "@/components/Text";
 
 const CM_PER_INCH = 2.54;
 
-const lengthUnitOptions: SelectWithTriggerOption[] = [{label: "cm", value: "cm"}, {label: "ft", value: "ft"},];
+type SelectOption = { label: string; value: string };
+const lengthUnitOptions: SelectOption[] = [{ label: "cm", value: "cm" }, { label: "ft", value: "ft" },];
 
 type HeightUnit = "cm" | "ft";
 
@@ -38,7 +38,7 @@ function cmToFtIn(cm: number) {
         inches = 0;
     }
 
-    return {ft, inches};
+    return { ft, inches };
 }
 
 function feetToFtIn(feet: number) {
@@ -50,7 +50,7 @@ function feetToFtIn(feet: number) {
         inches = 0;
     }
 
-    return {ft, inches};
+    return { ft, inches };
 }
 
 function ftInToFeet(ft?: number, inches?: number) {
@@ -67,7 +67,7 @@ interface HeightSelectProps {
     setHeightUnit: (unit: HeightUnit) => void;
 }
 
-export default function HeightSelect({height, setHeight, heightUnit, setHeightUnit}: HeightSelectProps) {
+export default function HeightSelect({ height, setHeight, heightUnit, setHeightUnit }: HeightSelectProps) {
     const placeholderColor = useThemeColor("field-placeholder");
 
     const [cmText, setCmText] = useState("");
@@ -92,14 +92,14 @@ export default function HeightSelect({height, setHeight, heightUnit, setHeightUn
         }
 
         if (prev === "cm" && next === "ft") {
-            const {ft, inches} = cmToFtIn(height);
+            const { ft, inches } = cmToFtIn(height);
             setFtText(ft > 0 ? String(ft) : "");
             setInText(String(inches));
             setHeight(ftInToFeet(ft, inches));
         } else if (prev === "ft" && next === "cm") {
             const {
                 text: nextText, value
-            } = normalizePositiveDecimal(String((height * 12) * CM_PER_INCH), {maxDecimals: 1});
+            } = normalizePositiveDecimal(String((height * 12) * CM_PER_INCH), { maxDecimals: 1 });
             setCmText(nextText);
             setHeight(value);
         }
@@ -117,14 +117,14 @@ export default function HeightSelect({height, setHeight, heightUnit, setHeightUn
 
         if (heightUnit === "cm") {
             if (cmText !== "") return;
-            const {text: nextText} = normalizePositiveDecimal(String(height), {maxDecimals: 1});
+            const { text: nextText } = normalizePositiveDecimal(String(height), { maxDecimals: 1 });
             setCmText(nextText);
             return;
         }
 
         // heightUnit === "ft"
         if (ftText !== "" || inText !== "") return;
-        const {ft, inches} = feetToFtIn(height);
+        const { ft, inches } = feetToFtIn(height);
         setFtText(ft > 0 ? String(ft) : "");
         setInText(String(inches));
     }, [height, heightUnit, cmText, ftText, inText]);
@@ -137,7 +137,7 @@ export default function HeightSelect({height, setHeight, heightUnit, setHeightUn
             <Input
                 value={cmText}
                 onChangeText={(text) => {
-                    const {text: nextText, value} = normalizePositiveDecimal(text, {maxDecimals: 1});
+                    const { text: nextText, value } = normalizePositiveDecimal(text, { maxDecimals: 1 });
                     setCmText(nextText);
                     setHeight(value);
                 }}
@@ -212,13 +212,31 @@ export default function HeightSelect({height, setHeight, heightUnit, setHeightUn
             </View>
         </View>)}
 
-        <SelectWithTrigger
-            className="w-28"
-            label="Unit"
-            options={lengthUnitOptions}
-            value={unitOption}
-            initialValue={unitOption}
-            onValueChange={(val) => setHeightUnit((val?.value as HeightUnit) ?? "cm")}
-        />
+        <View className="w-28 gap-2">
+            <Label>Unit</Label>
+            <Select
+                value={unitOption}
+                onValueChange={(val) => setHeightUnit((val?.value as HeightUnit) ?? "cm")}
+            >
+                <Select.Trigger>
+                    <Select.Value placeholder="Select" />
+                    <Select.TriggerIndicator />
+                </Select.Trigger>
+                <Select.Portal>
+                    <Select.Overlay />
+                    <Select.Content presentation="popover" width="trigger">
+                        {lengthUnitOptions.map((opt, index) => (
+                            <React.Fragment key={opt.value}>
+                                <Select.Item value={opt.value} label={opt.label}>
+                                    <Select.ItemLabel />
+                                    <Select.ItemIndicator />
+                                </Select.Item>
+                                {index < lengthUnitOptions.length - 1 && <Separator />}
+                            </React.Fragment>
+                        ))}
+                    </Select.Content>
+                </Select.Portal>
+            </Select>
+        </View>
     </View>);
 }

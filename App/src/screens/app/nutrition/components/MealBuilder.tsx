@@ -9,13 +9,14 @@ import {
     useThemeColor,
     Card,
     PressableFeedback,
+    Select,
+    Separator,
 } from "heroui-native";
 import { Muted, Text } from "@/components/Text";
 import { foodService } from "@/services/food.service";
 import { CreateMealInput, FoodDetail, FoodSearchResult } from "@/types/food.types";
 import { XIcon } from "lucide-react-native";
 import { normalizePositiveDecimal } from "@/lib/normalize";
-import { SelectWithTrigger } from "@/components/SelectWithTrigger";
 import { BottomSheetTextInput } from "@/components/BottomSheetTextInput";
 import { useFoodSearch } from "../hooks/useFoodSearch";
 import { Combobox } from "@/components/Combobox";
@@ -253,7 +254,7 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
                     </View>
                 )}
 
-                <View className="flex flex-row gap-3">
+                <View className="flex flex-row gap-3 mb-2">
                     {onCancel && (
                         <Button onPress={onCancel} variant="tertiary" className="flex-1">
                             <Button.Label>Cancel</Button.Label>
@@ -316,36 +317,57 @@ function BuilderItemRow({
                 </View>
             </Card.Header>
 
-            <Card.Body className="flex flex-row items-center gap-4 my-2">
-                <View className="flex flex-2">
-                    <SelectWithTrigger
-                        label="Portion"
-                        options={portionsOptions}
-                        value={selectedPortionOption}
-                        onValueChange={handlePortionChange}
-                        isDisabled={portionsOptions.length === 0}
-                    />
-                </View>
-                <View className="flex-1">
-                    <TextField>
-                        <Label>Grams</Label>
-                        <BottomSheetTextInput 
-                            variant="secondary"
-                            keyboardType="numeric"
-                            placeholder="0"
-                            value={String(item.gramAmount === 0 ? "" : item.gramAmount)}
-                            onChangeText={(text) => {
-                                if (text === "") {
-                                    onUpdate({ gramAmount: 0, portionId: undefined });
-                                    return;
-                                }
-                                const { value } = normalizePositiveDecimal(text, { maxDecimals: 2 });
-                                if (value !== undefined) {
-                                    onUpdate({ gramAmount: value, portionId: undefined });
-                                }
-                            }}
-                        />
-                    </TextField>
+            <Card.Body className="flex flex-col gap-4 my-2">
+                <View className="flex flex-row items-end gap-4">
+                    <View className="flex-1 gap-2">
+                        <Label>Portion</Label>
+                        <Select
+                            value={selectedPortionOption}
+                            onValueChange={handlePortionChange}
+                            isDisabled={portionsOptions.length === 0}
+                        >
+                            <Select.Trigger>
+                                <Select.Value placeholder="Select..." />
+                                <Select.TriggerIndicator />
+                            </Select.Trigger>
+                            <Select.Portal>
+                                <Select.Overlay />
+                                <Select.Content presentation="popover" width="trigger">
+                                    <Select.ListLabel>Portions</Select.ListLabel>
+                                    {portionsOptions.map((opt, index) => (
+                                        <React.Fragment key={opt.value}>
+                                            <Select.Item value={opt.value} label={opt.label}>
+                                                <Select.ItemLabel />
+                                                <Select.ItemIndicator />
+                                            </Select.Item>
+                                            {index < portionsOptions.length - 1 && <Separator />}
+                                        </React.Fragment>
+                                    ))}
+                                </Select.Content>
+                            </Select.Portal>
+                        </Select>
+                    </View>
+                    <View className="flex-1">
+                        <TextField>
+                            <Label>Grams</Label>
+                            <BottomSheetTextInput 
+                                variant="secondary"
+                                keyboardType="numeric"
+                                placeholder="0"
+                                value={String(item.gramAmount === 0 ? "" : item.gramAmount)}
+                                onChangeText={(text) => {
+                                    if (text === "") {
+                                        onUpdate({ gramAmount: 0, portionId: undefined });
+                                        return;
+                                    }
+                                    const { value } = normalizePositiveDecimal(text, { maxDecimals: 2 });
+                                    if (value !== undefined) {
+                                        onUpdate({ gramAmount: value, portionId: undefined });
+                                    }
+                                }}
+                            />
+                        </TextField>
+                    </View>
                 </View>
             </Card.Body>
         </Card>

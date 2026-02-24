@@ -1,7 +1,6 @@
-import Slider from "@react-native-community/slider";
-import {useThemeColor} from "heroui-native";
-import {View} from "react-native";
-import {Muted, Text} from "@/components/Text";
+import { Description, Label, Slider, useThemeColor } from "heroui-native";
+import { View } from "react-native";
+import { Muted, Text } from "@/components/Text";
 
 interface MacroSliderProps {
     tdee: number;
@@ -28,10 +27,6 @@ function MacroSliderItem({
     divisor,
     tdee,
 }: MacroSliderItemProps) {
-    const foregroundColor = useThemeColor('foreground');
-    const accentColor = useThemeColor('accent');
-    const mutedColor = useThemeColor('muted');
-
     const getGrams = (percent: number, divisor: number) => {
         if (!tdee) return "0.0";
         return ((percent * tdee) / 100 / divisor).toFixed(1);
@@ -40,23 +35,25 @@ function MacroSliderItem({
     return (
         <View>
             <View>
-                <Text>{label}</Text>
+                <Label>{label}</Label>
                 <View className="flex flex-row justify-between">
-                    <Text>{getGrams(percentage, divisor)}g</Text>
-                    <Muted>{(tdee*percentage/100).toFixed(0)} kcal ({percentage}%)</Muted>
+                    <Label>{getGrams(percentage, divisor)}g</Label>
+                    <Description>{(tdee * percentage / 100).toFixed(0)} kcal ({percentage}%)</Description>
                 </View>
             </View>
             <Slider
                 value={percentage}
-                onValueChange={onChange}
-                minimumValue={0}
-                maximumValue={100}
+                onChange={(val) => onChange(val as number)}
+                minValue={0}
+                maxValue={100}
                 step={1}
-                thumbTintColor={foregroundColor}
-                maximumTrackTintColor={mutedColor}
-                minimumTrackTintColor={accentColor}
-                style={{height: 40, width: '100%'}}
-            />
+                className="w-full"
+            >
+                <Slider.Track>
+                    <Slider.Fill className="bg-accent" />
+                    <Slider.Thumb className="bg-foreground" />
+                </Slider.Track>
+            </Slider>
         </View>
     );
 }
