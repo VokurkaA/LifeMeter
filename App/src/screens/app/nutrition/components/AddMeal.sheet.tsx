@@ -94,8 +94,8 @@ export default function AddMeal({ createUserMeal, userMeals }: AddMealProps) {
             <BottomSheet.Trigger asChild>
                 <Button variant="tertiary">
                     <PlusIcon color={foregroundColor} size={20} />
-                     <Button.Label>New Meal</Button.Label>
-                    </Button>
+                    <Button.Label>New Meal</Button.Label>
+                </Button>
             </BottomSheet.Trigger>
             <BottomSheet.Portal>
                 <BottomSheet.Overlay />

@@ -20,7 +20,7 @@ export default function Home() {
 
   return (
     <MainLayout>
-      <ChartCard
+      {/* <ChartCard
         title="Bar graph"
         description="Past 7 days"
         averageLabel="Avg Steps"
@@ -74,7 +74,7 @@ export default function Home() {
           <Slider.Fill />
           <Slider.Thumb />
         </Slider.Track>
-      </Slider>
+      </Slider> */}
     </MainLayout>
   );
 }

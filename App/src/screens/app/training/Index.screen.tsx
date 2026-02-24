@@ -8,6 +8,7 @@ import { useStore } from "@/contexts/useStore";
 import { Card, Chip } from "heroui-native";
 import { FullWorkout, FullWorkoutTemplate, WorkoutTemplate } from "@/types/workout.types";
 import { workoutService } from "@/services/workout.service";
+import AddWorkoutForm from "./components/AddWorkoutForm";
 
 export default function TrainingScreen() {
     const { userWorkouts, refreshUserWorkouts, createUserWorkout, editUserWorkout, deleteUserWorkout } = useStore();
@@ -43,14 +44,15 @@ export default function TrainingScreen() {
                 <Text className="text-muted text-xl">{MONTHS[selectedDate.getMonth()]} {selectedDate.getDate()}.</Text>
             </View>
             <DatePicker selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-            <FlatList
+            <AddWorkoutForm />
+            {/* <FlatList
                 contentContainerClassName="flex flex-col gap-4 flex-1"
                 data={workoutsForSelectedDay}
                 keyExtractor={item => item.id}
                 renderItem={({ item }) => <RenderItem item={item} />}
                 ListEmptyComponent={<Text>No workouts for this day.</Text>}
                 showsHorizontalScrollIndicator={false}
-            />
+            /> */}
         </MainLayout>
     )
 }
