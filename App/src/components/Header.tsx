@@ -1,17 +1,101 @@
-import { Avatar, Button, Chip, Dialog, ListGroup, PressableFeedback, Separator, Surface, useThemeColor } from "heroui-native";
+import React, { useState } from 'react';
+import { Platform, Pressable, ScrollView, View } from 'react-native';
+import { Avatar, Chip, Description, Dialog, ListGroup, Separator, Surface, Switch, useThemeColor, useToast } from "heroui-native";
+import { BellIcon, LogOutIcon, MoonIcon, SunIcon, UserIcon } from "lucide-react-native";
 import { useAuth } from "@/contexts/useAuth";
-import { LogOutIcon, MoonIcon, SettingsIcon, SunIcon, UserIcon } from "lucide-react-native";
-import { View } from 'react-native'
 import { useStore } from "@/contexts/useStore";
-import { H2, Muted, Text } from "@/components/Text";
+import { H2 } from "@/components/Text";
 import { Uniwind, useUniwind } from 'uniwind';
+import { formatTime, timeToDate } from "@/lib/dateTime";
+import { useNotifications } from '@/lib/notifications';
+import { storage } from '@/lib/storage';
+import RnDateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { openHealthSettings } from '@/lib/health';
+
 
 export default function Header() {
+    const { isEnabled, enableNotifications, removeScheduledNotification, scheduleRepeatingNotification, editRepeatingNotification, getStoredRepeatingTime, hasNotification } = useNotifications();
     const { user, session, signOut } = useAuth();
     const { userProfile, userGoals } = useStore();
-    const { theme } = useUniwind()
+    const { theme } = useUniwind();
+    const { toast } = useToast();
+
     const mutedColor = useThemeColor('muted');
     const foregroundColor = useThemeColor('foreground');
+
+    const bedtimeDate = timeToDate(userGoals?.bedtimeGoal || '') || new Date(1970, 0, 1, 22, 0);
+    const wakeupDate = timeToDate(userGoals?.wakeupGoal || '') || new Date(1970, 0, 1, 7, 0);
+    const [exerciseDate, setExerciseDate] = useState(
+        () => getStoredRepeatingTime("exercise-reminder") ?? new Date(1970, 0, 1, 18, 0),
+    );
+
+    const [isBedtimeEnabled, setIsBedtimeEnabled] = useState(hasNotification('bedtime-reminder'));
+    const [isWakeupEnabled, setIsWakeupEnabled] = useState(hasNotification('wakeup-reminder'));
+    const [isExerciseEnabled, setIsExerciseEnabled] = useState(hasNotification('exercise-reminder'));
+
+    const [isExerciseClockOpen, setIsExerciseClockOpen] = useState(false);
+
+    const toggleBedtimeReminder = (enabled: boolean) => {
+        setIsBedtimeEnabled(enabled);
+        if (enabled) {
+            scheduleRepeatingNotification({
+                identifier: 'bedtime-reminder',
+                title: "Bedtime reminder",
+                body: "It's time to wind down and prepare for bed.",
+                hour: bedtimeDate.getHours(),
+                minute: bedtimeDate.getMinutes(),
+                second: 0,
+            });
+        } else {
+            removeScheduledNotification('bedtime-reminder')
+        }
+    }
+    const toggleWakeupReminder = (enabled: boolean) => {
+        setIsWakeupEnabled(enabled);
+        if (enabled) {
+            scheduleRepeatingNotification({
+                identifier: 'wakeup-reminder',
+                title: "Wake-up reminder",
+                body: "Good morning! Time to wake up and start your day.",
+                hour: wakeupDate.getHours(),
+                minute: wakeupDate.getMinutes(),
+                second: 0,
+            });
+        } else {
+            removeScheduledNotification('wakeup-reminder')
+        }
+    }
+    const toggleExerciseReminder = (enabled: boolean) => {
+        setIsExerciseEnabled(enabled);
+        if (enabled) {
+            scheduleRepeatingNotification({
+                identifier: 'exercise-reminder',
+                title: "Exercise reminder",
+                body: "Don't forget to get some exercise today!",
+                hour: exerciseDate.getHours(),
+                minute: exerciseDate.getMinutes(),
+                second: 0,
+            });
+        } else {
+            removeScheduledNotification('exercise-reminder')
+        }
+    }
+
+    const handleExerciseTimeChange = (date: Date | undefined) => {
+        if (!date) return;
+        setExerciseDate(date);
+
+        if (isExerciseEnabled) {
+            editRepeatingNotification({
+                identifier: "exercise-reminder",
+                title: "Exercise reminder",
+                body: "Don't forget to get some exercise today!",
+                hour: date.getHours(),
+                minute: date.getMinutes(),
+                second: 0,
+            });
+        }
+    }
 
     return (
         <View className="bg-background">
@@ -30,26 +114,27 @@ export default function Header() {
                     </Dialog.Trigger>
                     <Dialog.Portal>
                         <Dialog.Overlay />
-                        <Dialog.Content isSwipeable={false} className="relative flex items-center gap-2">
-                            <Dialog.Title className="text-center text-base">{user?.email}</Dialog.Title>
-                            <Dialog.Close className="absolute right-2 top-2" variant="ghost" />
-                            <Avatar alt={user?.name ?? "User avatar"} className="h-22 aspect-square">
-                                <Avatar.Image source={{ uri: user?.image ?? undefined }} />
-                                <Avatar.Fallback>
-                                    <UserIcon color={mutedColor} size={48} />
-                                </Avatar.Fallback>
-                            </Avatar>
-                            <Dialog.Title>Hello, {user?.name}</Dialog.Title>
-                            <Chip className="mx-auto" variant="soft" color={user?.role === "admin" ? "warning" : "accent"}>
-                                <Chip.Label>{user?.role}</Chip.Label>
-                            </Chip>
-                            <ListGroup variant="secondary" className="w-full">
-                                <PressableFeedback
-                                    animation={false}
-                                    onPress={() => Uniwind.setTheme(theme === 'light' ? 'dark' : 'light')}
-                                >
-                                    <PressableFeedback.Scale>
-                                        <ListGroup.Item disabled>
+                        <Dialog.Content isSwipeable={false} className="h-11/12 my-auto">
+                            <View className="relative flex-row items-center justify-center mb-2">
+                                <Dialog.Title className="text-center text-base">{user?.email}</Dialog.Title>
+                                <Dialog.Close className="absolute right-0" variant="ghost" />
+                            </View>
+                            <View className="flex-1">
+                                <ScrollView contentContainerClassName="flex items-center" showsVerticalScrollIndicator={false}>
+                                    <Avatar alt={user?.name ?? "User avatar"} className="h-22 aspect-square">
+                                        <Avatar.Image source={{ uri: user?.image ?? undefined }} />
+                                        <Avatar.Fallback>
+                                            <UserIcon color={mutedColor} size={48} />
+                                        </Avatar.Fallback>
+                                    </Avatar>
+                                    <Dialog.Title>Hello, {user?.name || "User"}</Dialog.Title>
+                                    <Chip className="mx-auto" variant="soft" color={user?.role === "admin" ? "warning" : "accent"}>
+                                        <Chip.Label>{user?.role}</Chip.Label>
+                                    </Chip>
+
+                                    <Description className="ml-2 mr-auto">General</Description>
+                                    <ListGroup variant="secondary" className="w-full">
+                                        <ListGroup.Item onPress={() => Uniwind.setTheme(theme === 'light' ? 'dark' : 'light')}>
                                             <ListGroup.ItemPrefix>
                                                 {theme === 'light' ? <MoonIcon size={20} color={foregroundColor} /> : <SunIcon size={20} color={foregroundColor} />}
                                             </ListGroup.ItemPrefix>
@@ -57,16 +142,8 @@ export default function Header() {
                                                 <ListGroup.ItemTitle>Switch to {theme === 'light' ? 'dark' : 'light'} mode</ListGroup.ItemTitle>
                                             </ListGroup.ItemContent>
                                         </ListGroup.Item>
-                                    </PressableFeedback.Scale>
-                                    <PressableFeedback.Ripple />
-                                </PressableFeedback>
-                                <Separator />
-                                <PressableFeedback
-                                    animation={false}
-                                    onPress={() => { signOut() }}
-                                >
-                                    <PressableFeedback.Scale>
-                                        <ListGroup.Item disabled>
+                                        <Separator />
+                                        <ListGroup.Item onPress={() => { signOut() }}>
                                             <ListGroup.ItemPrefix>
                                                 <LogOutIcon color={foregroundColor} size={20} />
                                             </ListGroup.ItemPrefix>
@@ -74,10 +151,109 @@ export default function Header() {
                                                 <ListGroup.ItemTitle>Sign out</ListGroup.ItemTitle>
                                             </ListGroup.ItemContent>
                                         </ListGroup.Item>
-                                    </PressableFeedback.Scale>
-                                    <PressableFeedback.Ripple />
-                                </PressableFeedback>
-                            </ListGroup>
+                                    </ListGroup>
+
+                                    <Description className="ml-2 mt-2 mr-auto">Notifications</Description>
+                                    <ListGroup variant="secondary" className="w-full">
+                                        <ListGroup.Item>
+                                            <ListGroup.ItemPrefix>
+                                                <BellIcon color={foregroundColor} size={20} />
+                                            </ListGroup.ItemPrefix>
+                                            <ListGroup.ItemContent className="flex justify-between items-center flex-row">
+                                                <ListGroup.ItemTitle>Enable notifications</ListGroup.ItemTitle>
+                                            </ListGroup.ItemContent>
+                                            <ListGroup.ItemSuffix>
+                                                <Switch
+                                                    isSelected={isEnabled}
+                                                    onSelectedChange={enableNotifications}
+                                                />
+                                            </ListGroup.ItemSuffix>
+                                        </ListGroup.Item>
+                                        <Separator />
+
+                                        <ListGroup.Item>
+                                            <ListGroup.ItemContent>
+                                                <ListGroup.ItemTitle>Wake-up reminder</ListGroup.ItemTitle>
+                                                <ListGroup.ItemDescription>
+                                                    {formatTime(wakeupDate)}
+                                                </ListGroup.ItemDescription>
+                                            </ListGroup.ItemContent>
+                                            <ListGroup.ItemSuffix>
+                                                <Switch
+                                                    isSelected={isWakeupEnabled}
+                                                    onSelectedChange={toggleWakeupReminder}
+                                                    isDisabled={!isEnabled}
+                                                />
+                                            </ListGroup.ItemSuffix>
+                                        </ListGroup.Item>
+
+                                        <ListGroup.Item>
+                                            <ListGroup.ItemContent>
+                                                <ListGroup.ItemTitle>Bedtime reminder</ListGroup.ItemTitle>
+                                                <ListGroup.ItemDescription>
+                                                    {formatTime(bedtimeDate)}
+                                                </ListGroup.ItemDescription>
+                                            </ListGroup.ItemContent>
+                                            <ListGroup.ItemSuffix>
+                                                <Switch
+                                                    isSelected={isBedtimeEnabled}
+                                                    onSelectedChange={toggleBedtimeReminder}
+                                                    isDisabled={!isEnabled}
+                                                />
+                                            </ListGroup.ItemSuffix>
+                                        </ListGroup.Item>
+
+                                        <Pressable onPress={() => setIsExerciseClockOpen(true)}>
+                                            <ListGroup.Item disabled>
+                                                <ListGroup.ItemContent>
+                                                    <ListGroup.ItemTitle>Exercise reminder</ListGroup.ItemTitle>
+                                                    <ListGroup.ItemDescription>
+                                                        {formatTime(exerciseDate)}
+                                                    </ListGroup.ItemDescription>
+                                                </ListGroup.ItemContent>
+                                                <ListGroup.ItemSuffix>
+                                                    <Switch
+                                                        isSelected={isExerciseEnabled}
+                                                        onSelectedChange={toggleExerciseReminder}
+                                                        isDisabled={!isEnabled}
+                                                    />
+                                                </ListGroup.ItemSuffix>
+                                            </ListGroup.Item>
+                                            {isExerciseClockOpen && <RnDateTimePicker
+                                                display="clock"
+                                                value={exerciseDate}
+                                                mode='time'
+                                                onChange={(event: DateTimePickerEvent, date?: Date) => {
+                                                    handleExerciseTimeChange(date);
+                                                    if (Platform.OS === 'android') {
+                                                        setIsExerciseClockOpen(false);
+                                                    }
+                                                }}
+                                            />}
+                                        </Pressable>
+                                    </ListGroup>
+
+                                    <Description className="ml-2 mt-2 mr-auto">Synchronization</Description>
+                                    <ListGroup variant="secondary" className="w-full">
+                                        <ListGroup.Item onPress={openHealthSettings}>
+                                            <ListGroup.ItemContent>
+                                                <ListGroup.ItemTitle>{Platform.OS === 'android' ? 'Health connect' : 'Apple Health'}</ListGroup.ItemTitle>
+                                                <ListGroup.ItemDescription>Control what data you share</ListGroup.ItemDescription>
+                                            </ListGroup.ItemContent>
+                                            <ListGroup.ItemSuffix />
+                                        </ListGroup.Item>
+                                        <ListGroup.Item>
+                                            <ListGroup.ItemContent>
+                                                <ListGroup.ItemTitle>Syncing all available health data</ListGroup.ItemTitle>
+                                                <ListGroup.ItemDescription>
+                                                    Your weight, height, sleep and  logs will be automatically synced from {Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.
+                                                </ListGroup.ItemDescription>
+                                            </ListGroup.ItemContent>
+                                            <ListGroup.ItemSuffix />
+                                        </ListGroup.Item>
+                                    </ListGroup>
+                                </ScrollView>
+                            </View>
                         </Dialog.Content>
                     </Dialog.Portal>
                 </Dialog>
