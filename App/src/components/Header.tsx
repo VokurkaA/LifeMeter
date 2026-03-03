@@ -111,7 +111,7 @@ export default function Header() {
     )
 }
 
-const NotificationsSettings = ({ userGoals }: { userGoals: UserGoal | null }) => {
+const NotificationsSettings = ({ userGoals }: { userGoals: UserGoal | undefined }) => {
     const foregroundColor = useThemeColor('foreground');
 
     const { notificationExists, scheduleNotification, cancelNotification, getNotification, cancelAllNotifications } = useNotifications();

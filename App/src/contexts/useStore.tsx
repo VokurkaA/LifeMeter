@@ -19,38 +19,41 @@ import {
   UserWeightLog,
   WeightUnit,
 } from '@/types/user.profile.types';
+import { useStorage } from '@/lib/storage';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<any> = ({ children }) => {
-  const [sleepSessions, setSleepSessions] = useState<SleepSession[]>([]);
-  const [userMeals, setUserMeals] = useState<{ userMeal: UserMeal; userFoods: UserFood[] }[]>([]);
-  const [userWorkouts, setUserWorkouts] = useState<FullWorkout[]>([]);
+  const [sleepSessions, setSleepSessions] = useStorage.array<SleepSession>('sleepSessions');
+  const [userMeals, setUserMeals] = useStorage.array<{ userMeal: UserMeal; userFoods: UserFood[] }>('userMeals');
+  const [userWorkouts, setUserWorkouts] = useStorage.array<FullWorkout>('userWorkouts');
+  const [userProfile, setUserProfile] = useStorage.object<UserProfile>('userProfile');
+  const [userGoals, setUserGoals] = useStorage.object<UserGoal>('userGoals');
+  const [latestWeight, setLatestWeight] = useStorage.object<UserWeightLog>('latestWeight');
+  const [activityLevels, setActivityLevels] = useStorage.array<ActivityLevel>('activityLevels');
+  const [lengthUnits, setLengthUnits] = useStorage.array<LengthUnit>('lengthUnits');
+  const [weightUnits, setWeightUnits] = useStorage.array<WeightUnit>('weightUnits');
 
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [userGoals, setUserGoals] = useState<UserGoal | null>(null);
-  const [latestWeight, setLatestWeight] = useState<UserWeightLog | null>(null);
-
-  const [activityLevels, setActivityLevels] = useState<ActivityLevel[]>([]);
-  const [lengthUnits, setLengthUnits] = useState<LengthUnit[]>([]);
-  const [weightUnits, setWeightUnits] = useState<WeightUnit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const { user } = useAuth();
 
   useLayoutEffect(() => {
     if (!user) {
-      setSleepSessions([]);
-      setUserMeals([]);
-      setUserWorkouts([]);
-      setUserProfile(null);
-      setUserGoals(null);
-      setLatestWeight(null);
+      setSleepSessions(undefined);
+      setUserMeals(undefined);
+      setUserWorkouts(undefined);
+      setUserProfile(undefined);
+      setUserGoals(undefined);
+      setLatestWeight(undefined);
       setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
+    if (!sleepSessions && !userMeals && !userWorkouts) {
+      setIsLoading(true);
+    }
+
     let active = true;
     (async () => {
       try {
@@ -59,7 +62,6 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
             sleepService.getAllSleepSessions(),
             foodService.getAllUserMeals(),
             workoutService.getAllUserWorkouts(),
-
             userProfileService.getProfile(),
             userProfileService.getGoals(),
             userProfileService.getLatestWeight(),
@@ -73,7 +75,6 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
         setSleepSessions(sessions);
         setUserMeals(meals);
         setUserWorkouts(workouts);
-
         setUserProfile(profile);
         setUserGoals(goals);
         setLatestWeight(weight);
@@ -94,61 +95,69 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
   const startSleep = useCallback(async () => {
     try {
       const newSession = await sleepService.startSleepSession();
-      setSleepSessions((prev) => [newSession, ...prev]);
+      setSleepSessions([newSession, ...(sleepSessions ?? [])]);
     } catch (e) {
       console.error('Failed to start sleep session', e);
     }
-  }, []);
+  }, [sleepSessions]);
 
   const endSleep = useCallback(async () => {
     try {
       const endedSession = await sleepService.endSleepSession();
-      setSleepSessions((prev) =>
-        prev.map((session) => (session.id === endedSession.id ? endedSession : session)),
+      setSleepSessions(
+        (sleepSessions ?? []).map((session) =>
+          session.id === endedSession.id ? endedSession : session,
+        ),
       );
     } catch (e) {
       console.error('Failed to end sleep session', e);
     }
-  }, []);
+  }, [sleepSessions]);
 
-  const createSleepSession = useCallback(async (startAt: string, endAt?: string, note?: string) => {
-    try {
-      const created = await sleepService.addSleepSession(startAt, endAt, note);
-      setSleepSessions((prev) => [created, ...prev]);
-    } catch (e) {
-      console.error('Failed to create sleep session', e);
-      throw e;
-    }
-  }, []);
+  const createSleepSession = useCallback(
+    async (startAt: string, endAt?: string, note?: string) => {
+      try {
+        const created = await sleepService.addSleepSession(startAt, endAt, note);
+        setSleepSessions([created, ...(sleepSessions ?? [])]);
+      } catch (e) {
+        console.error('Failed to create sleep session', e);
+        throw e;
+      }
+    },
+    [sleepSessions],
+  );
 
   const editSleepSession = useCallback(
     async (
       id: string,
-      patch: { startAt?: string; endAt?: string | null; note?: string | null },
+      patch: { startAt?: string; endAt?: string | undefined; note?: string | undefined },
     ) => {
       try {
         const updated = await sleepService.editSleepSession(id, patch);
-        setSleepSessions((prev) => prev.map((s) => (s.id === id ? updated : s)));
+        setSleepSessions((sleepSessions ?? []).map((s) => (s.id === id ? updated : s)));
       } catch (e) {
         console.error('Failed to edit sleep session', e);
         throw e;
       }
     },
-    [],
+    [sleepSessions],
   );
 
-  const deleteSleepSession = useCallback(async (id: string) => {
-    try {
-      await sleepService.deleteSleepSession(id);
-      setSleepSessions((prev) => prev.filter((s) => s.id !== id));
-    } catch (e) {
-      console.error('Failed to delete sleep session', e);
-      throw e;
-    }
-  }, []);
+  const deleteSleepSession = useCallback(
+    async (id: string) => {
+      try {
+        await sleepService.deleteSleepSession(id);
+        setSleepSessions((sleepSessions ?? []).filter((s) => s.id !== id));
+      } catch (e) {
+        console.error('Failed to delete sleep session', e);
+        throw e;
+      }
+    },
+    [sleepSessions],
+  );
 
   const ongoingSleepSession = useMemo(() => {
-    return sleepSessions.find((session) => !session.endAt) || null;
+    return (sleepSessions ?? []).find((session) => !session.endAt) || undefined;
   }, [sleepSessions]);
 
   const refreshSleepSessions = useCallback(async () => {
@@ -169,36 +178,45 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     }
   }, []);
 
-  const createUserMeal = useCallback(async (data: CreateMealInput) => {
-    try {
-      const created = await foodService.addUserMeal(data);
-      setUserMeals((prev) => [{ userMeal: created.meal, userFoods: created.food }, ...prev]);
-    } catch (e) {
-      console.error('Failed to create user meal', e);
-    }
-  }, []);
+  const createUserMeal = useCallback(
+    async (data: CreateMealInput) => {
+      try {
+        const created = await foodService.addUserMeal(data);
+        setUserMeals([{ userMeal: created.meal, userFoods: created.food }, ...(userMeals ?? [])]);
+      } catch (e) {
+        console.error('Failed to create user meal', e);
+      }
+    },
+    [userMeals],
+  );
 
-  const editUserMeal = useCallback(async (id: string, data: UpdateMealInput) => {
-    try {
-      const updated = await foodService.editUserMeal(id, data);
-      const summary = {
-        userMeal: updated.userMeal,
-        userFoods: updated.userFoods.map((uf) => uf.userFood),
-      };
-      setUserMeals((prev) => prev.map((m) => (m.userMeal.id === id ? summary : m)));
-    } catch (e) {
-      console.error('Failed to edit user meal', e);
-    }
-  }, []);
+  const editUserMeal = useCallback(
+    async (id: string, data: UpdateMealInput) => {
+      try {
+        const updated = await foodService.editUserMeal(id, data);
+        const summary = {
+          userMeal: updated.userMeal,
+          userFoods: updated.userFoods.map((uf) => uf.userFood),
+        };
+        setUserMeals((userMeals ?? []).map((m) => (m.userMeal.id === id ? summary : m)));
+      } catch (e) {
+        console.error('Failed to edit user meal', e);
+      }
+    },
+    [userMeals],
+  );
 
-  const deleteUserMeal = useCallback(async (id: string) => {
-    try {
-      await foodService.deleteUserMeal(id);
-      setUserMeals((prev) => prev.filter((m) => m.userMeal.id !== id));
-    } catch (e) {
-      console.error('Failed to delete user meal', e);
-    }
-  }, []);
+  const deleteUserMeal = useCallback(
+    async (id: string) => {
+      try {
+        await foodService.deleteUserMeal(id);
+        setUserMeals((userMeals ?? []).filter((m) => m.userMeal.id !== id));
+      } catch (e) {
+        console.error('Failed to delete user meal', e);
+      }
+    },
+    [userMeals],
+  );
 
   const refreshUserWorkouts = useCallback(async () => {
     try {
@@ -209,36 +227,45 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     }
   }, []);
 
-  const createUserWorkout = useCallback(async (data: FullWorkout) => {
-    try {
-      const created = await workoutService.addUserWorkout(data);
-      setUserWorkouts((prev) => [created, ...prev]);
-      return created;
-    } catch (e) {
-      console.error('Failed to create user workout', e);
-      return undefined;
-    }
-  }, []);
+  const createUserWorkout = useCallback(
+    async (data: FullWorkout) => {
+      try {
+        const created = await workoutService.addUserWorkout(data);
+        setUserWorkouts([created, ...(userWorkouts ?? [])]);
+        return created;
+      } catch (e) {
+        console.error('Failed to create user workout', e);
+        return undefined;
+      }
+    },
+    [userWorkouts],
+  );
 
-  const editUserWorkout = useCallback(async (id: string, data: FullWorkout) => {
-    try {
-      const updated = await workoutService.editUserWorkout(id, data);
-      setUserWorkouts((prev) => prev.map((w) => (w.id === id ? updated : w)));
-      return updated;
-    } catch (e) {
-      console.error('Failed to edit user workout', e);
-      return undefined;
-    }
-  }, []);
+  const editUserWorkout = useCallback(
+    async (id: string, data: FullWorkout) => {
+      try {
+        const updated = await workoutService.editUserWorkout(id, data);
+        setUserWorkouts((userWorkouts ?? []).map((w) => (w.id === id ? updated : w)));
+        return updated;
+      } catch (e) {
+        console.error('Failed to edit user workout', e);
+        return undefined;
+      }
+    },
+    [userWorkouts],
+  );
 
-  const deleteUserWorkout = useCallback(async (id: string) => {
-    try {
-      await workoutService.deleteUserWorkout(id);
-      setUserWorkouts((prev) => prev.filter((w) => w.id !== id));
-    } catch (e) {
-      console.error('Failed to delete user workout', e);
-    }
-  }, []);
+  const deleteUserWorkout = useCallback(
+    async (id: string) => {
+      try {
+        await workoutService.deleteUserWorkout(id);
+        setUserWorkouts((userWorkouts ?? []).filter((w) => w.id !== id));
+      } catch (e) {
+        console.error('Failed to delete user workout', e);
+      }
+    },
+    [userWorkouts],
+  );
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -295,7 +322,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
   const storeValue: StoreContextType = useMemo(
     () => ({
       // Sleep
-      sleepSessions,
+      sleepSessions: sleepSessions ?? [],
       startSleep,
       endSleep,
       createSleepSession,
@@ -305,26 +332,26 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       refreshSleepSessions,
 
       // Meals
-      userMeals,
+      userMeals: userMeals ?? [],
       refreshUserMeals,
       createUserMeal,
       editUserMeal,
       deleteUserMeal,
 
       // Workouts
-      userWorkouts,
+      userWorkouts: userWorkouts ?? [],
       refreshUserWorkouts,
       createUserWorkout,
       editUserWorkout,
       deleteUserWorkout,
 
       // Profile & Goals
-      userProfile,
-      userGoals,
-      activityLevels,
-      lengthUnits,
-      weightUnits,
-      latestWeight,
+      userProfile: userProfile ?? undefined,
+      userGoals: userGoals ?? undefined,
+      activityLevels: activityLevels ?? [],
+      lengthUnits: lengthUnits ?? [],
+      weightUnits: weightUnits ?? [],
+      latestWeight: latestWeight ?? undefined,
       isLoading,
       refreshProfile,
       updateProfile,

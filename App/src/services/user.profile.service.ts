@@ -126,9 +126,9 @@ export const userProfileService = {
     }));
   },
 
-  getProfile: async (): Promise<UserProfile | null> => {
+  getProfile: async (): Promise<UserProfile | undefined> => {
     const data = await request<ServerUserProfile>(`${BASE_URL}/profile`, { method: 'GET' });
-    if (!data || Object.keys(data).length === 0) return null;
+    if (!data || Object.keys(data).length === 0) return undefined;
     return mapProfileToClient(data);
   },
 
@@ -151,9 +151,9 @@ export const userProfileService = {
     return mapProfileToClient(response);
   },
 
-  getGoals: async (): Promise<UserGoal | null> => {
+  getGoals: async (): Promise<UserGoal | undefined> => {
     const data = await request<ServerUserGoal>(`${BASE_URL}/goals`, { method: 'GET' });
-    if (!data || Object.keys(data).length === 0) return null;
+    if (!data || Object.keys(data).length === 0) return undefined;
     return mapGoalToClient(data);
   },
 
@@ -195,11 +195,11 @@ export const userProfileService = {
     return mapWeightLogToClient(response);
   },
 
-  getLatestWeight: async (): Promise<UserWeightLog | null> => {
+  getLatestWeight: async (): Promise<UserWeightLog | undefined> => {
     const response = await request<ServerWeightLog | null>(`${BASE_URL}/log/weight/latest`, {
       method: 'GET',
     });
-    if (!response) return null;
+    if (!response) return undefined;
     return mapWeightLogToClient(response);
   },
 

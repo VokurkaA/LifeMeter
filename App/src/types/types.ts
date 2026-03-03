@@ -59,7 +59,7 @@ export interface AuthContextType {
 
 export interface StoreContextType {
   sleepSessions: SleepSession[];
-  ongoingSleepSession: SleepSession | null;
+  ongoingSleepSession: SleepSession | undefined;
   startSleep: () => Promise<void>;
   endSleep: () => Promise<void>;
   createSleepSession: (startAt: string, endAt?: string, note?: string) => Promise<void>;
@@ -67,8 +67,8 @@ export interface StoreContextType {
     id: string,
     patch: {
       startAt?: string;
-      endAt?: string | null;
-      note?: string | null;
+      endAt?: string | undefined;
+      note?: string | undefined;
     },
   ) => Promise<void>;
   deleteSleepSession: (id: string) => Promise<void>;
@@ -85,12 +85,12 @@ export interface StoreContextType {
   createUserWorkout: (data: FullWorkout) => Promise<FullWorkout | undefined>;
   editUserWorkout: (id: string, data: FullWorkout) => Promise<FullWorkout | undefined>;
   deleteUserWorkout: (id: string) => Promise<void>;
-  userProfile: UserProfile | null;
-  userGoals: UserGoal | null;
+  userProfile: UserProfile | undefined;
+  userGoals: UserGoal | undefined;
   activityLevels: ActivityLevel[];
   lengthUnits: LengthUnit[];
   weightUnits: WeightUnit[];
-  latestWeight: UserWeightLog | null;
+  latestWeight: UserWeightLog | undefined;
   isLoading: boolean;
 
   refreshProfile: () => Promise<void>;
