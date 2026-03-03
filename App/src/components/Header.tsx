@@ -7,14 +7,11 @@ import { useStore } from "@/contexts/useStore";
 import { H2 } from "@/components/Text";
 import { Uniwind, useUniwind } from 'uniwind';
 import { formatTime, timeToDate } from "@/lib/dateTime";
-import { useNotifications } from '@/lib/notifications';
-import { storage } from '@/lib/storage';
 import RnDateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { openHealthSettings } from '@/lib/health';
 
 
 export default function Header() {
-    const { isEnabled, enableNotifications, removeScheduledNotification, scheduleRepeatingNotification, editRepeatingNotification, getStoredRepeatingTime, hasNotification } = useNotifications();
     const { user, session, signOut } = useAuth();
     const { userProfile, userGoals } = useStore();
     const { theme } = useUniwind();
@@ -25,77 +22,11 @@ export default function Header() {
 
     const bedtimeDate = timeToDate(userGoals?.bedtimeGoal || '') || new Date(1970, 0, 1, 22, 0);
     const wakeupDate = timeToDate(userGoals?.wakeupGoal || '') || new Date(1970, 0, 1, 7, 0);
-    const [exerciseDate, setExerciseDate] = useState(
-        () => getStoredRepeatingTime("exercise-reminder") ?? new Date(1970, 0, 1, 18, 0),
-    );
-
-    const [isBedtimeEnabled, setIsBedtimeEnabled] = useState(hasNotification('bedtime-reminder'));
-    const [isWakeupEnabled, setIsWakeupEnabled] = useState(hasNotification('wakeup-reminder'));
-    const [isExerciseEnabled, setIsExerciseEnabled] = useState(hasNotification('exercise-reminder'));
+    
 
     const [isExerciseClockOpen, setIsExerciseClockOpen] = useState(false);
 
-    const toggleBedtimeReminder = (enabled: boolean) => {
-        setIsBedtimeEnabled(enabled);
-        if (enabled) {
-            scheduleRepeatingNotification({
-                identifier: 'bedtime-reminder',
-                title: "Bedtime reminder",
-                body: "It's time to wind down and prepare for bed.",
-                hour: bedtimeDate.getHours(),
-                minute: bedtimeDate.getMinutes(),
-                second: 0,
-            });
-        } else {
-            removeScheduledNotification('bedtime-reminder')
-        }
-    }
-    const toggleWakeupReminder = (enabled: boolean) => {
-        setIsWakeupEnabled(enabled);
-        if (enabled) {
-            scheduleRepeatingNotification({
-                identifier: 'wakeup-reminder',
-                title: "Wake-up reminder",
-                body: "Good morning! Time to wake up and start your day.",
-                hour: wakeupDate.getHours(),
-                minute: wakeupDate.getMinutes(),
-                second: 0,
-            });
-        } else {
-            removeScheduledNotification('wakeup-reminder')
-        }
-    }
-    const toggleExerciseReminder = (enabled: boolean) => {
-        setIsExerciseEnabled(enabled);
-        if (enabled) {
-            scheduleRepeatingNotification({
-                identifier: 'exercise-reminder',
-                title: "Exercise reminder",
-                body: "Don't forget to get some exercise today!",
-                hour: exerciseDate.getHours(),
-                minute: exerciseDate.getMinutes(),
-                second: 0,
-            });
-        } else {
-            removeScheduledNotification('exercise-reminder')
-        }
-    }
 
-    const handleExerciseTimeChange = (date: Date | undefined) => {
-        if (!date) return;
-        setExerciseDate(date);
-
-        if (isExerciseEnabled) {
-            editRepeatingNotification({
-                identifier: "exercise-reminder",
-                title: "Exercise reminder",
-                body: "Don't forget to get some exercise today!",
-                hour: date.getHours(),
-                minute: date.getMinutes(),
-                second: 0,
-            });
-        }
-    }
 
     return (
         <View className="bg-background">
@@ -164,8 +95,8 @@ export default function Header() {
                                             </ListGroup.ItemContent>
                                             <ListGroup.ItemSuffix>
                                                 <Switch
-                                                    isSelected={isEnabled}
-                                                    onSelectedChange={enableNotifications}
+                                                    // isSelected={isEnabled}
+                                                    // onSelectedChange={enableNotifications}
                                                 />
                                             </ListGroup.ItemSuffix>
                                         </ListGroup.Item>
@@ -180,9 +111,9 @@ export default function Header() {
                                             </ListGroup.ItemContent>
                                             <ListGroup.ItemSuffix>
                                                 <Switch
-                                                    isSelected={isWakeupEnabled}
-                                                    onSelectedChange={toggleWakeupReminder}
-                                                    isDisabled={!isEnabled}
+                                                    // isSelected={isWakeupEnabled}
+                                                    // onSelectedChange={toggleWakeupReminder}
+                                                    // isDisabled={!isEnabled}
                                                 />
                                             </ListGroup.ItemSuffix>
                                         </ListGroup.Item>
@@ -196,9 +127,9 @@ export default function Header() {
                                             </ListGroup.ItemContent>
                                             <ListGroup.ItemSuffix>
                                                 <Switch
-                                                    isSelected={isBedtimeEnabled}
-                                                    onSelectedChange={toggleBedtimeReminder}
-                                                    isDisabled={!isEnabled}
+                                                    // isSelected={isBedtimeEnabled}
+                                                    // onSelectedChange={toggleBedtimeReminder}
+                                                    // isDisabled={!isEnabled}
                                                 />
                                             </ListGroup.ItemSuffix>
                                         </ListGroup.Item>
@@ -208,18 +139,18 @@ export default function Header() {
                                                 <ListGroup.ItemContent>
                                                     <ListGroup.ItemTitle>Exercise reminder</ListGroup.ItemTitle>
                                                     <ListGroup.ItemDescription>
-                                                        {formatTime(exerciseDate)}
+                                                        {/* {formatTime(exerciseDate)} */}
                                                     </ListGroup.ItemDescription>
                                                 </ListGroup.ItemContent>
                                                 <ListGroup.ItemSuffix>
                                                     <Switch
-                                                        isSelected={isExerciseEnabled}
-                                                        onSelectedChange={toggleExerciseReminder}
-                                                        isDisabled={!isEnabled}
+                                                        // isSelected={isExerciseEnabled}
+                                                        // onSelectedChange={toggleExerciseReminder}
+                                                        // isDisabled={!isEnabled}
                                                     />
                                                 </ListGroup.ItemSuffix>
                                             </ListGroup.Item>
-                                            {isExerciseClockOpen && <RnDateTimePicker
+                                            {/* {isExerciseClockOpen && <RnDateTimePicker
                                                 display="clock"
                                                 value={exerciseDate}
                                                 mode='time'
@@ -229,7 +160,7 @@ export default function Header() {
                                                         setIsExerciseClockOpen(false);
                                                     }
                                                 }}
-                                            />}
+                                            />} */}
                                         </Pressable>
                                     </ListGroup>
 
