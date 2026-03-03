@@ -18,9 +18,19 @@ import OnboardingInfoScreen from "@/screens/onboarding/userInfo/Index.screen";
 import { navigationRef } from '@/navigation/navigate';
 import AppTabs from '@/navigation/Tabs';
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import * as Notifications from "expo-notifications";
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+    }),
+});
 
 const useScreenOptions = () => {
     const backgroundColor = useThemeColor('background');
