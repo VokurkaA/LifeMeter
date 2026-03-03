@@ -1,5 +1,5 @@
 import { SleepSession, StoreContextType } from '@/types/types';
-import React, { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { sleepService } from '@/services/sleep.service';
 import { foodService } from '@/services/food.service';
 import { userProfileService } from '@/services/user.profile.service';
@@ -7,6 +7,10 @@ import type { CreateMealInput, UpdateMealInput, UserFood, UserMeal } from '@/typ
 import { workoutService } from '@/services/workout.service';
 import { FullWorkout } from '@/types/workout.types';
 import { useAuth } from '@/contexts/useAuth';
+import NetInfo from '@react-native-community/netinfo';
+import { OfflineManager } from '@/lib/offline';
+import { request } from '@/lib/net';
+import { useToast } from 'heroui-native';
 import {
   ActivityLevel,
   LengthUnit,
@@ -21,6 +25,8 @@ import {
 } from '@/types/user.profile.types';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
+
+const API_BASE = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api';
 
 export const StoreProvider: React.FC<any> = ({ children }) => {
   const [sleepSessions, setSleepSessions] = useState<SleepSession[]>([]);
@@ -37,6 +43,26 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const { user } = useAuth();
+  const { toast } = useToast();
+
+  // --- Offline & Toast Integration ---
+  useEffect(() => {
+    OfflineManager.setToastListener((msg) => {
+      toast.show({
+        label: 'Sync Status',
+        description: msg,
+        variant: 'default',
+      });
+    });
+
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      if (state.isConnected && state.isInternetReachable !== false) {
+        OfflineManager.processQueue((path, init) => request(path, { ...init, skipInterceptor: true }));
+      }
+    });
+
+    return unsubscribe;
+  }, [toast]);
 
   useLayoutEffect(() => {
     if (!user) {
@@ -49,6 +75,40 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
       setIsLoading(false);
       return;
     }
+
+    // --- Manual Hydration from Cache ---
+    const cachedSessions = OfflineManager.getCache<any[]>(API_BASE + '/user/sleep/');
+    const cachedMeals = OfflineManager.getCache<any[]>(API_BASE + '/user/food');
+    const cachedWorkouts = OfflineManager.getCache<{ rows: any[] }>(API_BASE + '/user/workout');
+    const cachedProfile = OfflineManager.getCache<any>(API_BASE + '/user/data/profile');
+    const cachedGoals = OfflineManager.getCache<any>(API_BASE + '/user/data/goals');
+
+    if (cachedSessions) setSleepSessions(cachedSessions.map((s: any) => ({
+      id: s.id, userId: s.user_id, startAt: s.sleep_start, endAt: s.sleep_end, note: s.note,
+    })));
+    if (cachedMeals) setUserMeals(cachedMeals);
+    if (cachedWorkouts) setUserWorkouts(cachedWorkouts.rows);
+    if (cachedProfile) setUserProfile({
+      userId: cachedProfile.user_id,
+      dateOfBirth: cachedProfile.date_of_birth,
+      sex: cachedProfile.sex,
+      currentActivityFactor: cachedProfile.current_activity_factor,
+      currentBmrCalories: cachedProfile.current_bmr_calories,
+      defaultWeightUnitId: cachedProfile.default_weight_unit_id,
+      defaultLengthUnitId: cachedProfile.default_length_unit_id,
+      finishedOnboarding: cachedProfile.finished_onboarding,
+    });
+    if (cachedGoals) setUserGoals({
+      userId: cachedGoals.user_id,
+      dailyStepsGoal: cachedGoals.daily_steps_goal,
+      bedtimeGoal: cachedGoals.bedtime_goal,
+      wakeupGoal: cachedGoals.wakeup_goal,
+      dailyProteinGoalGrams: cachedGoals.daily_protein_goal_grams,
+      dailyFatGoalGrams: cachedGoals.daily_fat_goal_grams,
+      dailyCarbsGoalGrams: cachedGoals.daily_carbs_goal_grams,
+      targetWeightGrams: cachedGoals.target_weight_grams,
+      targetWeightDate: cachedGoals.target_weight_date,
+    });
 
     setIsLoading(true);
     let active = true;
@@ -81,7 +141,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
         setLengthUnits(lUnits);
         setWeightUnits(wUnits);
       } catch (e) {
-        console.error('Failed to initialize store', e);
+        console.error('Failed to initialize storeRefresh', e);
       } finally {
         if (active) setIsLoading(false);
       }
