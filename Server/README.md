@@ -295,3 +295,5 @@ Zod schemas in the `schemas/` directory enforce payload structure:
 - `schemas/user.food.schema.ts` — meal creation and updates
 - `schemas/user.workout.schema.ts` — workout and template creation/updates
 - `schemas/user.profile.schema.ts` — profile, goals, and measurement logs
+
+pull test
