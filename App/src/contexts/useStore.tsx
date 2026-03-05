@@ -20,6 +20,7 @@ import {
   WeightUnit,
 } from '@/types/user.profile.types';
 import { useStorage } from '@/lib/storage';
+import { onReconnect } from '@/lib/network-state';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -35,8 +36,13 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
   const [weightUnits, setWeightUnits] = useStorage.array<WeightUnit>('weightUnits');
 
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshCount, setRefreshCount] = useState(0);
 
   const { user } = useAuth();
+
+  useLayoutEffect(() => {
+    return onReconnect(() => setRefreshCount((c) => c + 1));
+  }, []);
 
   useLayoutEffect(() => {
     if (!user) {
@@ -90,7 +96,7 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, refreshCount]);
 
   const startSleep = useCallback(async () => {
     try {

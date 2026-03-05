@@ -19,6 +19,8 @@ import { navigationRef } from '@/navigation/navigate';
 import AppTabs from '@/navigation/Tabs';
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import * as Notifications from "expo-notifications";
+import { NetworkProvider } from './contexts/useNetwork';
+import ToastRegistrar from '@/components/ToastRegistrar';
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -91,16 +93,20 @@ function RootApp() {
         return <OnboardingInfoScreen />;
     }
 
-    return (<View className='flex-1'>
-        <NavigationContainer ref={navigationRef}>
-            <AppStack.Navigator
-                initialRouteName="Tabs"
-                screenOptions={screenOptions}
-            >
-                <AppStack.Screen name="Tabs" component={AppTabs} />
-            </AppStack.Navigator>
-        </NavigationContainer>
-    </View>);
+    return (
+        <NetworkProvider>
+            <View className='flex-1'>
+                <NavigationContainer ref={navigationRef}>
+                    <AppStack.Navigator
+                        initialRouteName="Tabs"
+                        screenOptions={screenOptions}
+                    >
+                        <AppStack.Screen name="Tabs" component={AppTabs} />
+                    </AppStack.Navigator>
+                </NavigationContainer>
+            </View>
+        </NetworkProvider>
+    );
 }
 
 export default function App() {
@@ -110,6 +116,7 @@ export default function App() {
         <KeyboardProvider>
             <SafeAreaProvider>
                 <HeroUINativeProvider>
+                    <ToastRegistrar />
                     <AuthProvider>
                         <StoreProvider>
                             <SafeAreaView edges={['left', 'right', 'top']} style={{ flex: 1, backgroundColor }}>

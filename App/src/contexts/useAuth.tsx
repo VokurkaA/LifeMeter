@@ -1,6 +1,9 @@
 import authService from '@/services/auth.service';
+import { deleteSecureItem, getSecureItem, setSecureItem } from '@/lib/secure-store';
 import { AuthContextType, Session, User } from '@/types/types';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+
+const SESSION_CACHE_KEY = 'auth-session-cache';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -20,12 +23,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (sessionData) {
           setUser(sessionData.user);
           setSession(sessionData.session);
+          await setSecureItem(SESSION_CACHE_KEY, sessionData);
+        } else {
+          setUser(null);
+          setSession(null);
+          await deleteSecureItem(SESSION_CACHE_KEY);
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
+        const cached = await getSecureItem<{ session: Session; user: User }>(SESSION_CACHE_KEY);
+        if (cached) {
+          setUser(cached.user);
+          setSession(cached.session);
         } else {
           setUser(null);
           setSession(null);
         }
-      } catch (error) {
-        console.error('Failed to initialize auth:', error);
       } finally {
         setLoading(false);
       }
@@ -71,6 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await authService.signOut();
       setUser(null);
       setSession(null);
+      await deleteSecureItem(SESSION_CACHE_KEY);
     } catch (error) {
       console.error('Sign out failed:', error);
       throw error;
@@ -85,9 +99,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (sessionData) {
         setUser(sessionData.user);
         setSession(sessionData.session);
+        await setSecureItem(SESSION_CACHE_KEY, sessionData);
       } else {
         setUser(null);
         setSession(null);
+        await deleteSecureItem(SESSION_CACHE_KEY);
       }
     } catch (error) {
       console.error('Failed to refresh session:', error);

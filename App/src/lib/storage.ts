@@ -52,6 +52,11 @@ export const storage = {
     set: <T>(key: string, value: T[]) => {
       Storage.set(key, JSON.stringify(value));
     },
+    push: <T>(key: string, item: T) => {
+      const arr = storage.array.get<T>(key) ?? [];
+      arr.push(item);
+      storage.array.set(key, arr);
+    }
   },
   has: (key: string) => Storage.contains(key),
   delete: (key: string) => Storage.remove(key),

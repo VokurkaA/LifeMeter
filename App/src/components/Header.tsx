@@ -10,7 +10,7 @@ import { formatTime, timeToDate } from "@/lib/dateTime";
 import RnDateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { openHealthSettings } from '@/lib/health';
 import { useNotifications } from '@/lib/notifications';
-import { useStorage } from '@/lib/storage';
+import { storage, useStorage } from '@/lib/storage';
 import { UserGoal } from '@/types/user.profile.types';
 
 
@@ -82,7 +82,10 @@ export default function Header() {
                                     <Description className="ml-2 mt-2 mr-auto">Notifications</Description>
                                     <NotificationsSettings userGoals={userGoals} />
 
-                                    <Description className="ml-2 mt-2 mr-auto">Synchronization</Description>
+                                    <Description className='ml-2 mt-2 mr-auto'>Offline</Description>
+                                    <OfflineToggle />
+
+                                    <Description className="ml-2 mt-2 mr-auto">Connections</Description>
                                     <ListGroup variant="secondary" className="w-full">
                                         <ListGroup.Item onPress={openHealthSettings}>
                                             <ListGroup.ItemContent>
@@ -110,6 +113,29 @@ export default function Header() {
         </View>
     )
 }
+
+const OfflineToggle = () => {
+    const [offlineEnabled, setOfflineEnabled] = useStorage.boolean("offline-enabled");
+
+    return (
+        <ListGroup variant="secondary" className="w-full">
+            <ListGroup.Item>
+                <ListGroup.ItemContent>
+                    <ListGroup.ItemTitle>Enable offline mode</ListGroup.ItemTitle>
+                    <ListGroup.ItemDescription>
+                        Automatically retry requests when you regain connectivity.
+                    </ListGroup.ItemDescription>
+                </ListGroup.ItemContent>
+                <ListGroup.ItemSuffix>
+                    <Switch
+                        isSelected={offlineEnabled === true}
+                        onSelectedChange={setOfflineEnabled}
+                    />
+                </ListGroup.ItemSuffix>
+            </ListGroup.Item>
+        </ListGroup>
+    );
+};
 
 const NotificationsSettings = ({ userGoals }: { userGoals: UserGoal | undefined }) => {
     const foregroundColor = useThemeColor('foreground');
