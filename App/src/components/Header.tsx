@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { Avatar, Chip, Description, Dialog, ListGroup, Separator, Surface, Switch, useThemeColor, useToast } from "heroui-native";
-import { BellIcon, LogOutIcon, MoonIcon, SunIcon, UserIcon } from "lucide-react-native";
+import { BellIcon, List, LogOutIcon, MoonIcon, SunIcon, UserIcon } from "lucide-react-native";
 import { useAuth } from "@/contexts/useAuth";
 import { useStore } from "@/contexts/useStore";
 import { H2 } from "@/components/Text";
 import { Uniwind, useUniwind } from 'uniwind';
 import { formatTime, timeToDate } from "@/lib/dateTime";
 import RnDateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { openHealthSettings } from '@/lib/health';
 import { useNotifications } from '@/lib/notifications';
 import { storage, useStorage } from '@/lib/storage';
 import { UserGoal } from '@/types/user.profile.types';
+import { toast } from '@/lib/toast';
+import { describeHealthError, getMostRecentWeight, openHealthDashboard, requestHealthPermissions } from '@/lib/health/index';
 
 
 export default function Header() {
@@ -86,24 +87,7 @@ export default function Header() {
                                     <OfflineToggle />
 
                                     <Description className="ml-2 mt-2 mr-auto">Connections</Description>
-                                    <ListGroup variant="secondary" className="w-full">
-                                        <ListGroup.Item onPress={openHealthSettings}>
-                                            <ListGroup.ItemContent>
-                                                <ListGroup.ItemTitle>{Platform.OS === 'android' ? 'Health connect' : 'Apple Health'}</ListGroup.ItemTitle>
-                                                <ListGroup.ItemDescription>Control what data you share</ListGroup.ItemDescription>
-                                            </ListGroup.ItemContent>
-                                            <ListGroup.ItemSuffix />
-                                        </ListGroup.Item>
-                                        <ListGroup.Item>
-                                            <ListGroup.ItemContent>
-                                                <ListGroup.ItemTitle>Syncing all available health data</ListGroup.ItemTitle>
-                                                <ListGroup.ItemDescription>
-                                                    Your weight, height, sleep and  logs will be automatically synced from {Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.
-                                                </ListGroup.ItemDescription>
-                                            </ListGroup.ItemContent>
-                                            <ListGroup.ItemSuffix />
-                                        </ListGroup.Item>
-                                    </ListGroup>
+                                    <ConnectionsSettings />
                                 </ScrollView>
                             </View>
                         </Dialog.Content>
@@ -111,6 +95,61 @@ export default function Header() {
                 </Dialog>
             </Surface>
         </View>
+    )
+}
+
+const ConnectionsSettings = () => {
+    const [enableSync, setEnableSync] = useStorage.boolean("enable-sync");
+    return (
+        <ListGroup variant="secondary" className="w-full">
+            <ListGroup.Item>
+                <ListGroup.ItemContent>
+                    <ListGroup.ItemTitle>Enable sync</ListGroup.ItemTitle>
+                    <ListGroup.ItemDescription>
+                        Automatically sync your data with the server when you have an internet connection.
+                    </ListGroup.ItemDescription>
+                </ListGroup.ItemContent>
+                <ListGroup.ItemSuffix>
+                    <Switch
+                        isSelected={enableSync === true}
+                        onSelectedChange={(val) => {
+                            setEnableSync(val)
+                            if (val) requestHealthPermissions().then(result => {
+                                console.log(JSON.stringify(result))
+                                if (!result.ok) {
+                                    setEnableSync(false);
+                                    toast.show({
+                                        variant: "warning",
+                                        label: "Permission denied",
+                                        description: describeHealthError(result.error),
+                                    });
+                                }
+                            })
+                        }}
+                    />
+                </ListGroup.ItemSuffix>
+            </ListGroup.Item>
+            <ListGroup.Item onPress={() => openHealthDashboard()}>
+                <ListGroup.ItemContent>
+                    <ListGroup.ItemTitle>{Platform.OS === 'android' ? 'Health connect' : 'Apple Health'}</ListGroup.ItemTitle>
+                    <ListGroup.ItemDescription>Control what data you share</ListGroup.ItemDescription>
+                </ListGroup.ItemContent>
+                <ListGroup.ItemSuffix />
+            </ListGroup.Item>
+            <ListGroup.Item disabled={!enableSync} onPress={() => { 
+                getMostRecentWeight().then(result => {
+                    console.log(result)
+                })
+            }}>
+                <ListGroup.ItemContent>
+                    <ListGroup.ItemTitle>Syncing all available health data</ListGroup.ItemTitle>
+                    <ListGroup.ItemDescription>
+                        Your weight, height, sleep and  logs will be automatically synced from {Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.
+                    </ListGroup.ItemDescription>
+                </ListGroup.ItemContent>
+                <ListGroup.ItemSuffix />
+            </ListGroup.Item>
+        </ListGroup>
     )
 }
 

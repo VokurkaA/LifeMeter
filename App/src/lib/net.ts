@@ -49,7 +49,12 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const method = (init?.method ?? "GET").toUpperCase();
   const isReadOnly = method === "GET" || method === "HEAD";
 
-  if (isOffline && !isReadOnly) {
+  if (
+    isOffline &&
+    !isReadOnly &&
+    storage.boolean.get("offline-enabled") &&
+    process.env.EXPO_PUBLIC_USE_OFFLINE === "true"
+  ) {
     toast.show({
       label: "Saved!",
       description:

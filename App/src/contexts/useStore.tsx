@@ -19,8 +19,11 @@ import {
   UserWeightLog,
   WeightUnit,
 } from '@/types/user.profile.types';
-import { useStorage } from '@/lib/storage';
+import { storage, useStorage } from '@/lib/storage';
 import { onReconnect } from '@/lib/network-state';
+import { toast } from '@/lib/toast';
+import { openHealthDashboard, requestHealthPermissions } from '@/lib/health';
+import { Linking } from 'react-native/Libraries/Linking/Linking';
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
@@ -59,7 +62,21 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     if (!sleepSessions && !userMeals && !userWorkouts) {
       setIsLoading(true);
     }
-
+    if (storage.boolean.get('enable-sync')) {
+      requestHealthPermissions().then(result => {
+        console.log(JSON.stringify(result))
+        if (!result.ok) {
+          storage.boolean.set('enable-sync', false);
+          toast.show({
+            variant: "warning",
+            label: "Permission denied",
+            description: "Please enable health permissions in your device settings.",
+            actionLabel: "Open Settings",
+            onActionPress: () => openHealthDashboard(),
+          });
+        }
+      })
+    }
     let active = true;
     (async () => {
       try {
