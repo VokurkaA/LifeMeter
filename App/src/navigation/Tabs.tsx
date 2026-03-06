@@ -8,11 +8,11 @@ import HomeScreen from '@/screens/app/Home.screen';
 import TrainingScreen from '@/screens/app/training/Index.screen';
 import NutritionScreen from '@/screens/app/nutrition/Index.screen';
 import SleepScreen from '@/screens/app/sleep/Index.screen';
-import AddWorkoutSheet from '@/screens/app/training/components/AddWorkout.sheet';
 import { TabParamList } from '@/types/types';
 import Header from '@/components/Header';
 import { Muted, Text } from '@/components/Text';
 import { BlurView } from 'expo-blur';
+import AddWorkoutSheet from '@/screens/app/training/components/sheets/AddWorkout.sheet';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 

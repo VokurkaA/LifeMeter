@@ -4,8 +4,8 @@ import { useThemeColor, PressableFeedback } from 'heroui-native';
 import { Text } from '@/components/Text';
 import { CircleIcon, Trash2 } from 'lucide-react-native';
 import { SetStyle, SetType, TemplateWorkoutSet } from '@/types/workout.types';
-import SetInput from './SetInput';
-import SetPopover from './SetPopover';
+import SetInput from '../shared/SetInput';
+import SetPopover from '../shared/SetPopover';
 
 type Props = {
     set: TemplateWorkoutSet;

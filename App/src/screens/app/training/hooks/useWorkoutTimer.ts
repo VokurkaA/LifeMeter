@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 export function useWorkoutTimer(startTime: string) {
     const [seconds, setSeconds] = useState(0);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         const start = new Date(startTime).getTime();
