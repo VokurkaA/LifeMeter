@@ -1,13 +1,14 @@
 import { BottomSheet, Button, Tabs, useThemeColor, Card, PressableFeedback } from "heroui-native";
-import { useCallback, useState, useRef, useMemo } from "react";
+import { useCallback, useState } from "react";
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
-import { BottomSheetFooter, BottomSheetScrollView, BottomSheetView } from "@gorhom/bottom-sheet";
-import { PlusIcon, Dumbbell, History, FilePlus } from "lucide-react-native";
+import { BottomSheetFooter, BottomSheetFooterProps, BottomSheetScrollView, BottomSheetView } from "@gorhom/bottom-sheet";
+import { PlusIcon, Dumbbell, History, FilePlus, LucideIcon } from "lucide-react-native";
 import { View } from "react-native";
 import { Text } from "@/components/Text";
 import { useWorkoutStore } from "@/contexts/useWorkoutStore";
-import { formatTime, MONTHS } from "@/lib/dateTime";
+import { MONTHS } from "@/lib/dateTime";
 import { navigate } from "@/navigation/navigate";
+import type { FullWorkout, FullWorkoutTemplate, TemplateWorkoutSet } from "@/types/workout.types";
 
 interface AddWorkoutSheetProps {
     trigger?: React.ReactNode;
@@ -17,10 +18,116 @@ const AnimatedContentContainer = ({ children }: { children: React.ReactNode }) =
     <Animated.View
         entering={FadeIn.duration(200)}
         exiting={FadeOut.duration(200)}
-        className="gap-6 flex-1"
+        className="gap-6"
     >
         {children}
     </Animated.View>
+);
+
+interface TabWrapperProps {
+    value: string;
+    children: React.ReactNode;
+}
+
+const TabWrapper = ({ value, children }: TabWrapperProps) => (
+    <Tabs.Content value={value}>
+        <AnimatedContentContainer>
+            <BottomSheetView className="pb-26 p-4">
+                {children}
+            </BottomSheetView>
+        </AnimatedContentContainer>
+    </Tabs.Content>
+);
+
+interface QuickTabContentProps {
+    foregroundColor: string;
+    userWorkouts: FullWorkout[];
+    handleStartEmpty: () => void;
+}
+
+const QuickTabContent = ({ foregroundColor, userWorkouts, handleStartEmpty }: QuickTabContentProps) => (
+    <>
+        <Card className="flex flex-col items-center justify-center gap-2">
+            <Dumbbell size={48} color={foregroundColor} />
+            <View className="items-center">
+                <Card.Title className="text-xl">No Session</Card.Title>
+                <Card.Description className="text-center">Start a workout without a template and add exercises as you go.</Card.Description>
+            </View>
+            <Button variant="primary" onPress={handleStartEmpty} className="w-full">
+                <Button.Label>Start New Workout</Button.Label>
+            </Button>
+        </Card>
+
+        <Text className="font-bold my-2">Recent Workouts</Text>
+        <View className="flex flex-col gap-2">
+            {userWorkouts.slice(0, 3).map(w => (
+                <PressableFeedback key={w.id}>
+                    <Card variant="secondary" className="flex-row justify-between items-center">
+                        <Card.Body>
+                            <Card.Title>{w.label?.[0] || 'Workout'}</Card.Title>
+                            <Card.Description>{MONTHS[new Date(w.startDate).getMonth()]} {new Date(w.startDate).getDate()}</Card.Description>
+                        </Card.Body>
+                        <PlusIcon size={18} color={foregroundColor} />
+                    </Card>
+                </PressableFeedback>
+            ))}
+        </View>
+    </>
+);
+
+interface TemplateTabContentProps {
+    userWorkoutTemplates: FullWorkoutTemplate[];
+    handleStartTemplate: (template: FullWorkoutTemplate) => void;
+    setIsOpen: (value: boolean) => void;
+}
+
+const TemplateTabContent = ({ userWorkoutTemplates, handleStartTemplate, setIsOpen }: TemplateTabContentProps) => (
+    <>
+        {userWorkoutTemplates.map(t => (
+            <PressableFeedback key={t.id} onPress={() => {
+                setIsOpen(false);
+                navigate('TemplateBuilder', { templateId: t.id });
+            }}>
+                <Card variant="secondary" className="border border-border">
+                    <Card.Body>
+                        <Card.Title>{t.name}</Card.Title>
+                        <Card.Description>{t.sets.length} sets</Card.Description>
+                    </Card.Body>
+                    <Button size="sm" variant="secondary" onPress={() => handleStartTemplate(t)}>
+                        <Button.Label>Start</Button.Label>
+                    </Button>
+                </Card>
+            </PressableFeedback>
+        ))}
+        {userWorkoutTemplates.length === 0 && (
+            <Text className="text-muted text-center py-10">No templates yet. Create one to speed up your routine.</Text>
+        )}
+    </>
+);
+
+interface NewTabContentProps {
+    foregroundColor: string;
+    setIsOpen: (value: boolean) => void;
+    setActiveTab: (value: string) => void;
+}
+
+const NewTabContent = ({ foregroundColor, setIsOpen, setActiveTab }: NewTabContentProps) => (
+    <View className="py-10 items-center gap-4">
+        <FilePlus size={48} color={foregroundColor} />
+        <View className="items-center">
+            <Text className="text-xl font-bold">New Template</Text>
+            <Text className="text-muted text-center px-6">Create a reusable workout template with your favorite exercises.</Text>
+        </View>
+        <Button variant="primary" className="w-full" onPress={() => {
+            setIsOpen(false);
+            navigate('TemplateBuilder', {});
+        }}>
+            <Button.Label>Create Template</Button.Label>
+        </Button>
+        <Button variant="secondary" onPress={() => setActiveTab("quick")}>
+            <Button.Label>Go Back</Button.Label>
+        </Button>
+    </View>
 );
 
 export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
@@ -28,27 +135,24 @@ export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
     const foregroundColor = useThemeColor('foreground');
     const [activeTab, setActiveTab] = useState("quick");
     const [isOpen, setIsOpen] = useState(false);
-    const bottomSheetRef = useRef<any>(null);
-
-    const snapPoints = useMemo(() => ["50%", "85%"], []);
 
     const handleStartEmpty = async () => {
         const workout = await createUserWorkout({
             startDate: new Date().toISOString(),
             sets: [],
             label: ["Empty Workout"],
-        } as any);
+        } as unknown as FullWorkout);
         setIsOpen(false);
         if (workout) {
             navigate('ActiveWorkout', { workoutId: workout.id });
         }
     };
 
-    const handleStartTemplate = async (template: any) => {
+    const handleStartTemplate = async (template: FullWorkoutTemplate) => {
         const workout = await createUserWorkout({
             workoutTemplateId: template.id,
             startDate: new Date().toISOString(),
-            sets: template.sets.map((s: any) => ({
+            sets: template.sets.map((s: TemplateWorkoutSet) => ({
                 exerciseId: s.exerciseId,
                 seqNumber: s.seqNumber,
                 repetitions: s.repetitions || 1,
@@ -61,14 +165,14 @@ export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
                 weightUnitId: "1", // Default unit
             })),
             label: [template.name],
-        } as any);
+        } as unknown as FullWorkout);
         setIsOpen(false);
         if (workout) {
             navigate('ActiveWorkout', { workoutId: workout.id });
         }
     };
 
-    const TabTrigger = ({ value, label, icon: Icon }: { value: string; label: string; icon: any }) => (
+    const TabTrigger = ({ value, label, icon: Icon }: { value: string; label: string; icon: LucideIcon }) => (
         <Tabs.Trigger value={value} className="flex-1 py-2">
             {({ isSelected }: { isSelected: boolean }) => (
                 <View className="items-center gap-1">
@@ -80,7 +184,7 @@ export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
     );
 
     const renderFooter = useCallback(
-        (props: any) => (
+        (props: BottomSheetFooterProps) => (
             <BottomSheetFooter {...props}>
                 <Tabs className="px-4 pb-safe-offset-1 border-t border-border bg-surface" value={activeTab} onValueChange={setActiveTab}>
                     <Tabs.List className="bg-transparent">
@@ -96,108 +200,50 @@ export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
     );
 
     return (
-        <BottomSheet ref={bottomSheetRef} isOpen={isOpen} onOpenChange={setIsOpen}>
+        <BottomSheet isOpen={isOpen} onOpenChange={setIsOpen}>
             <BottomSheet.Trigger asChild>
                 {trigger || (
                     <Button variant="primary" className="mb-6 mx-1">
                         <PlusIcon color="white" size={20} />
-                        <Button.Label className="text-white">Start Workout</Button.Label>
+                        <Button.Label>Start Workout</Button.Label>
                     </Button>
                 )}
             </BottomSheet.Trigger>
             <BottomSheet.Portal>
                 <BottomSheet.Overlay />
                 <BottomSheet.Content
-                    contentContainerClassName="flex-1 pb-28"
-                    snapPoints={snapPoints}
+                    enableDynamicSizing={true}
                     footerComponent={renderFooter}
                 >
-                    <BottomSheet.Title className="mb-4 px-4">Training</BottomSheet.Title>
-                    
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                        <Animated.View layout={LinearTransition.duration(200)} className="px-4 flex-1">
-                            <Tabs.Content value="quick" className="flex-1">
-                                <AnimatedContentContainer>
-                                    <BottomSheetScrollView showsVerticalScrollIndicator={false}>
-                                        <View className="gap-4">
-                                            <Card className="p-6 items-center justify-center gap-4 bg-primary/5 border-primary/20">
-                                                <Dumbbell size={48} color={foregroundColor} />
-                                                <View className="items-center">
-                                                    <Card.Title className="text-xl">Empty Session</Card.Title>
-                                                    <Card.Description className="text-center">Start a workout without a template and add exercises as you go.</Card.Description>
-                                                </View>
-                                                <Button variant="primary" onPress={handleStartEmpty} className="w-full">
-                                                    <Button.Label>Start Empty Workout</Button.Label>
-                                                </Button>
-                                            </Card>
-                                            
-                                            <Text className="font-bold mt-2">Recent Workouts</Text>
-                                            {userWorkouts.slice(0, 3).map(w => (
-                                                <PressableFeedback key={w.id}>
-                                                    <Card className="flex-row justify-between bg-border items-center">
-                                                        <Card.Body>
-                                                            <Card.Title>{w.label?.[0] || 'Workout'}</Card.Title>
-                                                            <Card.Description>{MONTHS[new Date(w.startDate).getMonth()]} {new Date(w.startDate).getDate()}</Card.Description>
-                                                        </Card.Body>
-                                                        <PlusIcon size={18} color={foregroundColor} />
-                                                    </Card>
-                                                </PressableFeedback>
-                                            ))}
-                                        </View>
-                                    </BottomSheetScrollView>
-                                </AnimatedContentContainer>
-                            </Tabs.Content>
+                    <BottomSheetView>
+                        <Tabs value={activeTab} onValueChange={setActiveTab}>
+                            <Animated.View layout={LinearTransition.duration(200)}>
+                                <TabWrapper value="quick">
+                                    <QuickTabContent
+                                        foregroundColor={foregroundColor}
+                                        userWorkouts={userWorkouts}
+                                        handleStartEmpty={handleStartEmpty}
+                                    />
+                                </TabWrapper>
 
-                            <Tabs.Content value="template" className="flex-1">
-                                <AnimatedContentContainer>
-                                    <BottomSheetScrollView showsVerticalScrollIndicator={false}>
-                                        <View className="gap-3">
-                                            {userWorkoutTemplates.map(t => (
-                                                <PressableFeedback key={t.id} onPress={() => {
-                                                    setIsOpen(false);
-                                                    navigate('TemplateBuilder', { templateId: t.id });
-                                                }}>
-                                                    <Card className="p-4 flex-row justify-between items-center border-l-4 border-l-primary">
-                                                        <Card.Body>
-                                                            <Card.Title>{t.name}</Card.Title>
-                                                            <Card.Description>{t.sets.length} sets</Card.Description>
-                                                        </Card.Body>
-                                                        <Button size="sm" variant="tertiary" onPress={() => handleStartTemplate(t)}>
-                                                            <Button.Label>Start</Button.Label>
-                                                        </Button>
-                                                    </Card>
-                                                </PressableFeedback>
-                                            ))}
-                                            {userWorkoutTemplates.length === 0 && (
-                                                <Text className="text-muted text-center py-10">No templates yet. Create one to speed up your routine.</Text>
-                                            )}
-                                        </View>
-                                    </BottomSheetScrollView>
-                                </AnimatedContentContainer>
-                            </Tabs.Content>
+                                <TabWrapper value="template">
+                                    <TemplateTabContent
+                                        userWorkoutTemplates={userWorkoutTemplates}
+                                        handleStartTemplate={handleStartTemplate}
+                                        setIsOpen={setIsOpen}
+                                    />
+                                </TabWrapper>
 
-                            <Tabs.Content value="new" className="flex-1">
-                                <AnimatedContentContainer>
-                                    <View className="py-10 items-center gap-4">
-                                        <FilePlus size={48} color={foregroundColor} />
-                                        <View className="items-center">
-                                            <Text className="text-xl font-bold">New Template</Text>
-                                            <Text className="text-muted text-center px-6">Create a reusable workout template with your favorite exercises.</Text>
-                                        </View>
-                                        <Button variant="primary" className="w-full" onPress={() => {
-                                            setIsOpen(false);
-                                            navigate('TemplateBuilder', {});
-                                        }}>
-                                            <Button.Label>Create Template</Button.Label>
-                                        </Button>
-                                        <Button variant="secondary" onPress={() => setActiveTab("quick")}>
-                                            <Button.Label>Go Back</Button.Label>
-                                        </Button>
-                                    </View>
-                                </AnimatedContentContainer>
-                            </Tabs.Content>
-                        </Animated.View>
-                    </Tabs>
+                                <TabWrapper value="new">
+                                    <NewTabContent
+                                        foregroundColor={foregroundColor}
+                                        setIsOpen={setIsOpen}
+                                        setActiveTab={setActiveTab}
+                                    />
+                                </TabWrapper>
+                            </Animated.View>
+                        </Tabs>
+                    </BottomSheetView>
                 </BottomSheet.Content>
             </BottomSheet.Portal>
         </BottomSheet>

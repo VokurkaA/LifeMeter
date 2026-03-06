@@ -35,6 +35,7 @@ export default function ActiveWorkoutScreen({ route, navigation }: Props) {
         handleAddSet,
         updateSet,
         deleteSet,
+        handleFinish,
         editUserWorkout,
         deleteUserWorkout,
     } = useActiveWorkout(workoutId);
@@ -62,7 +63,7 @@ export default function ActiveWorkoutScreen({ route, navigation }: Props) {
                         <Button variant="danger-soft" size="sm" isIconOnly onPress={() => deleteUserWorkout(workout.id).then(() => navigation.goBack())}>
                             <X color={dangerColor} size={20} />
                         </Button>
-                        <Button variant="primary" size="sm" onPress={() => navigation.navigate('Tabs', { screen: 'Training' })}>
+                        <Button variant="primary" size="sm" onPress={() => handleFinish().then(() => navigation.navigate('Tabs', { screen: 'Training' }))}>
                             <Check color={foregroundColor} size={20} />
                             <Button.Label>Finish</Button.Label>
                         </Button>

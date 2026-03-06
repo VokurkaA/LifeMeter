@@ -133,6 +133,12 @@ export function useActiveWorkout(workoutId: string) {
         await editRef.current(w.id, { ...w, sets: newSets });
     }, []);
 
+   const handleFinish = useCallback(async () => {
+        const w = workoutRef.current;
+        if (!w) return;
+        await editRef.current(w.id, { ...w, endDate: new Date().toISOString() });
+    }, []);
+
     return {
         workout,
         weightUnits,
@@ -156,6 +162,7 @@ export function useActiveWorkout(workoutId: string) {
         updateSet,
         deleteSet,
         // workout ops
+        handleFinish,
         editUserWorkout,
         deleteUserWorkout,
     };

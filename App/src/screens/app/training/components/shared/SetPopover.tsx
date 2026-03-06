@@ -66,13 +66,6 @@ export default function SetPopover({ set, setStyles, setTypes, onUpdate, childre
 
                     <Text className="font-bold uppercase text-xs text-muted">Type</Text>
                     <View className="flex-row flex-wrap gap-2 my-2">
-                        <Button
-                            variant={!pending.setTypeId ? 'primary' : 'secondary'}
-                            size="sm"
-                            onPress={() => setPending(p => ({ ...p, setTypeId: undefined }))}
-                        >
-                            <Button.Label>Normal</Button.Label>
-                        </Button>
                         {setTypes.map(t => (
                             <Button
                                 key={t.id}
@@ -92,13 +85,6 @@ export default function SetPopover({ set, setStyles, setTypes, onUpdate, childre
 
                     <Text className="font-bold uppercase text-xs text-muted">Style</Text>
                     <View className="flex-row flex-wrap gap-2 my-2">
-                        <Button
-                            variant={!pending.styleId ? 'primary' : 'secondary'}
-                            size="sm"
-                            onPress={() => setPending(p => ({ ...p, styleId: undefined }))}
-                        >
-                            <Button.Label>Normal</Button.Label>
-                        </Button>
                         {setStyles.map(s => (
                             <Button
                                 key={s.id}
