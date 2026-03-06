@@ -44,6 +44,30 @@ export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
         }
     };
 
+    const handleStartTemplate = async (template: any) => {
+        const workout = await createUserWorkout({
+            workoutTemplateId: template.id,
+            startDate: new Date().toISOString(),
+            sets: template.sets.map((s: any) => ({
+                exerciseId: s.exerciseId,
+                seqNumber: s.seqNumber,
+                repetitions: s.repetitions || 1,
+                rir: s.rir,
+                restTime: s.restTime,
+                notes: s.notes,
+                styleId: s.styleId,
+                setTypeId: s.setTypeId,
+                weight: 0, // Default weight
+                weightUnitId: "1", // Default unit
+            })),
+            label: [template.name],
+        } as any);
+        setIsOpen(false);
+        if (workout) {
+            navigate('ActiveWorkout', { workoutId: workout.id });
+        }
+    };
+
     const TabTrigger = ({ value, label, icon: Icon }: { value: string; label: string; icon: any }) => (
         <Tabs.Trigger value={value} className="flex-1 py-2">
             {({ isSelected }: { isSelected: boolean }) => (
@@ -110,7 +134,7 @@ export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
                                             <Text className="font-bold mt-2">Recent Workouts</Text>
                                             {userWorkouts.slice(0, 3).map(w => (
                                                 <PressableFeedback key={w.id}>
-                                                    <Card className="p-4 flex-row justify-between items-center">
+                                                    <Card className="flex-row justify-between bg-border items-center">
                                                         <Card.Body>
                                                             <Card.Title>{w.label?.[0] || 'Workout'}</Card.Title>
                                                             <Card.Description>{MONTHS[new Date(w.startDate).getMonth()]} {new Date(w.startDate).getDate()}</Card.Description>
@@ -129,13 +153,16 @@ export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
                                     <BottomSheetScrollView showsVerticalScrollIndicator={false}>
                                         <View className="gap-3">
                                             {userWorkoutTemplates.map(t => (
-                                                <PressableFeedback key={t.id}>
+                                                <PressableFeedback key={t.id} onPress={() => {
+                                                    setIsOpen(false);
+                                                    navigate('TemplateBuilder', { templateId: t.id });
+                                                }}>
                                                     <Card className="p-4 flex-row justify-between items-center border-l-4 border-l-primary">
                                                         <Card.Body>
                                                             <Card.Title>{t.name}</Card.Title>
                                                             <Card.Description>{t.sets.length} sets</Card.Description>
                                                         </Card.Body>
-                                                        <Button size="sm" variant="tertiary">
+                                                        <Button size="sm" variant="tertiary" onPress={() => handleStartTemplate(t)}>
                                                             <Button.Label>Start</Button.Label>
                                                         </Button>
                                                     </Card>
@@ -152,8 +179,17 @@ export default function AddWorkoutSheet({ trigger }: AddWorkoutSheetProps) {
                             <Tabs.Content value="new" className="flex-1">
                                 <AnimatedContentContainer>
                                     <View className="py-10 items-center gap-4">
-                                        <FilePlus size={48} color={foregroundColor} opacity={0.5} />
-                                        <Text className="text-muted text-center">Template builder coming soon. You can save any finished workout as a template.</Text>
+                                        <FilePlus size={48} color={foregroundColor} />
+                                        <View className="items-center">
+                                            <Text className="text-xl font-bold">New Template</Text>
+                                            <Text className="text-muted text-center px-6">Create a reusable workout template with your favorite exercises.</Text>
+                                        </View>
+                                        <Button variant="primary" className="w-full" onPress={() => {
+                                            setIsOpen(false);
+                                            navigate('TemplateBuilder', {});
+                                        }}>
+                                            <Button.Label>Create Template</Button.Label>
+                                        </Button>
                                         <Button variant="secondary" onPress={() => setActiveTab("quick")}>
                                             <Button.Label>Go Back</Button.Label>
                                         </Button>

@@ -38,7 +38,9 @@ function MacroSliderItem({
                 <Label>{label}</Label>
                 <View className="flex flex-row justify-between">
                     <Label>{getGrams(percentage, divisor)}g</Label>
-                    <Description>{(tdee * percentage / 100).toFixed(0)} kcal ({percentage}%)</Description>
+                    <Description className="text-right">
+                        {(tdee * percentage / 100).toFixed(0)} kcal ({percentage}%)
+                    </Description>
                 </View>
             </View>
             <Slider

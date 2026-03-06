@@ -160,6 +160,7 @@ export type AppStackParamList = {
   Tabs: { screen?: keyof TabParamList };
   SleepList: undefined;
   ActiveWorkout: { workoutId: string };
+  TemplateBuilder: { templateId?: string };
 };
 
 export type SleepSession = {

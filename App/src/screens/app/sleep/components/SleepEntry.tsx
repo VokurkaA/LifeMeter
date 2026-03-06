@@ -89,9 +89,9 @@ const EditSleep = ({ sleepEntry, startDate, endDate, editSleepSession }: EditSle
 
     const SubmitButton = () => {
         if (canSubmit) {
-            return <Button className="mt-2" onPress={() => handleSubmit()}>Update</Button>
+            return <Button className="mt-2" onPress={() => handleSubmit()}><Button.Label>Update</Button.Label></Button>
         }
-        return <Button className="mt-2" variant="secondary" onPress={() => closeForm()}>Close</Button>
+        return <Button className="mt-2" variant="secondary" onPress={() => closeForm()}><Button.Label>Close</Button.Label></Button>
     }
     const canSubmit = useMemo(() => {
         if (!sleepDate || !sleptFrom || !sleptTo) return false;
@@ -266,8 +266,8 @@ const DeleteSleep = ({ sleepEntry, startDate, endDate, deleteSleepSession }: Del
                         <Text>{formatTime(startDate)} - {formatTime(endDate)}</Text>
                     </View>
                     <View className="flex flex-col gap-2">
-                        <Button variant="danger" onPress={handleDelete}>Delete</Button>
-                        <Button variant="tertiary" onPress={() => setIsOpen(false)}>Cancel</Button>
+                        <Button variant="danger" onPress={handleDelete}><Button.Label>Delete</Button.Label></Button>
+                        <Button variant="tertiary" onPress={() => setIsOpen(false)}><Button.Label>Cancel</Button.Label></Button>
                     </View>
                 </Dialog.Content>
             </Dialog.Portal>

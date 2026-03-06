@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import { Card, Chip } from 'heroui-native';
+import { Button, Card, Chip, useThemeColor } from 'heroui-native';
 import { Text } from '@/components/Text';
 import { useWorkoutStore } from '@/contexts/useWorkoutStore';
 import { formatTime, MONTHS } from '@/lib/dateTime';
-import { FullWorkout } from '@/types/workout.types';
+import { FilePlus } from 'lucide-react-native';
+import { navigate } from '@/navigation/navigate';
 
 export default function LatestWorkout() {
-  const { userWorkouts, userWorkoutTemplates } = useWorkoutStore();
+  const { userWorkouts, userWorkoutTemplates, createUserWorkoutTemplate } = useWorkoutStore();
+  const accentColor = useThemeColor('accent');
 
   const latestWorkout = useMemo(() => {
     const completedWorkouts = userWorkouts.filter(w => w.endDate).sort((a, b) => 
@@ -29,6 +31,26 @@ export default function LatestWorkout() {
 
   const duration = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
 
+  const handleSaveAsTemplate = async () => {
+    const newTemplate = await createUserWorkoutTemplate({
+      name: latestWorkout.label?.[0] || 'My Template',
+      sets: latestWorkout.sets.map(s => ({
+        exerciseId: s.exerciseId,
+        seqNumber: s.seqNumber,
+        repetitions: s.repetitions,
+        rir: s.rir,
+        restTime: s.restTime,
+        notes: s.notes,
+        styleId: s.styleId,
+        setTypeId: s.setTypeId
+      }))
+    } as any);
+
+    if (newTemplate) {
+      navigate('TemplateBuilder', { templateId: newTemplate.id });
+    }
+  };
+
   return (
     <View className="gap-2 mb-6">
       <Text className="text-xl font-bold px-1">Latest Workout</Text>
@@ -40,25 +62,29 @@ export default function LatestWorkout() {
               {MONTHS[startDate.getMonth()]} {startDate.getDate()}, {formatTime(startDate)} - {formatTime(endDate)}
             </Card.Description>
           </Card.Body>
-          {template && (
+          {template ? (
             <Chip size="sm" variant="soft" color="accent">
               {template.name}
             </Chip>
+          ) : (
+            <Button variant="tertiary" size="sm" isIconOnly onPress={handleSaveAsTemplate}>
+              <FilePlus size={18} color={accentColor} />
+            </Button>
           )}
         </Card.Header>
         
         <Card.Footer className="flex-row gap-6 mt-2">
           <View>
             <Text className="text-muted text-xs uppercase font-bold">Exercises</Text>
-            <Text className="text-lg font-bold">{uniqueExercises}</Text>
+            <Text className="text-lg font-bold">{String(uniqueExercises)}</Text>
           </View>
           <View>
             <Text className="text-muted text-xs uppercase font-bold">Sets</Text>
-            <Text className="text-lg font-bold">{latestWorkout.sets.length}</Text>
+            <Text className="text-lg font-bold">{String(latestWorkout.sets.length)}</Text>
           </View>
           <View>
              <Text className="text-muted text-xs uppercase font-bold">Duration</Text>
-             <Text className="text-lg font-bold">{duration}m</Text>
+             <Text className="text-lg font-bold">{String(duration)}m</Text>
           </View>
         </Card.Footer>
       </Card>

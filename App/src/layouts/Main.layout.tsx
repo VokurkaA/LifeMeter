@@ -11,7 +11,7 @@ interface MainLayoutProps {
 export default function MainLayout({children, className, scrollable = true}: MainLayoutProps) {
     if (!scrollable) {
         return (
-            <View className={cn('flex-1 bg-background min-h-svh', className)}>
+            <View className={cn('flex-1 bg-background min-h-svh gap-4 p-4 pb-8', className)}>
                 {children}
             </View>
         );

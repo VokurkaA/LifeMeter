@@ -122,9 +122,9 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
                     {foodDetail.brandedFood && (
                         <View className="ml-auto flex-row items-center">
                             <Muted>
-                                {foodDetail.brandedFood.brand_name || ""}{" "}
-                                {foodDetail.brandedFood.brand_owner || ""}{" "}
-                                {foodDetail.brandedFood.subbrand_name || ""}
+                                {foodDetail.brandedFood.brand_name || ""}
+                                {foodDetail.brandedFood.brand_owner ? ` ${foodDetail.brandedFood.brand_owner}` : ""}
+                                {foodDetail.brandedFood.subbrand_name ? ` ${foodDetail.brandedFood.subbrand_name}` : ""}
                             </Muted>
                         </View>
                     )}

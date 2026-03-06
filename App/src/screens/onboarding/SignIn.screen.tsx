@@ -118,7 +118,7 @@ export default function SignIn() {
         </TextField>
 
         <Button className="mt-2" isDisabled={!canSubmit || isSubmitting} onPress={handleSubmit}>
-            Sign in
+            <Button.Label>Sign in</Button.Label>
         </Button>
 
         <Pressable

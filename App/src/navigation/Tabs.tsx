@@ -117,7 +117,7 @@ function TabIcon({ icon, name, showName, active, onPress, activeColor, inactiveC
     >
         {styledIcon}
         {showName && (<Muted className={`${active && 'text-foreground'} text-xs`}>{name}</Muted>)}
-    </  PressableFeedback>);
+    </PressableFeedback>);
 }
 
 function PlusActionPopover() {

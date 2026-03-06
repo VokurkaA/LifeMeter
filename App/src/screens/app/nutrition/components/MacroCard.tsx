@@ -30,7 +30,7 @@ export function MacroCard({ name, consumed, goal, underlineColor }: MacroCardPro
             </View>
             <View className="flex-row items-baseline gap-0.5">
                 <Text className="text-lg font-bold">{consumed.toFixed()}</Text>
-                <Muted className="text-xs font-medium">/ {goal}g</Muted>
+                <Muted className="text-xs font-medium">/ {String(goal)}g</Muted>
             </View>
         </View>
     );

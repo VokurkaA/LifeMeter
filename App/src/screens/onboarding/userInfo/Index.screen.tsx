@@ -161,13 +161,15 @@ export default function Onboarding() {
         </View>
 
         <View className="flex flex-row gap-2 my-4">
-            {step > 0 && (<Button
-                variant="tertiary"
-                onPress={handleBack}
-                className="flex-1"
-            >
-                Back
-            </Button>)}
+            {step > 0 && (
+                <Button
+                    variant="tertiary"
+                    onPress={handleBack}
+                    className="flex-1"
+                >
+                    <Button.Label>Back</Button.Label>
+                </Button>
+            )}
 
             <Button
                 variant="primary"
@@ -175,7 +177,7 @@ export default function Onboarding() {
                 isDisabled={!nextEnabled}
                 className="flex-1"
             >
-                {step === totalSteps - 1 ? "Finish" : "Next"}
+                <Button.Label>{step === totalSteps - 1 ? "Finish" : "Next"}</Button.Label>
             </Button>
         </View>
     </View>);

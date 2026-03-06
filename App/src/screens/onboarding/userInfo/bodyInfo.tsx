@@ -41,13 +41,13 @@ export default function BodyInfo({
     const placeholderColor = useThemeColor("field-placeholder");
 
     const [height, setHeight] = useState<BodyInfoData["height"] | undefined>(initialData?.height);
-    const [heightUnit, setHeightUnit] = useState<BodyInfoData["heightUnit"]>(initialData?.heightUnit ?? defaultHeightUnit,);
+    const [heightUnit, setHeightUnit] = useState<BodyInfoData["heightUnit"]>(initialData?.heightUnit ?? defaultHeightUnit);
     const [weight, setWeight] = useState<BodyInfoData["weight"] | undefined>(initialData?.weight);
-    const [weightUnit, setWeightUnit] = useState<BodyInfoData["weightUnit"]>(initialData?.weightUnit ?? defaultWeightUnit,);
+    const [weightUnit, setWeightUnit] = useState<BodyInfoData["weightUnit"]>(initialData?.weightUnit ?? defaultWeightUnit);
 
     const [bodyFatPercentage, setBodyFatPercentage] = useState<BodyInfoData["bodyFatPercentage"] | undefined>(initialData?.bodyFatPercentage);
     const [leanTissuePercentage, setLeanTissuePercentage] = useState<BodyInfoData["leanTissuePercentage"] | undefined>(initialData?.leanTissuePercentage);
-    const [waterPercentage, setWaterPercentage] = useState<BodyInfoData["waterPercentage"] | undefined>(initialData?.waterPercentage,);
+    const [waterPercentage, setWaterPercentage] = useState<BodyInfoData["waterPercentage"] | undefined>(initialData?.waterPercentage);
     const [boneMassPercentage, setBoneMassPercentage] = useState<BodyInfoData["boneMassPercentage"] | undefined>(initialData?.boneMassPercentage);
 
     const [bfText, setBfText] = useState(() => initPercentText(initialData?.bodyFatPercentage));
@@ -71,7 +71,7 @@ export default function BodyInfo({
         if (boneMassPercentage !== undefined && (boneMassPercentage < 1 || boneMassPercentage > 15)) return false;
 
         return true;
-    }, [height, weight, heightUnit, weightUnit, bodyFatPercentage, leanTissuePercentage, waterPercentage, boneMassPercentage,]);
+    }, [height, weight, heightUnit, weightUnit, bodyFatPercentage, leanTissuePercentage, waterPercentage, boneMassPercentage]);
 
     useEffect(() => {
         setNextEnabled(isValid);
@@ -95,7 +95,7 @@ export default function BodyInfo({
         });
 
         return () => registerOnNext(null);
-    }, [isValid, height, heightUnit, weight, weightUnit, bodyFatPercentage, leanTissuePercentage, waterPercentage, boneMassPercentage, onSubmit, setNextEnabled, registerOnNext,]);
+    }, [isValid, height, heightUnit, weight, weightUnit, bodyFatPercentage, leanTissuePercentage, waterPercentage, boneMassPercentage, onSubmit, setNextEnabled, registerOnNext]);
 
     const bfRef = useRef<TextInput>(null);
     const leanRef = useRef<TextInput>(null);

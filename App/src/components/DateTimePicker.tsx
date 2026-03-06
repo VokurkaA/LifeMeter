@@ -80,7 +80,7 @@ export default function DateTimePicker({
             <View
                 className={`${backgroundColor} flex-row items-center justify-between w-full h-12 px-3 shadow-md rounded-2xl shadow-black/5`}
             >
-                <Text className={`${!value && 'text-muted'} text-sm flex-1`}>
+                <Text className={`${!value ? 'text-muted' : ''} text-sm flex-1`}>
                     {value ? formatted : placeholder}
                 </Text>
 
