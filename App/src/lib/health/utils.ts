@@ -7,8 +7,6 @@ import {
   Err,
 } from "./types";
 
-const MAX_RANGE_DAYS = 366;
-
 // ─── Date range ───────────────────────────────────────────────────────────────
 
 export function validateDateRange(range: DateRange): HealthError | null {
@@ -27,12 +25,6 @@ export function validateDateRange(range: DateRange): HealthError | null {
     return {
       kind: "INVALID_DATE_RANGE",
       reason: "startDate must be before endDate",
-    };
-  const diffDays = (endDate.getTime() - startDate.getTime()) / 86_400_000;
-  if (diffDays > MAX_RANGE_DAYS)
-    return {
-      kind: "INVALID_DATE_RANGE",
-      reason: `Range of ${Math.round(diffDays)} days exceeds the ${MAX_RANGE_DAYS}-day limit`,
     };
   return null;
 }

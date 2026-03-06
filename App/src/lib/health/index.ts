@@ -64,7 +64,35 @@ export async function getSteps(
 ): Promise<Result<StepSample[]>> {
   const guard = await preflight(range);
   if (!guard.ok) return guard;
-  return ios ? getStepsIOS(range) : getStepsAndroid(range);
+
+  const result = await (ios ? getStepsIOS(range) : getStepsAndroid(range));
+  if (!result.ok) return result;
+
+  const grouped = new Map<string, StepSample>();
+
+  for (const s of result.data) {
+    const d = s.startDate;
+    const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    const existing = grouped.get(day);
+    if (existing) {
+      existing.count += s.count;
+      if (s.startDate < existing.startDate) existing.startDate = s.startDate;
+      if (s.endDate > existing.endDate) existing.endDate = s.endDate;
+    } else {
+      grouped.set(day, {
+        startDate: s.startDate,
+        endDate: s.endDate,
+        count: s.count,
+      });
+    }
+  }
+
+  const dailySteps = Array.from(grouped.values()).sort(
+    (a, b) => a.startDate.getTime() - b.startDate.getTime(),
+  );
+
+  return ok(dailySteps);
 }
 
 export async function getSleep(

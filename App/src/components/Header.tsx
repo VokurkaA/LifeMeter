@@ -12,9 +12,8 @@ import { useNotifications } from '@/lib/notifications';
 import { storage, useStorage } from '@/lib/storage';
 import { UserGoal } from '@/types/user.profile.types';
 import { toast } from '@/lib/toast';
-import { describeHealthError, getMostRecentWeight, openHealthDashboard, requestHealthPermissions } from '@/lib/health/index';
-
-
+import { describeHealthError, getCalories, getHeight, getMostRecentWeight, getSleep, getSteps, getWeight, openHealthDashboard, requestHealthPermissions } from '@/lib/health/index';
+import { File, Paths } from 'expo-file-system';
 export default function Header() {
     const { user, session, signOut } = useAuth();
     const { userGoals } = useStore();
@@ -136,11 +135,7 @@ const ConnectionsSettings = () => {
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix />
             </ListGroup.Item>
-            <ListGroup.Item disabled={!enableSync} onPress={() => { 
-                getMostRecentWeight().then(result => {
-                    console.log(result)
-                })
-            }}>
+            <ListGroup.Item disabled={!enableSync} onPress={() => {}}>
                 <ListGroup.ItemContent>
                     <ListGroup.ItemTitle>Syncing all available health data</ListGroup.ItemTitle>
                     <ListGroup.ItemDescription>

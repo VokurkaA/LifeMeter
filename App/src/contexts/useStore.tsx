@@ -64,7 +64,6 @@ export const StoreProvider: React.FC<any> = ({ children }) => {
     }
     if (storage.boolean.get('enable-sync')) {
       requestHealthPermissions().then(result => {
-        console.log(JSON.stringify(result))
         if (!result.ok) {
           storage.boolean.set('enable-sync', false);
           toast.show({

@@ -7,9 +7,14 @@ import {
   type WeightSample,
   type HeightSample,
   type CaloriesSample,
+  ok,
 } from "./types";
 import { safeDate, safeNumber, isHealthError } from "./utils";
-import { runAndroidQuery, runAndroidFlatQuery } from "./query-runners";
+import {
+  runAndroidQuery,
+  runAndroidFlatQuery,
+  runAndroidAggregateDays,
+} from "./query-runners";
 
 // Health Connect SleepStageType integer → SleepStage
 // https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/SleepSessionRecord.Stage
@@ -23,18 +28,20 @@ const ANDROID_SLEEP_STAGE: Record<number, SleepStage> = {
   6: "core", // light
 };
 
-export const getStepsAndroid = (
+export const getStepsAndroid = async (
   range: DateRange,
-): Promise<Result<StepSample[]>> =>
-  runAndroidQuery("Steps", range, (r) => {
-    const startDate = safeDate(r?.startTime, "startTime");
-    const endDate = safeDate(r?.endTime, "endTime");
-    const count = safeNumber(r?.count, "count");
-    if (isHealthError(startDate)) return startDate;
-    if (isHealthError(endDate)) return endDate;
-    if (isHealthError(count)) return count;
-    return { startDate, endDate, count } satisfies StepSample;
-  });
+): Promise<Result<StepSample[]>> => {
+  const result = await runAndroidAggregateDays("Steps", range);
+  if (!result.ok) return result;
+
+  return ok(
+    result.data.map((bucket: any) => ({
+      startDate: new Date(bucket.startTime),
+      endDate: new Date(bucket.endTime),
+      count: bucket.result.COUNT_TOTAL ?? 0,
+    })),
+  );
+};
 
 export const getSleepAndroid = (
   range: DateRange,
@@ -85,15 +92,31 @@ export const getHeightAndroid = (
     return { date, cm: rawM * 100 } satisfies HeightSample;
   });
 
-export const getCaloriesAndroid = (
+export const getCaloriesAndroid = async (
   range: DateRange,
-): Promise<Result<CaloriesSample[]>> =>
-  runAndroidQuery("ActiveCaloriesBurned", range, (r) => {
-    const startDate = safeDate(r?.startTime, "startTime");
-    const endDate = safeDate(r?.endTime, "endTime");
-    const kcal = safeNumber(r?.energy?.inKilocalories, "energy.inKilocalories");
-    if (isHealthError(startDate)) return startDate;
-    if (isHealthError(endDate)) return endDate;
-    if (isHealthError(kcal)) return kcal;
-    return { startDate, endDate, kcal } satisfies CaloriesSample;
-  });
+): Promise<Result<CaloriesSample[]>> => {
+  const result = await runAndroidAggregateDays("TotalCaloriesBurned", range);
+  if (!result.ok) return result;
+
+  const samples: CaloriesSample[] = result.data
+    .map((bucket: any) => {
+      const rawEnergy =
+        bucket.result.ENERGY_TOTAL || bucket.result.TOTAL_CALORIES_BURNED_TOTAL;
+
+      let kcal = 0;
+      if (typeof rawEnergy === "number") {
+        kcal = rawEnergy;
+      } else if (rawEnergy?.inKilocalories) {
+        kcal = rawEnergy.inKilocalories;
+      }
+
+      return {
+        startDate: new Date(bucket.startTime),
+        endDate: new Date(bucket.endTime),
+        kcal: kcal,
+      };
+    })
+    .filter((s) => s.kcal > 0);
+
+  return ok(samples);
+};

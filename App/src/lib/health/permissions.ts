@@ -1,4 +1,4 @@
-import { Platform, Linking } from "react-native";
+import { Platform, Linking, PermissionsAndroid } from "react-native";
 import { ok, err, type Result } from "./types";
 import { catchHealthError } from "./utils";
 
@@ -72,6 +72,24 @@ export async function openHealthDashboard(): Promise<Result<void>> {
   return err({ kind: "PLATFORM_NOT_SUPPORTED" });
 }
 
+async function initAndroid(): Promise<Result<void>> {
+  if (!healthConnect) return err({ kind: "HEALTH_CONNECT_NOT_INSTALLED" });
+  try {
+    const initialized = await healthConnect.initialize();
+    if (!initialized)
+      return err({
+        kind: "HEALTH_CONNECT_INIT_FAILED",
+        reason: "initialize() returned false",
+      });
+    return ok(undefined);
+  } catch (e: unknown) {
+    const msg = (e as Error)?.message ?? "";
+    if (msg.includes("not installed") || msg.includes("unavailable"))
+      return err({ kind: "HEALTH_CONNECT_NOT_INSTALLED" });
+    return err({ kind: "HEALTH_CONNECT_INIT_FAILED", reason: msg });
+  }
+}
+
 export async function requestHealthPermissions(): Promise<Result<void>> {
   if (Platform.OS !== "ios" && Platform.OS !== "android")
     return err({ kind: "PLATFORM_NOT_SUPPORTED" });
@@ -99,29 +117,16 @@ export async function requestHealthPermissions(): Promise<Result<void>> {
     }
   }
 
-  // Android — initialize() must be called before any other Health Connect API
-  if (!healthConnect) return err({ kind: "HEALTH_CONNECT_NOT_INSTALLED" });
-
-  try {
-    const initialized = await healthConnect.initialize();
-    if (!initialized)
-      return err({
-        kind: "HEALTH_CONNECT_INIT_FAILED",
-        reason: "initialize() returned false",
-      });
-  } catch (e: unknown) {
-    const msg = (e as Error)?.message ?? "";
-    if (msg.includes("not installed") || msg.includes("unavailable"))
-      return err({ kind: "HEALTH_CONNECT_NOT_INSTALLED" });
-    return err({ kind: "HEALTH_CONNECT_INIT_FAILED", reason: msg });
-  }
+  // Android
+  const initResult = await initAndroid();
+  if (!initResult.ok) return initResult;
 
   const required = [
     { accessType: "read", recordType: "Steps" },
     { accessType: "read", recordType: "SleepSession" },
     { accessType: "read", recordType: "Weight" },
     { accessType: "read", recordType: "Height" },
-    { accessType: "read", recordType: "ActiveCaloriesBurned" },
+    { accessType: "read", recordType: "TotalCaloriesBurned" },
   ];
 
   try {
@@ -138,8 +143,20 @@ export async function requestHealthPermissions(): Promise<Result<void>> {
       .map((p) => p.recordType);
 
     if (denied.length > 0) return err({ kind: "PERMISSIONS_DENIED", denied });
-    return ok(undefined);
+
+    const historyGranted = await PermissionsAndroid.request(
+      "android.permission.health.READ_HEALTH_DATA_HISTORY" as any,
+    );
+
+    if (historyGranted !== PermissionsAndroid.RESULTS.GRANTED) {
+      return err({
+        kind: "PERMISSIONS_DENIED",
+        denied: ["HealthDataHistory"],
+      });
+    }
   } catch (e) {
     return catchHealthError(e);
   }
+
+  return ok(undefined);
 }

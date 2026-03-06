@@ -8,8 +8,6 @@ import {
 import { catchHealthError, isHealthError } from "./utils";
 
 // ─── Static module requires ───────────────────────────────────────────────────
-// Metro requires string literals at require() call sites — no dynamic requires.
-// We attempt both here; whichever isn't installed will be null at runtime.
 
 let healthkit: any = null;
 let healthConnect: any = null;
@@ -91,15 +89,28 @@ async function runAndroidReadRecords<T>(
   const initErr = await initHealthConnect();
   if (initErr) return err(initErr);
 
+  const timeRangeFilter = {
+    operator: "between",
+    startTime: range.startDate.toISOString(),
+    endTime: range.endDate.toISOString(),
+  };
+
   try {
-    const { records } = await healthConnect.readRecords(recordType, {
-      timeRangeFilter: {
-        operator: "between",
-        startTime: range.startDate.toISOString(),
-        endTime: range.endDate.toISOString(),
-      },
-    });
-    return onRecords(records ?? []);
+    const all: any[] = [];
+    let pageToken: string | undefined = undefined;
+
+    do {
+      const response: { records: any[]; pageToken?: string } =
+        await healthConnect.readRecords(recordType, {
+          timeRangeFilter,
+          pageSize: 1000,
+          ...(pageToken ? { pageToken } : {}),
+        });
+      all.push(...(response.records ?? []));
+      pageToken = response.pageToken ?? undefined;
+    } while (pageToken);
+
+    return onRecords(all);
   } catch (e) {
     return catchHealthError(e);
   }
@@ -135,4 +146,62 @@ export function runAndroidFlatQuery<T>(
     }
     return ok(results);
   });
+}
+
+export async function getEarliestDataDate(
+  recordType: string,
+): Promise<Date | null> {
+  try {
+    const response = await healthConnect.readRecords(recordType, {
+      timeRangeFilter: {
+        operator: "between",
+        startTime: "2000-01-01T00:00:00.000Z",
+        endTime: new Date().toISOString(),
+      },
+      pageSize: 1,
+      ascendingOrder: true, 
+    });
+
+    const firstRecord = response.records[0];
+    if (firstRecord) {
+      return new Date(firstRecord.startTime || firstRecord.time);
+    }
+  } catch (e) {
+    console.log(`Could not find start date for ${recordType}:`, e);
+  }
+  return null;
+}
+
+export async function runAndroidAggregateDays(
+  recordType: "Steps" | "TotalCaloriesBurned",
+  range: DateRange,
+): Promise<Result<any[]>> {
+  const initErr = await initHealthConnect();
+  if (initErr) return err(initErr);
+
+  const earliestDate = await getEarliestDataDate(recordType);
+
+  const optimizedStart =
+    earliestDate && earliestDate > range.startDate
+      ? earliestDate
+      : range.startDate;
+
+  try {
+    const result = await healthConnect.aggregateGroupByDuration({
+      recordType,
+      timeRangeFilter: {
+        operator: "between",
+        startTime: optimizedStart.toISOString(),
+        endTime: range.endDate.toISOString(),
+      },
+      timeRangeSlicer: {
+        duration: "HOURS",
+        length: 24,
+      },
+    });
+
+    return ok(result);
+  } catch (e) {
+    return catchHealthError(e);
+  }
 }
