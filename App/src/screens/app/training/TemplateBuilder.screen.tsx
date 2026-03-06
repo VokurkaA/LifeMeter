@@ -66,7 +66,7 @@ export default function TemplateBuilderScreen({ route, navigation }: Props) {
                 keyExtractor={(item) => item.exerciseId}
                 onDragEnd={handleDragEnd}
                 showsVerticalScrollIndicator={false}
-                contentContainerClassName="pb-32 gap-4"
+                contentContainerClassName="pb-12 gap-4"
                 ListEmptyComponent={
                     <View className="py-20 items-center opacity-30">
                         <Dumbbell size={64} color={accentColor} />
