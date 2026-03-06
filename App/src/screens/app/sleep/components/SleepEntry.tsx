@@ -45,7 +45,7 @@ export default function SleepEntry({ item, deleteSleepSession, editSleepSession 
     return (
         <Accordion.Item value={item.id} className="mx-2 mb-2">
             <Accordion.Trigger>
-                <View className="h-14 aspect-square rounded-2xl bg-field flex items-center justify-center">
+                <View className="h-14 aspect-square rounded-2xl bg-border flex items-center justify-center">
                     <Muted>{startDate.getDate()}</Muted>
                     <Text className="font-bold">{DAYS_SHORT[startDate.getDay()]}</Text>
                 </View>
