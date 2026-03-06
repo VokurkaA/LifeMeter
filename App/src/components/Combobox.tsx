@@ -245,7 +245,7 @@ function ComboboxContent<TOption>(props: ComboboxContentProps<TOption>) {
                         onChangeText={setQuery}
                         placeholder={searchPlaceholder}
                         placeholderTextColor={themeColorMuted}
-                        className="p-3 rounded-xl bg-surface-secondary/80 text-foreground"
+                        className="p-3 rounded-xl text-foreground"
                         autoFocus
                     />
                 </View>

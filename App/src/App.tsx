@@ -10,13 +10,15 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { HeroUINativeProvider, useThemeColor } from 'heroui-native';
 import '../global.css';
 import { AuthProvider, useAuth } from '@/contexts/useAuth';
-import { StoreProvider, useStore } from '@/contexts/useStore';
+import { StoreProvider } from '@/contexts/useStore';
+import { useUserStore } from '@/contexts/useUserStore';
 import WelcomeScreen from '@/screens/onboarding/Welcome.screen';
 import SignIn from '@/screens/onboarding/SignIn.screen';
 import SignUp from '@/screens/onboarding/SignUp.screen';
 import OnboardingInfoScreen from "@/screens/onboarding/userInfo/Index.screen";
 import { navigationRef } from '@/navigation/navigate';
 import AppTabs from '@/navigation/Tabs';
+import ActiveWorkoutScreen from '@/screens/app/training/ActiveWorkout.screen';
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import * as Notifications from "expo-notifications";
 import { NetworkProvider } from './contexts/useNetwork';
@@ -60,7 +62,7 @@ const createResetListener = (rootRouteName: string) => ({ navigation }: any) => 
 
 function RootApp() {
     const { user, loading } = useAuth();
-    const { userProfile, isLoading } = useStore();
+    const { userProfile, isLoading } = useUserStore();
 
     const onboardingRef = useNavigationContainerRef();
     const screenOptions = useScreenOptions();
@@ -102,6 +104,7 @@ function RootApp() {
                         screenOptions={screenOptions}
                     >
                         <AppStack.Screen name="Tabs" component={AppTabs} />
+                        <AppStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
                     </AppStack.Navigator>
                 </NavigationContainer>
             </View>

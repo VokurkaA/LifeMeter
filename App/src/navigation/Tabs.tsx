@@ -8,6 +8,7 @@ import HomeScreen from '@/screens/app/Home.screen';
 import TrainingScreen from '@/screens/app/training/Index.screen';
 import NutritionScreen from '@/screens/app/nutrition/Index.screen';
 import SleepScreen from '@/screens/app/sleep/Index.screen';
+import AddWorkoutSheet from '@/screens/app/training/components/AddWorkout.sheet';
 import { TabParamList } from '@/types/types';
 import Header from '@/components/Header';
 import { Muted, Text } from '@/components/Text';
@@ -21,7 +22,7 @@ export default function AppTabs() {
     return (<Tab.Navigator
         tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{
-            headerShown: true, header: () => <Header />, sceneStyle: { backgroundColor }, lazy: false, freezeOnBlur: true,
+            headerShown: true, header: () => <Header />, sceneStyle: { backgroundColor }, lazy: true, freezeOnBlur: true,
         }}
     >
         <Tab.Screen name="Home" component={HomeScreen} />
@@ -172,10 +173,12 @@ function PlusActionPopover() {
 
                 <Popover.Content placement="top" presentation="popover" className="bg-surface">
                     <View className="flex flex-col gap-6 p-4">
-                        <Pressable className="flex flex-row items-center gap-4" onPress={closePopover}>
-                            <Text>Add a workout</Text>
-                            <DumbbellIcon size={32} color={iconColor} />
-                        </Pressable>
+                        <AddWorkoutSheet trigger={
+                            <Pressable className="flex flex-row items-center gap-4" onPress={closePopover}>
+                                <Text>Add a workout</Text>
+                                <DumbbellIcon size={32} color={iconColor} />
+                            </Pressable>
+                        } />
 
                         <Pressable className="flex flex-row items-center gap-4" onPress={closePopover}>
                             <Text>Log nutrition</Text>

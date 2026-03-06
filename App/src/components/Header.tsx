@@ -3,7 +3,7 @@ import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { Avatar, Chip, Description, Dialog, ListGroup, Separator, Surface, Switch, useThemeColor, useToast } from "heroui-native";
 import { BellIcon, List, LogOutIcon, MoonIcon, SunIcon, UserIcon } from "lucide-react-native";
 import { useAuth } from "@/contexts/useAuth";
-import { useStore } from "@/contexts/useStore";
+import { useUserStore } from "@/contexts/useUserStore";
 import { H2 } from "@/components/Text";
 import { Uniwind, useUniwind } from 'uniwind';
 import { formatTime, timeToDate } from "@/lib/dateTime";
@@ -16,7 +16,7 @@ import { describeHealthError, getCalories, getHeight, getMostRecentWeight, getSl
 import { File, Paths } from 'expo-file-system';
 export default function Header() {
     const { user, session, signOut } = useAuth();
-    const { userGoals } = useStore();
+    const { userGoals } = useUserStore();
 
     const { theme } = useUniwind();
 
@@ -80,7 +80,7 @@ export default function Header() {
                                     </ListGroup>
 
                                     <Description className="ml-2 mt-2 mr-auto">Notifications</Description>
-                                    <NotificationsSettings userGoals={userGoals} />
+                                    <NotificationsSettings userGoals={userGoals ?? undefined} />
 
                                     <Description className='ml-2 mt-2 mr-auto'>Offline</Description>
                                     <OfflineToggle />

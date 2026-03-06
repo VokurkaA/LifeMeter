@@ -8,10 +8,10 @@ import BodyInfo, {type BodyInfoData} from "./bodyInfo";
 import LifestyleInfo, {LifestyleData} from "./lifestyleInfo";
 import Objectives, {ObjectiveData} from "./objectives";
 import {useExitConfirmBackHandler} from "@/navigation/back-handler";
-import { useStore } from "@/contexts/useStore";
+import { useUserStore } from "@/contexts/useUserStore";
 
 export default function Onboarding() {
-    const {updateProfile, updateGoals, logWeight, logHeight, lengthUnits, weightUnits}= useStore();
+    const {updateProfile, updateGoals, logWeight, logHeight, lengthUnits, weightUnits}= useUserStore();
     const [nextEnabled, setNextEnabled] = useState(false);
     const [onNext, setOnNext] = useState<null | (() => void)>(null);
 

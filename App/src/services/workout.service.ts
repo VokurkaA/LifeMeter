@@ -19,7 +19,8 @@ class WorkoutService {
   private baseUrl =
     (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/workout';
   private templateUrl =
-    (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/template/workout';
+    (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/workout/template';
+
   private basicUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/workout';
 
   async getAllUserWorkouts(): Promise<FullWorkout[]> {
@@ -37,8 +38,8 @@ class WorkoutService {
   async addUserWorkout(fullWorkout: FullWorkout): Promise<FullWorkout> {
     const body = {
       workout_template_id: fullWorkout.workoutTemplateId ?? null,
-      start_date: fullWorkout.startDate || new Date().toISOString(),
-      end_date: fullWorkout.endDate ?? null,
+      start_date: new Date(fullWorkout.startDate || Date.now()).toISOString(),
+      end_date: fullWorkout.endDate ? new Date(fullWorkout.endDate).toISOString() : null,
       label: fullWorkout.label ?? null,
       notes: fullWorkout.notes ?? null,
       sets: fullWorkout.sets.map(this.toServerWorkoutSet),
@@ -52,10 +53,11 @@ class WorkoutService {
 
   async editUserWorkout(id: string, fullWorkout: FullWorkout): Promise<FullWorkout> {
     const body = {
-      start_date: fullWorkout.startDate,
-      end_date: fullWorkout.endDate,
-      label: fullWorkout.label,
-      notes: fullWorkout.notes,
+      workout_template_id: fullWorkout.workoutTemplateId ?? null,
+      start_date: new Date(fullWorkout.startDate).toISOString(),
+      end_date: fullWorkout.endDate ? new Date(fullWorkout.endDate).toISOString() : null,
+      label: fullWorkout.label ?? null,
+      notes: fullWorkout.notes ?? null,
       sets: fullWorkout.sets.map(this.toServerWorkoutSet),
     };
 
@@ -74,7 +76,7 @@ class WorkoutService {
   async getAllUserWorkoutTemplates(): Promise<FullWorkoutTemplate[]> {
     const query = '?limit=100&offset=0';
     return request<ServerPaginatedResponse<ServerFullWorkoutTemplate>>(
-      this.templateUrl + '/' + query,
+      this.templateUrl + query,
     ).then((res) => res.rows.map(this.toClientTemplate));
   }
 
@@ -106,8 +108,8 @@ class WorkoutService {
   ): Promise<FullWorkoutTemplate> {
     const body = {
       name: fullWorkoutTemplate.name,
-      description: fullWorkoutTemplate.description,
-      label: fullWorkoutTemplate.label,
+      description: fullWorkoutTemplate.description ?? null,
+      label: fullWorkoutTemplate.label ?? null,
       sets: fullWorkoutTemplate.sets.map(this.toServerTemplateSet),
     };
 
@@ -200,18 +202,20 @@ class WorkoutService {
     };
   };
 
-  private toServerWorkoutSet = (set: WorkoutSet): ServerWorkoutSet => ({
-    exercise_id: set.exerciseId,
-    seq_number: set.seqNumber,
-    weight: set.weight ?? null,
-    weight_unit_id: set.weightUnitId ? Number(set.weightUnitId) : null,
-    repetitions: set.repetitions,
-    rir: set.rir ?? null,
-    rest_time: set.restTime ?? null,
-    notes: set.notes ?? null,
-    style_id: set.styleId ?? null,
-    set_type_id: set.setTypeId ?? null,
-  });
+  private toServerWorkoutSet = (set: WorkoutSet): ServerWorkoutSet => {
+    return {
+      exercise_id: set.exerciseId,
+      seq_number: set.seqNumber,
+      weight: set.weight ?? null,
+      weight_unit_id: set.weightUnitId ? Number(set.weightUnitId) : null,
+      repetitions: set.repetitions,
+      rir: set.rir ?? null,
+      rest_time: set.restTime ?? null,
+      notes: set.notes ?? null,
+      style_id: set.styleId ?? null,
+      set_type_id: set.setTypeId ?? null,
+    };
+  };
 
   private toServerTemplateSet = (set: TemplateWorkoutSet): ServerTemplateSet => ({
     exercise_id: set.exerciseId,

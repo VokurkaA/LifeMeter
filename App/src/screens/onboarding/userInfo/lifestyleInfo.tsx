@@ -1,4 +1,4 @@
-import {useStore} from "@/contexts/useStore";
+import {useUserStore} from "@/contexts/useUserStore";
 import {ActivityLevel} from "@/types/user.profile.types";
 import {Description, Label, Slider, useThemeColor} from "heroui-native";
 import {useEffect, useState} from "react";
@@ -16,7 +16,7 @@ interface LifestyleInfoProps {
 }
 
 export default function LifestyleInfo({onSubmit, setNextEnabled, registerOnNext, initialData}: LifestyleInfoProps) {
-    const {activityLevels} = useStore();
+    const {activityLevels} = useUserStore();
     const [activityLevelId, setActivityLevelId] = useState<number>(initialData?.activityLevel.id || 1);
 
     useEffect(() => {

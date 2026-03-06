@@ -1,47 +1,58 @@
-import MainLayout from "@/layouts/Main.layout";
-import { View } from "react-native";
-import { useStore } from "@/contexts/useStore";
-import { timeToDate } from "@/lib/dateTime";
-import AddSleep from "./components/AddSleep.sheet";
-import { AverageStats } from "./components/cards/AverageStats";
-import ViewAllEntries from "./components/ViewAllEntries.sheet";
-import { ConsistencyCard } from "./components/cards/ConsistencyCard";
-import { SleepCard } from "./components/SleepCard";
-import { AverageDuration } from "./components/cards/AverageDuration";
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
+import { useSleepStore } from '@/contexts/useSleepStore';
+import { useUserStore } from '@/contexts/useUserStore';
+import { SleepCard } from './components/SleepCard';
+import AddSleep from './components/AddSleep.sheet';
+import { AverageDuration } from './components/cards/AverageDuration';
+import { AverageStats } from './components/cards/AverageStats';
+import { ConsistencyCard } from './components/cards/ConsistencyCard';
+import ViewAllEntries from './components/ViewAllEntries.sheet';
+import MainLayout from '@/layouts/Main.layout';
+
+const timeToDate = (timeStr?: string | null) => {
+    if (!timeStr) return undefined;
+    const [hours, minutes] = timeStr.split(':');
+    const d = new Date();
+    d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    return d;
+};
 
 export default function SleepScreen() {
-    const { 
-        sleepSessions, 
-        userGoals, 
-        startSleep, 
-        endSleep, 
-        createSleepSession, 
-        editSleepSession, 
-        deleteSleepSession, 
-        ongoingSleepSession 
-    } = useStore();
+    const {
+        sleepSessions,
+        startSleep,
+        endSleep,
+        createSleepSession,
+        editSleepSession,
+        deleteSleepSession,
+        ongoingSleepSession,
+    } = useSleepStore();
+
+    const { userGoals } = useUserStore();
 
     return (
         <MainLayout>
             <SleepCard
                 bedTime={timeToDate(userGoals?.bedtimeGoal)}
                 wakeUpTime={timeToDate(userGoals?.wakeupGoal)}
-                ongoingSleepSession={ongoingSleepSession}
+                ongoingSleepSession={ongoingSleepSession ?? null}
                 startSleep={startSleep}
                 endSleep={endSleep}
             />
 
-            <AddSleep 
+            <AddSleep
                 createSleepSession={createSleepSession}
                 editSleepSession={editSleepSession}
-                ongoingSleepSession={ongoingSleepSession}
+                ongoingSleepSession={ongoingSleepSession ?? null}
             />
 
             <AverageDuration
                 sleepSessions={sleepSessions}
                 dayAmount={1000}
             />
-            <View className="flex-row gap-4">
+
+            <View className='flex-row gap-4'>
                 <AverageStats
                     className="flex-1"
                     sleepSessions={sleepSessions}
@@ -58,11 +69,10 @@ export default function SleepScreen() {
 
             <ConsistencyCard
                 sleepSessions={sleepSessions}
-                userGoals={userGoals}
-                dayAmount={7}
+                userGoals={userGoals ?? null}
             />
 
-            <ViewAllEntries 
+            <ViewAllEntries
                 sleepSessions={sleepSessions}
                 createSleepSession={createSleepSession}
                 editSleepSession={editSleepSession}

@@ -4,6 +4,7 @@ import type {PaginationResult} from "@/types/types";
 
 class FoodService {
   private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api';
+  private foodCache = new Map<number, FoodDetail>();
 
   async getAllFood(page?: number): Promise<{ data: Food[], pagination: PaginationResult }> {
     const url = this.baseUrl + "/food" + (page ? `?page=${encodeURIComponent(String(page))}` : '');
@@ -23,8 +24,13 @@ class FoodService {
   }
 
   async getFoodById(id: number): Promise<FoodDetail> {
+    if (this.foodCache.has(id)) {
+      return this.foodCache.get(id)!;
+    }
     const url = `${this.baseUrl}/food/${encodeURIComponent(String(id))}`;
-    return request(url, { method: 'GET' });
+    const detail = await request<FoodDetail>(url, { method: 'GET' });
+    this.foodCache.set(id, detail);
+    return detail;
   }
 
   async getAllUserMeals(): Promise<{ userMeal: UserMeal; userFoods: UserFood[] }[]> {
