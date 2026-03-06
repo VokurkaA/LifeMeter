@@ -8,6 +8,7 @@ import { Card, useThemeColor } from "heroui-native";
 import LatestWorkout from "./components/index/LatestWorkout";
 import TemplateList from "./components/index/TemplateList";
 import TrainingCharts from "./components/index/TrainingCharts";
+import ExerciseProgressCard from "./components/index/ExerciseProgressCard";
 import AddWorkoutSheet from "./components/sheets/AddWorkout.sheet";
 import { navigate } from "@/navigation/navigate";
 import { Button } from "heroui-native";
@@ -47,6 +48,7 @@ export default function TrainingScreen() {
             <LatestWorkout />
             <TemplateList />
             <TrainingCharts />
+            {/* <ExerciseProgressCard /> */}
         </MainLayout>
     );
 }
