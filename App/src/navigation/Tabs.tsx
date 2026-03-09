@@ -4,7 +4,7 @@ import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/b
 import { Popover, PressableFeedback, Surface, useThemeColor } from 'heroui-native';
 import { AppleIcon, DumbbellIcon, HomeIcon, MoonStarIcon, Plus } from 'lucide-react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import HomeScreen from '@/screens/app/Home.screen';
+import HomeScreen from '@/screens/app/home/Index.screen';
 import TrainingScreen from '@/screens/app/training/Index.screen';
 import NutritionScreen from '@/screens/app/nutrition/Index.screen';
 import SleepScreen from '@/screens/app/sleep/Index.screen';

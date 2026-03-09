@@ -6,7 +6,7 @@ import { ChartCard } from '@/components/graphs/ChartsCard';
 import { BarChart } from '@/components/graphs/Chart';
 import { ChartDataPoint } from '@/components/graphs/useChartData';
 
-export default function TrainingCharts() {
+export default function TrainingCharts({ onPress }: { onPress?: () => void }) {
   const { userWorkouts } = useWorkoutStore();
 
   const weeklyData = useMemo(() => {
@@ -43,6 +43,7 @@ export default function TrainingCharts() {
         description="Last 7 days"
         averageLabel="Total"
         averageValue={totalThisWeek}
+        onPress={onPress}
       >
         <BarChart data={weeklyData} height={80} />
       </ChartCard>
