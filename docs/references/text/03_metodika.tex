@@ -1,0 +1,31 @@
+\chapter{Metodika a vlastní řešení}
+
+\section{Mobilní klient}
+
+\subsection{Knihovna pro zdravotní data (\texttt{health.ts})}
+
+\subsection{Offline fronta požadavků}
+
+\subsection{Autentizace a perzistence stavu}
+
+\subsection{Notifikace}
+
+\section{Backend API}
+
+\subsection{Technologie a nasazení}
+
+\subsection{CI/CD pipeline}
+
+\subsection{Dokumentace endpointů}
+\begin{center}
+    \begin{tabular}{|l|l|p{6cm}|}
+        \hline
+        \textbf{Metoda} & \textbf{Cesta}             & \textbf{Popis}                  \\
+        \hline
+        POST            & \texttt{/api/auth/sign-up} & Registrace nového uživatele     \\
+        POST            & \texttt{/api/auth/sign-in} & Přihlášení uživatele            \\
+        GET             & \texttt{/api/health/steps} & Načtení kroků za zvolené období \\
+        POST            & \texttt{/api/health/sync}  & Synchronizace zdravotních dat   \\
+        \hline
+    \end{tabular}
+\end{center}

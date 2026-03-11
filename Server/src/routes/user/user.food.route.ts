@@ -1,12 +1,13 @@
 import {Hono} from "hono";
 import type {AuthSession, AuthUser} from "@/types/auth.types";
-import {pagination} from "@/middleware/pagination";
+import {getPagination, makePaginationResult, pagination} from "@/middleware/pagination";
 import {foodService} from "@/services/food.service";
 import {mealBodySchema, mealUpdateSchema} from "@/schemas/user.food.schema";
 import type {UserFood} from "@/types/food.type";
 import {logger} from "@/services/logger.service";
+import type {PaginationProps} from "@/types/pagination.types";
 
-export const userFoodRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
+export const userFoodRouter = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null, pagination: PaginationProps } }>();
 
 userFoodRouter.patch('/:id', async (c) => {
     const user = c.get("user")!;
@@ -116,12 +117,13 @@ userFoodRouter.post('/', async (c) => {
 userFoodRouter.get('/', pagination(), async (c) => {
     try {
         const user = c.get("user")!;
+        const paginationProps = getPagination(c);
 
-        const result = await foodService.getAllUserMeals(user.id);
-        return c.json(result);
+        const {rows, total} = await foodService.getAllUserMeals(user.id, paginationProps);
+        return c.json({rows, total, pagination: makePaginationResult(total, c)});
 
     } catch (e: any) {
-        const msg = e?.message || "No food entry not found.";
+        const msg = e?.message || "No food entry found.";
         const status = /not found/i.test(msg) ? 404 : /earlier than/i.test(msg) ? 400 : 500;
         if (status === 500) logger.error("Error fetching all user meals", e);
         return c.json({error: msg}, status);

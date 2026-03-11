@@ -3,12 +3,21 @@
 \usepackage[utf8]{inputenc}
 \usepackage[czech]{babel}
 \usepackage[T1]{fontenc}
-
 \usepackage{lmodern}
-
+\usepackage{csquotes}
 \usepackage{graphicx}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
 \usepackage{geometry}
+\usepackage{pdfpages}
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]{\huge\bfseries}{\thechapter.}{0.1em}{}
+
+\usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
+\addbibresource{references.bib}
 
 \geometry{
     a4paper,
@@ -17,110 +26,49 @@
     top=3cm,
     bottom=3cm
 }
-\renewcommand{\baselinestretch}{1.4}
+
+\renewcommand{\baselinestretch}{1.2}
+
+\captionsetup{
+    labelsep=colon,
+    justification=centering,
+    font=small
+}
+\renewcommand{\figurename}{Obr.}
+\renewcommand{\tablename}{Tab.}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    captionpos=b
+}
 
 \begin{document}
-
-\begin{titlepage}
-    \begin{center}
-        {DELTA – Střední škola informatiky a ekonomie, s.r.o.}\\
-        Ke Kamenci 151, Pardubice \\
-
-        \vfill
-
-        {\Huge \textbf{Lifemeter}}\\
-        {\Large Mobilní aplikace}\\
-
-        \vfill
-
-        \begin{flushleft}
-            \textbf{Příjmení, jméno:} Zadrobílek Jan\\
-            \textbf{Třída:} 4.B\\
-            \textbf{SStudijní obor:} Informační technologie\\
-            \textbf{Školní rok:} 2025/2026
-        \end{flushleft}
-    \end{center}
-\end{titlepage}
+\input{references/meta/titul.tex}
+\input{references/meta/zadani}
+\input{references/meta/prohlaseni}
+\input{references/meta/podekovani}
+\input{references/meta/resume}
 
 \newpage
-\thispagestyle{empty}
-\mbox{}
-
-\newpage
-\thispagestyle{empty}
-\noindent
-Prohlašuji, že jsem maturitní projekt vypracoval(a) samostatně, výhradně s použitím uvedené literatury.\\
-
-\noindent
-V Pardubicích \number\day.~\number\month.~\number\year \hfill .................. \\
-
-\newpage
-\thispagestyle{empty}
-\noindent
-Rád bych upřímně poděkoval své vedoucí práce, Ing. Monice Borkovcové, Ph.D., za odborné vedení, cenné rady, trpělivost a čas, který mi věnovala při konzultacích a zpracování tohoto maturitního projektu.
-
-\newpage
-\thispagestyle{empty}
-\section*{Resumé}
- [Stručný obsah práce v češtině - vyjádření hlavní myšlenky, problému a zvoleného řešení.]
-
-\noindent \textbf{Klíčová slova:} [Klíčové slovo 1, Klíčové slovo 2, ... max 8 pojmů]
-
-
-\section*{Summary (Resumé v angličtině)}
- [Brief summary of the thesis in English.]
-
-\noindent \textbf{Keywords:} [Keyword 1, Keyword 2, ...]
-
-\newpage
-\thispagestyle{empty}
 \tableofcontents
 
-\newpage
-\pagestyle{plain}
-
-\chapter*{Úvod}
-\addcontentsline{toc}{chapter}{Úvod}
-[Vymezení problému, k čemu má práce sloužit, přehled doposud zkoumané problematiky.]
-
-\chapter{Teoretická část}
- [Zmapování současného stavu, volba optimálních nástrojů, rešerše. Pozor na délku popisu technologií.]
-
-\chapter{Metodika a vlastní řešení}
- [Postup práce, techniky. U SW projektů zde patří popis architektury, případně dokumentace API a UML diagramy.]
-
-\chapter{Výsledky}
- [Stručně, jasně srozumitelně popsaná fakta bez úvah a komentářů.]
-
-\chapter{Diskuse}
- [Zdůvodnění vybraného řešení, porovnání s jinými variantami. Zde nešetři místem.]
-
-\chapter*{Závěr}
-\addcontentsline{toc}{chapter}{Závěr}
-[Celkové hodnocení, podmínky pro úspěšnou realizaci, stanovení dalšího možného rozšíření projektu.]
+\input{references/text/00_uvod}
+\input{references/text/01_teoreticka}
+\input{references/text/02_architektura}
+\input{references/text/03_metodika}
+\input{references/text/04_vysledky}
+\input{references/text/05_diskuze}
+\input{references/text/zaver}
 
 \newpage
 \addcontentsline{toc}{chapter}{Literatura}
-\begin{thebibliography}{99}
-    \bibitem{vzor_kniha} PŘÍJMENÍ, J. \textit{Název knihy}. 1. vyd. Město: Nakladatelství, rok. ISBN.
-    \bibitem{vzor_web} NÁZEV WEBU. \textit{Název článku} [online]. [Cit. 10.3.2026]. Dostupné z URL: http://...
-\end{thebibliography}
+\printbibliography[title={Literatura}]
 
-\newpage
-\addcontentsline{toc}{chapter}{Seznam obrázků, grafů a tabulek}
-\listoffigures
-\listoftables
-
-% 10. Seznam příloh
-\newpage
-\chapter*{Seznam příloh}
-\addcontentsline{toc}{chapter}{Seznam příloh}
-\noindent Příloha 1: [Název první přílohy]\\
-\noindent Příloha 2: [Název druhé přílohy]
-
-% 11. Přílohy
-\appendix
-\chapter{Název první přílohy}
- [Zde vlož velké tabulky, diagramy, grafy, zdrojové kódy, které se nevešly do textu.]
+\input{references/refs/seznam}
+\input{references/meta/prilohy}
 
 \end{document}

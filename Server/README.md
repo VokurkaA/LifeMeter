@@ -192,8 +192,8 @@ Returned by `/api/food/:id` and embedded inside user meal details.
 }
 ```
 
-### User Meal
-Returned by `/api/user/food/:id`. List endpoint (`GET /api/user/food`) returns `{ userMeal, userFoods }` objects where `userFoods` contains raw `UserFood` rows (no embedded food detail).
+### User Meals
+Returned by `/api/user/food/:id`. 
 ```jsonc
 {
   "userMeal": { "id": "uuid", "user_id": "uuid", "eaten_at": "ISO", "name": "Lunch" },
@@ -206,6 +206,25 @@ Returned by `/api/user/food/:id`. List endpoint (`GET /api/user/food`) returns `
       "foodDetail": { /* Food Detail */ }
     }
   ]
+}
+```
+
+List endpoint (`GET /api/user/food`) returns a paginated list of `{ userMeal, userFoods }` objects where `userFoods` contains raw `UserFood` rows (no embedded food detail).
+```jsonc
+{
+  "rows": [
+    {
+      "userMeal": { "id": "uuid", "user_id": "uuid", "eaten_at": "ISO", "name": "Lunch" },
+      "userFoods": [
+        {
+          "id": "uuid", "user_meal_id": "uuid", "food_id": 123,
+          "total_grams": 200, "quantity": 1, "portion_id": 10, "description": "sliced"
+        }
+      ]
+    }
+  ],
+  "total": 1,
+  "pagination": { "page": 1, "prevPage": null, "nextPage": null, "totalPages": 1, "totalRecords": 1 }
 }
 ```
 
