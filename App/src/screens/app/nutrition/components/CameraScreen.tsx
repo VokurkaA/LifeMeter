@@ -49,7 +49,7 @@ function Scanner({ onScan, isScanning }: ScannerProps) {
                     onPress={permission.canAskAgain ? requestPermission : Linking.openSettings} 
                     className="mt-4"
                 >
-                    {permission.canAskAgain ? "Request Permission" : "Open Settings"}
+                    <Button.Label>{permission.canAskAgain ? "Request Permission" : "Open Settings"}</Button.Label>
                 </Button>
             </View>
         );
@@ -64,7 +64,6 @@ function Scanner({ onScan, isScanning }: ScannerProps) {
     };
 
     return (
-        // <View className="w-full aspect-square bg-background rounded-3xl overflow-hidden relative border border-foreground/20">
         <View className="w-full aspect-square bg-background rounded-3xl overflow-hidden relative border border-foreground/20">
             <CameraView
                 style={{ flex: 1 }}

@@ -131,7 +131,7 @@ const Container = ({ children, className = '', isDisabled = false, onPress }: Co
       isDisabled={isDisabled}
       className={cn(
         "items-center justify-center w-8 h-16 rounded-xl",
-        isDisabled && "opacity-50",
+        isDisabled ? "opacity-50" : "",
         className
       )}
     >

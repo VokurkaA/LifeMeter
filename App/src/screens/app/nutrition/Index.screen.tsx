@@ -5,12 +5,13 @@ import { useDailyNutrition } from './hooks/useDailyNutrition';
 import { useNutritionGoals } from './hooks/useNutritionGoals';
 import { MacroOverview } from './components/MacroOverview';
 import MealOverview from './components/MealOverview';
-import { useStore } from '@/contexts/useStore';
+import { useNutritionStore } from '@/contexts/useNutritionStore';
+import { View } from 'react-native';
 
 export default function NutritionScreen() {
     const { nutrients, micros, todaysMeals, foodDetails } = useDailyNutrition();
     const { goals } = useNutritionGoals();
-    const { createUserMeal, userMeals } = useStore();
+    const { createUserMeal, userMeals } = useNutritionStore();
 
     return (
         <MainLayout>

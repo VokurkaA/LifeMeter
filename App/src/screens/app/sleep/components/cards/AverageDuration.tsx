@@ -124,7 +124,7 @@ export const AverageDuration = ({ sleepSessions, onPress, dayAmount = 7, classNa
     const TabTrigger = ({ value }: { value: number }) => {
         return (
             <Tabs.Trigger value={value.toString()} className="flex-1">
-                <Tabs.Label className={`${selectedDayAmount === value && 'text-accent'}`}>{value} Days</Tabs.Label>
+                <Tabs.Label className={`${selectedDayAmount === value ? 'text-accent' : ''}`}>{value} Days</Tabs.Label>
             </Tabs.Trigger>
         );
     }

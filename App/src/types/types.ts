@@ -1,5 +1,11 @@
 import { CreateMealInput, UpdateMealInput, UserFood, UserMeal } from '@/types/food.types';
-import { FullWorkout } from '@/types/workout.types';
+import {
+  Exercise,
+  FullWorkout,
+  FullWorkoutTemplate,
+  SetStyle,
+  SetType,
+} from '@/types/workout.types';
 import {
   ActivityLevel,
   LengthUnit,
@@ -59,7 +65,7 @@ export interface AuthContextType {
 
 export interface StoreContextType {
   sleepSessions: SleepSession[];
-  ongoingSleepSession: SleepSession | null;
+  ongoingSleepSession: SleepSession | null | undefined;
   startSleep: () => Promise<void>;
   endSleep: () => Promise<void>;
   createSleepSession: (startAt: string, endAt?: string, note?: string) => Promise<void>;
@@ -67,8 +73,8 @@ export interface StoreContextType {
     id: string,
     patch: {
       startAt?: string;
-      endAt?: string | null;
-      note?: string | null;
+      endAt?: string | null | undefined;
+      note?: string | null | undefined;
     },
   ) => Promise<void>;
   deleteSleepSession: (id: string) => Promise<void>;
@@ -85,12 +91,28 @@ export interface StoreContextType {
   createUserWorkout: (data: FullWorkout) => Promise<FullWorkout | undefined>;
   editUserWorkout: (id: string, data: FullWorkout) => Promise<FullWorkout | undefined>;
   deleteUserWorkout: (id: string) => Promise<void>;
-  userProfile: UserProfile | null;
-  userGoals: UserGoal | null;
+
+  userWorkoutTemplates: FullWorkoutTemplate[];
+  refreshUserWorkoutTemplates: () => Promise<void>;
+  createUserWorkoutTemplate: (data: FullWorkoutTemplate) => Promise<FullWorkoutTemplate | undefined>;
+  editUserWorkoutTemplate: (
+    id: string,
+    data: FullWorkoutTemplate,
+  ) => Promise<FullWorkoutTemplate | undefined>;
+  deleteUserWorkoutTemplate: (id: string) => Promise<void>;
+
+  exercises: Exercise[];
+  refreshExercises: () => Promise<void>;
+
+  setStyles: SetStyle[];
+  setTypes: SetType[];
+
+  userProfile: UserProfile | undefined;
+  userGoals: UserGoal | null | undefined;
   activityLevels: ActivityLevel[];
   lengthUnits: LengthUnit[];
   weightUnits: WeightUnit[];
-  latestWeight: UserWeightLog | null;
+  latestWeight: UserWeightLog | undefined;
   isLoading: boolean;
 
   refreshProfile: () => Promise<void>;
@@ -137,6 +159,8 @@ export type TabParamList = {
 export type AppStackParamList = {
   Tabs: { screen?: keyof TabParamList };
   SleepList: undefined;
+  ActiveWorkout: { workoutId: string };
+  TemplateBuilder: { templateId?: string };
 };
 
 export type SleepSession = {

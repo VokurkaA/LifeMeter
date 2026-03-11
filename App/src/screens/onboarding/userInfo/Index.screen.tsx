@@ -8,10 +8,10 @@ import BodyInfo, {type BodyInfoData} from "./bodyInfo";
 import LifestyleInfo, {LifestyleData} from "./lifestyleInfo";
 import Objectives, {ObjectiveData} from "./objectives";
 import {useExitConfirmBackHandler} from "@/navigation/back-handler";
-import { useStore } from "@/contexts/useStore";
+import { useUserStore } from "@/contexts/useUserStore";
 
 export default function Onboarding() {
-    const {updateProfile, updateGoals, logWeight, logHeight, lengthUnits, weightUnits}= useStore();
+    const {updateProfile, updateGoals, logWeight, logHeight, lengthUnits, weightUnits}= useUserStore();
     const [nextEnabled, setNextEnabled] = useState(false);
     const [onNext, setOnNext] = useState<null | (() => void)>(null);
 
@@ -161,13 +161,15 @@ export default function Onboarding() {
         </View>
 
         <View className="flex flex-row gap-2 my-4">
-            {step > 0 && (<Button
-                variant="tertiary"
-                onPress={handleBack}
-                className="flex-1"
-            >
-                Back
-            </Button>)}
+            {step > 0 && (
+                <Button
+                    variant="tertiary"
+                    onPress={handleBack}
+                    className="flex-1"
+                >
+                    <Button.Label>Back</Button.Label>
+                </Button>
+            )}
 
             <Button
                 variant="primary"
@@ -175,7 +177,7 @@ export default function Onboarding() {
                 isDisabled={!nextEnabled}
                 className="flex-1"
             >
-                {step === totalSteps - 1 ? "Finish" : "Next"}
+                <Button.Label>{step === totalSteps - 1 ? "Finish" : "Next"}</Button.Label>
             </Button>
         </View>
     </View>);

@@ -122,9 +122,9 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
                     {foodDetail.brandedFood && (
                         <View className="ml-auto flex-row items-center">
                             <Muted>
-                                {foodDetail.brandedFood.brand_name || ""}{" "}
-                                {foodDetail.brandedFood.brand_owner || ""}{" "}
-                                {foodDetail.brandedFood.subbrand_name || ""}
+                                {foodDetail.brandedFood.brand_name || ""}
+                                {foodDetail.brandedFood.brand_owner ? ` ${foodDetail.brandedFood.brand_owner}` : ""}
+                                {foodDetail.brandedFood.subbrand_name ? ` ${foodDetail.brandedFood.subbrand_name}` : ""}
                             </Muted>
                         </View>
                     )}
@@ -144,7 +144,7 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
                         </Select.Trigger>
                         <Select.Portal>
                             <Select.Overlay />
-                            <Select.Content presentation="popover">
+                            <Select.Content presentation="popover" width="trigger">
                                 <Select.ListLabel>Portions</Select.ListLabel>
                                 {portionsOptions.map((opt, index) => (
                                     <React.Fragment key={opt.value}>
@@ -166,6 +166,7 @@ export default function FoodDetailForm({ foodDetail, onSuccess, createUserMeal }
                 <BottomSheetTextInput
                     keyboardType="numeric"
                     placeholder="100"
+                    variant="secondary"
                     value={gramAmount !== undefined ? String(gramAmount) : ""}
                     onChangeText={(text) => {
                         const { value } = normalizePositiveDecimal(text, {

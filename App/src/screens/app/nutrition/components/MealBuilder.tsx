@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { View, ScrollView } from "react-native";
 import {
     TextField,
@@ -107,13 +107,13 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
         }
     };
 
-    const removeItem = (id: string) => {
+    const removeItem = useCallback((id: string) => {
         setItems((prev) => prev.filter((item) => item.id !== id));
-    };
+    }, []);
 
-    const updateItem = (id: string, updates: Partial<BuilderItem>) => {
+    const updateItem = useCallback((id: string, updates: Partial<BuilderItem>) => {
         setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
-    };
+    }, []);
 
     const totalNutrients = useMemo(() => {
         const summary = { calories: 0, protein: 0, carbs: 0, fat: 0 };
@@ -247,8 +247,8 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
                             <BuilderItemRow
                                 key={item.id}
                                 item={item}
-                                onUpdate={(updates) => updateItem(item.id, updates)}
-                                onRemove={() => removeItem(item.id)}
+                                onUpdate={updateItem}
+                                onRemove={removeItem}
                             />
                         ))}
                     </View>
@@ -273,15 +273,15 @@ export default function MealBuilder({ initialData, onSave, onCancel }: MealBuild
     );
 }
 
-function BuilderItemRow({
+const BuilderItemRow = React.memo(({
     item,
     onUpdate,
     onRemove,
 }: {
     item: BuilderItem;
-    onUpdate: (updates: Partial<BuilderItem>) => void;
-    onRemove: () => void;
-}) {
+    onUpdate: (id: string, updates: Partial<BuilderItem>) => void;
+    onRemove: (id: string) => void;
+}) => {
     const foregroundColor = useThemeColor("foreground");
 
     const portionsOptions: SimpleOption[] = useMemo(() => {
@@ -299,7 +299,7 @@ function BuilderItemRow({
         if (!option) return;
         const portion = item.foodDetail.portions.find((p) => String(p.id) === option.value);
         if (portion) {
-            onUpdate({ portionId: portion.id, gramAmount: portion.gram_weight });
+            onUpdate(item.id, { portionId: portion.id, gramAmount: portion.gram_weight });
         }
     };
 
@@ -311,7 +311,7 @@ function BuilderItemRow({
                         <Card.Title className="shrink">{item.foodDetail.food.description}</Card.Title>
                         <Card.Description className="text-sm">{item.foodDetail.category?.name}</Card.Description>
                     </View>
-                    <PressableFeedback onPress={onRemove}>
+                    <PressableFeedback onPress={() => onRemove(item.id)}>
                         <XIcon color={foregroundColor} />
                     </PressableFeedback>
                 </View>
@@ -357,12 +357,12 @@ function BuilderItemRow({
                                 value={String(item.gramAmount === 0 ? "" : item.gramAmount)}
                                 onChangeText={(text) => {
                                     if (text === "") {
-                                        onUpdate({ gramAmount: 0, portionId: undefined });
+                                        onUpdate(item.id, { gramAmount: 0, portionId: undefined });
                                         return;
                                     }
                                     const { value } = normalizePositiveDecimal(text, { maxDecimals: 2 });
                                     if (value !== undefined) {
-                                        onUpdate({ gramAmount: value, portionId: undefined });
+                                        onUpdate(item.id, { gramAmount: value, portionId: undefined });
                                     }
                                 }}
                             />
@@ -372,9 +372,9 @@ function BuilderItemRow({
             </Card.Body>
         </Card>
     );
-}
+});
 
-function NutrientStat({ label, value, unit }: { label: string; value: number; unit: string }) {
+const NutrientStat = React.memo(({ label, value, unit }: { label: string; value: number; unit: string }) => {
     return (
         <View className="flex items-center">
             <Muted>{label}</Muted>
@@ -384,4 +384,4 @@ function NutrientStat({ label, value, unit }: { label: string; value: number; un
             </View>
         </View>
     );
-}
+});

@@ -10,17 +10,32 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { HeroUINativeProvider, useThemeColor } from 'heroui-native';
 import '../global.css';
 import { AuthProvider, useAuth } from '@/contexts/useAuth';
-import { StoreProvider, useStore } from '@/contexts/useStore';
+import { StoreProvider } from '@/contexts/useStore';
+import { useUserStore } from '@/contexts/useUserStore';
 import WelcomeScreen from '@/screens/onboarding/Welcome.screen';
 import SignIn from '@/screens/onboarding/SignIn.screen';
 import SignUp from '@/screens/onboarding/SignUp.screen';
 import OnboardingInfoScreen from "@/screens/onboarding/userInfo/Index.screen";
 import { navigationRef } from '@/navigation/navigate';
 import AppTabs from '@/navigation/Tabs';
+import ActiveWorkoutScreen from '@/screens/app/training/ActiveWorkout.screen';
+import TemplateBuilderScreen from '@/screens/app/training/TemplateBuilder.screen';
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import * as Notifications from "expo-notifications";
+import { NetworkProvider } from './contexts/useNetwork';
+import ToastRegistrar from '@/components/ToastRegistrar';
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+    }),
+});
 
 const useScreenOptions = () => {
     const backgroundColor = useThemeColor('background');
@@ -48,7 +63,7 @@ const createResetListener = (rootRouteName: string) => ({ navigation }: any) => 
 
 function RootApp() {
     const { user, loading } = useAuth();
-    const { userProfile, isLoading } = useStore();
+    const { userProfile, isLoading } = useUserStore();
 
     const onboardingRef = useNavigationContainerRef();
     const screenOptions = useScreenOptions();
@@ -81,16 +96,22 @@ function RootApp() {
         return <OnboardingInfoScreen />;
     }
 
-    return (<View className='flex-1'>
-        <NavigationContainer ref={navigationRef}>
-            <AppStack.Navigator
-                initialRouteName="Tabs"
-                screenOptions={screenOptions}
-            >
-                <AppStack.Screen name="Tabs" component={AppTabs} />
-            </AppStack.Navigator>
-        </NavigationContainer>
-    </View>);
+    return (
+        <NetworkProvider>
+            <View className='flex-1'>
+                <NavigationContainer ref={navigationRef}>
+                    <AppStack.Navigator
+                        initialRouteName="Tabs"
+                        screenOptions={screenOptions}
+                    >
+                        <AppStack.Screen name="Tabs" component={AppTabs} />
+                        <AppStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
+                        <AppStack.Screen name="TemplateBuilder" component={TemplateBuilderScreen} />
+                    </AppStack.Navigator>
+                </NavigationContainer>
+            </View>
+        </NetworkProvider>
+    );
 }
 
 export default function App() {
@@ -100,6 +121,7 @@ export default function App() {
         <KeyboardProvider>
             <SafeAreaProvider>
                 <HeroUINativeProvider>
+                    <ToastRegistrar />
                     <AuthProvider>
                         <StoreProvider>
                             <SafeAreaView edges={['left', 'right', 'top']} style={{ flex: 1, backgroundColor }}>

@@ -79,7 +79,7 @@ export default function ScanMeal({ onSuccess, createUserMeal }: ScanMealProps) {
                 <Text className="text-danger-foreground font-semibold">{error}</Text>
                 <Button onPress={handleReset} variant="tertiary" className="flex-row gap-2">
                     <RefreshCcw color={foregroundColor} size={18} />
-                    <Text>Try Again</Text>
+                    <Button.Label>Try Again</Button.Label>
                 </Button>
             </View>
         )
@@ -92,7 +92,7 @@ export default function ScanMeal({ onSuccess, createUserMeal }: ScanMealProps) {
                     createUserMeal={createUserMeal}
                 />
                 <Button onPress={handleReset} variant="ghost">
-                    Scan Another
+                    <Button.Label>Scan Another</Button.Label>
                 </Button>
             </View>
         );

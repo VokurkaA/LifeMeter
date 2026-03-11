@@ -37,7 +37,7 @@ class SleepService {
   }
 
   async getAllSleepSessions(): Promise<SleepSession[]> {
-    return request<ServerSleepEntry[]>(this.baseUrl + '/').then((rows) => rows.map(this.toSleepSession));
+    return request<ServerSleepEntry[]>(this.baseUrl).then((rows) => rows.map(this.toSleepSession));
   }
 
   async getSleepSession(id: string): Promise<SleepSession> {

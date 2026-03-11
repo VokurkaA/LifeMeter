@@ -42,7 +42,7 @@ export const ChartCard = ({
                     {averageValue !== undefined && (
                         <Card.Footer>
                             <Card.Title className="text-base">{averageLabel}</Card.Title>
-                            <Card.Description >{averageValue}</Card.Description>
+                            <Card.Description >{String(averageValue)}</Card.Description>
                         </Card.Footer>
                     )}
                 </View>

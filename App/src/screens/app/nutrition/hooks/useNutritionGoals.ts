@@ -1,4 +1,4 @@
-import { useStore } from "@/contexts/useStore";
+import { useUserStore } from "@/contexts/useUserStore";
 import { useMemo } from "react";
 
 type MacroGoals = {
@@ -9,7 +9,7 @@ type MacroGoals = {
 };
 
 export function useNutritionGoals() {
-    const { userGoals, userProfile } = useStore();
+    const { userGoals, userProfile } = useUserStore();
 
     const goals = useMemo<MacroGoals>(() => {
         const bmr = userProfile?.currentBmrCalories ?? 0;

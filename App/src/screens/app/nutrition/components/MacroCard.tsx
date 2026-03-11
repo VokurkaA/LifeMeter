@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import { Text } from '@/components/Text';
+import { Text, Muted } from '@/components/Text';
 
 interface MacroCardProps {
     name: string;
@@ -16,19 +16,22 @@ export function MacroCard({ name, consumed, goal, underlineColor }: MacroCardPro
     }, [consumed, goal]);
 
     return (
-        <View className="w-full flex-1 items-center justify-center">
-            <Text className="text-xl font-bold mb-1">{name}</Text>
-            <View className='relative w-full'>
+        <View className="flex-1 items-center">
+            <Text className="text-sm font-semibold mb-1.5 uppercase tracking-wider text-muted">{name}</Text>
+            <View className='relative w-full h-2 mb-2'>
                 <View
-                    style={{ backgroundColor: underlineColor, opacity: 0.25 }}
-                    className="h-1.5 w-full rounded-full"
+                    style={{ backgroundColor: underlineColor, opacity: 0.15 }}
+                    className="h-full w-full rounded-full"
                 />
                 <View
                     style={{ backgroundColor: underlineColor, width: `${fillPercentage}%` }}
-                    className="h-1.5 rounded-full absolute top-0 left-0"
+                    className="h-full rounded-full absolute top-0 left-0"
                 />
             </View>
-            <Text className='text-center mt-1 font-semibold text-muted'>{consumed.toFixed()} / {goal} g</Text>
+            <View className="flex-row items-baseline gap-0.5">
+                <Text className="text-lg font-bold">{consumed.toFixed()}</Text>
+                <Muted className="text-xs font-medium">/ {String(goal)}g</Muted>
+            </View>
         </View>
     );
 }

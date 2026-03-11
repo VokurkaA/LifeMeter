@@ -194,7 +194,7 @@ export default function SignUp() {
         </TextField>
 
         <Button isDisabled={!canSubmit || isSubmitting} onPress={handleSubmit}>
-            Sign up
+            <Button.Label>Sign up</Button.Label>
         </Button>
 
         <Pressable
