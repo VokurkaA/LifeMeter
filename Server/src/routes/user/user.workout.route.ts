@@ -1,6 +1,6 @@
 import {Hono} from "hono";
 import type {AuthSession, AuthUser} from "@/types/auth.types";
-import {getPagination, pagination} from "@/middleware/pagination"; 
+import {getPagination, makePaginationResult, pagination} from "@/middleware/pagination"; 
 import {workoutService} from "@/services/workout.service";
 import {
     workoutBodySchema,
@@ -40,8 +40,8 @@ userWorkoutRouter.get('/template', pagination(), async (c) => {
     const user = c.get("user")!;
     const paginationProps = getPagination(c); 
     try {
-        const result = await workoutService.getAllUserWorkoutTemplates(user.id, paginationProps);
-        return c.json(result);
+        const {rows, total} = await workoutService.getAllUserWorkoutTemplates(user.id, paginationProps);
+        return c.json({rows, total, pagination: makePaginationResult(total, c)});
     } catch (e: any) {
         return c.json({error: e?.message || "Failed to fetch templates"}, 500);
     }
@@ -103,8 +103,8 @@ userWorkoutRouter.get('/', pagination(), async (c) => {
     const user = c.get("user")!;
     const paginationProps = getPagination(c); // <--- FIXED HERE
     try {
-        const result = await workoutService.getAllUserWorkouts(user.id, paginationProps);
-        return c.json(result);
+        const {rows, total} = await workoutService.getAllUserWorkouts(user.id, paginationProps);
+        return c.json({rows, total, pagination: makePaginationResult(total, c)});
     } catch (e: any) {
         return c.json({error: e?.message || "Failed to fetch workouts"}, 500);
     }

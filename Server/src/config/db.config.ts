@@ -2,11 +2,11 @@ import {Pool} from 'pg';
 import {logger} from "@/services/logger.service";
 
 export const config = {
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST || 'localhost',
-    password: process.env.DB_PASSWORD,
-    dbName: process.env.DB_NAME,
-    port: parseInt(process.env.DB_PORT || '5432')
+    user: process.env.POSTGRES_USER,
+    host: process.env.POSTGRES_HOST || 'localhost',
+    password: process.env.POSTGRES_PASSWORD,
+    dbName: process.env.POSTGRES_DB,
+    port: parseInt(process.env.POSTGRES_PORT || '5432')
 };
 
 export const pool = new Pool({

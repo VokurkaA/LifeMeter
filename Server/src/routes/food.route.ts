@@ -26,7 +26,7 @@ foodRouter.get("/search", pagination(), async (c) => {
         try {
             const decoded = decodeURIComponent(rawName);
             const {rows, total} = await foodService.getFoodByName(decoded, paginationProps);
-            return c.json({data: rows, pagination: makePaginationResult(total, c)});
+            return c.json({rows, total, pagination: makePaginationResult(total, c)});
         } catch (e: any) {
             logger.error(`Failed to search food by name: ${rawName}`, e);
             return c.json({error: "Internal server error"}, 500);
@@ -39,7 +39,7 @@ foodRouter.get("/search", pagination(), async (c) => {
 
     try {
         const data = await foodService.getFoodByGtin(gtin);
-        return c.json({data});
+        return c.json(data);
     } catch (e: unknown) {
         if (e instanceof Error && e.message.includes("Food not found")) {
             return c.json({error: e.message}, 404);
@@ -53,7 +53,7 @@ foodRouter.get("/", pagination(), async (c) => {
     try {
         const paginationProps: PaginationProps = getPagination(c);
         const {rows, total} = await foodService.getAllFood(paginationProps);
-        return c.json({data: rows, pagination: makePaginationResult(total, c)});
+        return c.json({rows, total, pagination: makePaginationResult(total, c)});
     } catch (e: any) {
         logger.error("Failed to fetch all foods", e);
         return c.json({error: "Internal server error"}, 500);

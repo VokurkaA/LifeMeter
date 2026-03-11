@@ -139,8 +139,14 @@ class FoodService {
         return {userMeal: mealResult.rows[0], userFoods: fullUserFoods};
     }
 
-    async getAllUserMeals(userId: string): Promise<{ userMeal: UserMeal; userFoods: UserFood[] }[]> {
-        const query = `
+    async getAllUserMeals(userId: string, paginationProps: PaginationProps): Promise<{ rows: { userMeal: UserMeal; userFoods: UserFood[] }[]; total: number }> {
+        const {limit, offset} = paginationProps;
+
+        const countQuery = `SELECT COUNT(id)::text AS total
+                            FROM user_meal
+                            WHERE user_id = $1`;
+
+        const dataQuery = `
             SELECT to_jsonb(um.*)                as "userMeal",
                    COALESCE(f.data, '[]'::jsonb) as "userFoods"
             FROM user_meal um
@@ -151,10 +157,15 @@ class FoodService {
                 ) f ON true
             WHERE um.user_id = $1
             ORDER BY um.eaten_at DESC
+            LIMIT $2 OFFSET $3
         `;
 
-        const result = await pool.query<{ userMeal: UserMeal; userFoods: UserFood[] }>(query, [userId]);
-        return result.rows;
+        const [countResult, dataResult] = await Promise.all([
+            pool.query<CountRow>(countQuery, [userId]),
+            pool.query<{ userMeal: UserMeal; userFoods: UserFood[] }>(dataQuery, [userId, limit, offset])
+        ]);
+
+        return {rows: dataResult.rows, total: this.parseTotal(countResult.rows[0]?.total)};
     }
 
     async addUserFood(userId: string, userFoods: UserFood[], mealName: string | undefined, eatenAt: string) {

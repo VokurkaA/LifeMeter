@@ -44,6 +44,6 @@ app-example
 # generated native folders
 /ios
 /android
-# heroui-agents-md
-.heroui-docs/
+
 AGENTS.md
+.heroui-docs

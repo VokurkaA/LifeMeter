@@ -49,11 +49,24 @@ if (process.env.USE_CORS == "true") {
 
 app.all("/api/auth/*", async (c) => {
     const headers = new Headers(c.req.raw.headers);
+
+    const configuredBase = new URL(
+        process.env.BASE_URL || `http://localhost:${process.env.PORT}`
+    );
+
     if (!headers.get("origin")) {
-        const u = new URL(c.req.url);
-        headers.set("origin", `${u.protocol}//${u.host}`);
+        headers.set("origin", configuredBase.origin);
     }
-    const req = new Request(c.req.raw, {headers});
+
+    const path = c.req.path + (c.req.raw.url.includes("?") ? "?" + c.req.raw.url.split("?")[1] : "");
+    const rewrittenUrl = new URL(path, configuredBase.origin);
+
+    const req = new Request(rewrittenUrl.toString(), {
+        method: c.req.raw.method,
+        headers,
+        body: c.req.raw.body,
+    });
+
     return auth.handler(req);
 });
 
