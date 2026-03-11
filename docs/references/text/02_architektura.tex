@@ -36,33 +36,35 @@ knihovny \texttt{heroui-native}.
 
 \subsubsection*{Vrstva controlleru (Context)}
 
-Stav aplikace je centrálně spravován dvěma kontexty poskytovanými
-React Context API:
+Stav aplikace je spravován pomocí React Context API, přičemž globální
+stav je rozdělen do pěti samostatných kontextů. Toto rozdělení zamezuje
+zbytečnému překreslování komponent při změně stavu v~jedné doméně.
 
 \begin{itemize}
-    \item \texttt{AuthContext} (\texttt{useAuth}) — uchovává referenci
-          na přihlášeného uživatele a~aktivní relaci, zprostředkovává
-          operace přihlášení, odhlášení a~registrace a~reaguje na
-          výsledek volání \texttt{auth.service.ts}.
-    \item \texttt{StoreContext} (\texttt{useStore}) — drží v~paměti
-          kolekce dat pro všechny domény (záznamy spánku, jídla,
-          tréninků, profil, cíle, váhové záznamy) a~vystavuje
-          \textit{action callbacks} (\texttt{createSleepSession},
-          \texttt{editUserMeal}, \texttt{deleteUserWorkout} aj.).
-          Počáteční načtení dat probíhá při montáži kontextu pomocí
-          paralelních volání (\texttt{Promise.all}); aktualizace
-          stavu po mutacích jsou prováděny optimisticky přímo
-          v~paměti.
+    \item \texttt{AuthContext} (\texttt{useAuth}): uchovává referenci na přihlášeného uživatele a aktivní relaci, zprostředkovává operace přihlášení, odhlášení a registrace a reaguje na výsledek volání \texttt{auth.service.ts}.
+    \item \texttt{SleepStoreContext} (\texttt{useSleepStore}): spravuje záznamy spánku; vystavuje akce \texttt{startSleep}, \texttt{endSleep}, \texttt{createSleepSession}, \texttt{editSleepSession} a \texttt{deleteSleepSession}.
+    \item \texttt{NutritionStoreContext} (\texttt{useNutritionStore}): spravuje záznamy jídla (user meals); vystavuje akce \texttt{createUserMeal}, \texttt{editUserMeal} a \texttt{deleteUserMeal}.
+    \item \texttt{WorkoutStoreContext} (\texttt{useWorkoutStore}): spravuje záznamy tréninků a šablony tréninků; vystavuje akce  \texttt{createUserWorkout}, \texttt{editUserWorkout}, \texttt{deleteUserWorkout}, \texttt{createUserWorkoutTemplate} a obdobné operace nad šablonami.
+    \item \texttt{UserStoreContext} (\texttt{useUserStore}): spravuje profil uživatele, cíle, váhové záznamy a referenční číselníky (jednotky hmotnosti a délky, úrovně aktivity); vystavuje akce \texttt{updateProfile}, \texttt{updateGoals}, \texttt{logWeight} a \texttt{logHeight}.
 \end{itemize}
+
+Pro zpětnou kompatibilitu existuje také fasádový hook \texttt{useStore},
+který agreguje výstupy všech čtyř doménových kontextů do jediného
+rozhraní. Jeho použití však způsobuje překreslení komponenty při změně
+v~jakékoli doméně, proto je ve výkonnostně kritických obrazovkách
+doporučeno volat doménové hooky přímo.
 
 \subsubsection*{Datová vrstva (Model / Services)}
 
-Datová vrstva tvoří rozhraní mezi aplikací a~vzdáleným REST API
-serverem na adrese \texttt{https://lifemeter.fit}. Každá servisní
-třída komunikuje se serverem prostřednictvím pomocných funkcí
-\texttt{request()} a~\texttt{fetchWithTimeout()}, které obalují
-nativní \texttt{fetch} API a~zajišťují jednotné zpracování chyb
-a~časových limitů.
+Datová vrstva tvoří rozhraní mezi aplikací a vzdáleným REST API
+serverem na adrese \texttt{https://lifemeter.fit}. Komunikace probíhá
+prostřednictvím pěti servisních tříd — \texttt{auth.service.ts},
+\texttt{sleep.service.ts}, \texttt{food.service.ts},
+\texttt{workout.service.ts} a~\texttt{user.profile.service.ts} —
+z~nichž každá zapouzdřuje veškeré volání API pro příslušnou doménu.
+Všechny servisní třídy sdílejí pomocné funkce \texttt{request()}
+a~\texttt{fetchWithTimeout()}, jež obalují nativní \texttt{fetch}
+API a~zajišťují jednotné zpracování chyb a~časových limitů.
 
 Autentizace je řešena prostřednictvím knihovny Better Auth
 s~relacemi na bázi cookies (\texttt{credentials: 'include'}).
@@ -124,8 +126,10 @@ na obrázku~\ref{fig:components}.
 Mobilní klient je implementován v~prostředí React Native s~platformou
 Expo a~tvoří jedinou vstupní bránu, skrze níž uživatel interaguje
 s~celým systémem. Klient zajišťuje prezentaci dat, správu
-globálního stavu prostřednictvím kontextů \texttt{AuthContext}
-a~\texttt{StoreContext}, navigaci mezi obrazovkami a~koordinaci
+globálního stavu prostřednictvím kontextu \texttt{AuthContext}
+a~čtyř doménových kontextů (\texttt{SleepStoreContext},
+\texttt{NutritionStoreContext}, \texttt{WorkoutStoreContext},
+\texttt{UserStoreContext}), navigaci mezi obrazovkami a~koordinaci
 všech ostatních komponent popsaných níže.
 
 \subsection*{REST API server}
@@ -190,13 +194,14 @@ tisíců potravin a~ingrediencí včetně kalorické hodnoty, makroživin
 Datová sada byla pro potřeby aplikace LifeMeter upravena: byly
 odstraněny záznamy s~neúplnými nutričními hodnotami, provedena
 normalizace jednotek a~datových typů do schématu serverové
-databáze. Upravená sada je uložena přímo v~PostgreSQL databázi 
-na serveru a~je přístupná prostřednictvím vyhledávacího 
-endpointu REST API. Klient odesílá vyhledávací dotaz na server, 
-který vrátí odpovídající záznamy včetně nutričních hodnot. 
-Výsledky nejsou lokálně cachovány v~plném rozsahu; uchovávají 
-se pouze záznamy naposledy použitých položek pro urychlení 
-opakovaného přístupu.
+databáze a~přidána podpora fulltextového vyhledávání v~češtině
+prostřednictvím překladové vrstvy názvů potravin. Upravená sada
+je uložena přímo v~PostgreSQL databázi na serveru a~je přístupná
+prostřednictvím vyhledávacího endpointu REST API. Klient
+odesílá vyhledávací dotaz na server, který vrátí odpovídající
+záznamy včetně nutričních hodnot. Výsledky nejsou lokálně
+cachovány v~plném rozsahu; uchovávají se pouze záznamy naposledy
+použitých položek pro urychlení opakovaného přístupu.
 
 % -----------------------------------------------------------------------
 \section{Use Case diagram}
@@ -292,27 +297,66 @@ opakovaného přístupu.
 %   - Vztahy k ostatním třídám
 
 \subsubsection{Servisní třídy (Model)}
-% auth.service.ts    — register(), login(), logout(), getSession()
-% sleep.service.ts   — getSleepSessions(), createSleepSession(), updateSleepSession(), deleteSleepSession()
-% food.service.ts    — searchFoods(), getUserMeals(), createUserMeal(), editUserMeal(), deleteUserMeal()
-% workout.service.ts — getUserWorkouts(), createUserWorkout(), editUserWorkout(), deleteUserWorkout()
-% profile.service.ts — getUserProfile(), updateUserProfile(), getWeightRecords(), createWeightRecord()
+% auth.service.ts          — signIn(), signUp(), signOut(), getSession()
+% sleep.service.ts         — getSleepSessions(), createSleepSession(),
+%                            editSleepSession(), deleteSleepSession()
+% food.service.ts          — searchFoods(), getUserMeals(), createUserMeal(),
+%                            editUserMeal(), deleteUserMeal()
+% workout.service.ts       — getAllUserWorkouts(), addUserWorkout(),
+%                            editUserWorkout(), deleteUserWorkout()
+%                            getAllUserWorkoutTemplates(), addUserWorkoutTemplate(),
+%                            editUserWorkoutTemplate(), deleteUserWorkoutTemplate()
+%                            getExercises(), getWeightOptions(),
+%                            getSetStyles(), getSetTypes()
+% user.profile.service.ts  — getProfile(), upsertProfile(),
+%                            getGoals(), upsertGoals(),
+%                            logWeight(), getLatestWeight(),
+%                            logHeight()
 %
-% Každá třída závisí na pomocných funkcích request() a fetchWithTimeout()
-% definovaných v utils/fetch.ts.
+% Všechny třídy sdílejí request() a fetchWithTimeout() z utils/fetch.ts.
 
 \subsubsection{Kontexty (Controller)}
-% AuthContext  — drží: user, session; vystavuje: login(), logout(), register()
-%               závisí na auth.service.ts
-% StoreContext — drží: sleepSessions[], meals[], workouts[], profile, goals[], weightRecords[]
-%               vystavuje action callbacks pro všechny domény
-%               závisí na sleep.service.ts, food.service.ts, workout.service.ts, profile.service.ts
-%               při nedostupnosti sítě čte data z MMKV a zapisuje do offline fronty
+% AuthContext      — drží: user, session
+%                   vystavuje: signIn(), signUp(), signOut(), refreshSession()
+%                   závisí na: auth.service.ts
+%
+% SleepStoreContext       — drží: sleepSessions[], ongoingSleepSession
+%                           vystavuje: startSleep(), endSleep(),
+%                             createSleepSession(), editSleepSession(), deleteSleepSession()
+%                           závisí na: sleep.service.ts
+%
+% NutritionStoreContext   — drží: userMeals[]
+%                           vystavuje: createUserMeal(), editUserMeal(), deleteUserMeal()
+%                           závisí na: food.service.ts
+%
+% WorkoutStoreContext     — drží: workouts[], workoutTemplates[],
+%                             exercises[], setStyles[], setTypes[], weightUnits[]
+%                           vystavuje: createUserWorkout(), editUserWorkout(),
+%                             deleteUserWorkout(), createUserWorkoutTemplate(),
+%                             editUserWorkoutTemplate(), deleteUserWorkoutTemplate()
+%                           závisí na: workout.service.ts
+%
+% UserStoreContext        — drží: userProfile, userGoals, latestWeight,
+%                             activityLevels[], lengthUnits[], weightUnits[]
+%                           vystavuje: updateProfile(), updateGoals(),
+%                             logWeight(), logHeight()
+%                           závisí na: user.profile.service.ts
+%
+% useStore (fasáda)       — agreguje výstupy všech čtyř doménových kontextů
+%                           do StoreContextType pro zpětnou kompatibilitu
 
 \subsubsection{Sdílené typy a rozhraní (Types)}
-% TypeScript rozhraní / typy sdílené napříč vrstvami:
-%   SleepSession, UserMeal, FoodItem, Workout, UserProfile, Goal, WeightRecord
-% Umístění: types/ nebo přímo v příslušných servisních souborech
+% Soubory v adresáři types/:
+%   types.ts            — User, Session, AuthContextType, StoreContextType
+%   workout.types.ts    — FullWorkout, WorkoutSet, FullWorkoutTemplate,
+%                         TemplateWorkoutSet, Exercise, SetStyle, SetType,
+%                         WeightUnit, ExerciseGroup
+%   food.types.ts       — UserMeal, UserFood, FoodItem, FoodDetail,
+%                         CreateMealInput, UpdateMealInput
+%   user.profile.types.ts — UserProfile, UserGoal, UserWeightLog,
+%                           ActivityLevel, LengthUnit, WeightUnit,
+%                           UpdateProfileInput, UpdateGoalInput,
+%                           LogWeightInput, LogHeightInput
 
 % -----------------------------------------------------------------------
 \section{Datový model}
@@ -343,51 +387,131 @@ opakovaného přístupu.
 %   název sloupce | datový typ (PostgreSQL) | omezení | popis
 
 \subsubsection{Tabulka \texttt{user}}
-% Spravována knihovnou Better Auth.
-% Sloupce: id (PK, text), name, email (UNIQUE), emailVerified (bool),
-%          image, createdAt, updatedAt
+% Spravována knihovnou Better Auth (migrace 2025-09-18).
+% Sloupce: id (PK, text), name (text), email (text, UNIQUE),
+%          emailVerified (boolean), image (text),
+%          createdAt (timestamptz), updatedAt (timestamptz),
+%          role (text), banned (boolean), banReason (text), banExpires (timestamptz)
+% Popis: Základní identita uživatele; každý záznam odpovídá jednomu účtu.
 
 \subsubsection{Tabulka \texttt{session}}
 % Spravována knihovnou Better Auth.
-% Sloupce: id (PK, text), expiresAt (timestamp), token (UNIQUE),
-%          createdAt, updatedAt, ipAddress, userAgent,
-%          userId (FK → user)
+% Sloupce: id (PK, text), expiresAt (timestamptz), token (text, UNIQUE),
+%          createdAt (timestamptz), updatedAt (timestamptz),
+%          ipAddress (text), userAgent (text),
+%          userId (FK → user, CASCADE DELETE), impersonatedBy (text)
+% Popis: Aktivní relace; token je odesílán jako HttpOnly cookie.
+
+\subsubsection{Tabulky \texttt{account} a \texttt{verification}}
+% Spravovány knihovnou Better Auth.
+% account: propojení uživatele s OAuth poskytovateli nebo heslem;
+%          drží accessToken, refreshToken a jejich expiraci.
+% verification: tokeny pro e-mailové ověřování a reset hesla.
 
 \subsubsection{Tabulka \texttt{user\_profile}}
-% Rozšiřuje tabulku user o zdravotní a osobní údaje.
-% Sloupce: id (PK), userId (FK → user, UNIQUE), dateOfBirth, gender,
-%          height (cm), weight (kg), activityLevel, — doplnit dle implementace
+% Migrace: 25-12-03.
+% Sloupce: user\_id (PK + FK → user, CASCADE DELETE),
+%          date\_of\_birth (date), sex (char(1)),
+%          current\_activity\_factor (numeric(4,3), default 1.200),
+%          current\_bmr\_calories (int),
+%          default\_weight\_unit\_id (FK → weight\_unit),
+%          default\_length\_unit\_id (FK → length\_unit),
+%          finished\_onboarding (boolean, NOT NULL, default false)
+% Popis: Rozšiřuje tabulku user o zdravotní a osobní údaje uživatele.
+%        Vazba 1:1 s user.
 
-\subsubsection{Tabulka \texttt{sleep\_session}}
-% Záznamy spánku uživatele.
-% Sloupce: id (PK), userId (FK → user), startTime (timestamp),
-%          endTime (timestamp), durationMinutes, qualityScore, note,
-%          createdAt
+\subsubsection{Tabulka \texttt{user\_goal}}
+% Migrace: 25-12-03.
+% Sloupce: user\_id (PK + FK → user, CASCADE DELETE),
+%          daily\_steps\_goal (int),
+%          bedtime\_goal (time), wakeup\_goal (time),
+%          daily\_protein\_goal\_grams (int),
+%          daily\_fat\_goal\_grams (int),
+%          daily\_carbs\_goal\_grams (int),
+%          target\_weight\_grams (numeric(9,2)),
+%          target\_weight\_date (date)
+% Popis: Uživatelsky nastavené denní a dlouhodobé cíle. Vazba 1:1 s user.
 
-\subsubsection{Tabulka \texttt{food\_item}}
-% Referenční číselník potravin (sdílený nebo uživatelský).
-% Sloupce: id (PK), name, caloriesPer100g, proteinG, carbsG, fatG,
-%          fiberG, — doplnit další mikronutrienty dle implementace
+\subsubsection{Tabulky \texttt{user\_weight\_log}, \texttt{user\_height\_log}}
+% Migrace: 25-12-03.
+% user\_weight\_log: id (PK, uuid), user\_id (FK → user), measured\_at (timestamptz),
+%   weight\_grams (numeric(9,2)), body\_fat\_percentage, lean\_tissue\_percentage,
+%   water\_percentage, bone\_mass\_percentage (vše numeric(5,2))
+% user\_height\_log: id (PK, uuid), user\_id (FK → user), measured\_at (timestamptz),
+%   height\_cm (numeric(5,2))
+% Popis: Časové řady tělesných měření; jeden uživatel může mít neomezený
+%        počet záznamů. Jsou indexovány na (user\_id, measured\_at DESC).
 
-\subsubsection{Tabulka \texttt{user\_meal}}
-% Záznamy zkonzumovaného jídla.
-% Sloupce: id (PK), userId (FK → user), foodItemId (FK → food\_item),
-%          amountG, mealType (BREAKFAST/LUNCH/DINNER/SNACK),
-%          consumedAt (timestamp), createdAt
+\subsubsection{Tabulky \texttt{user\_blood\_pressure\_log}, \texttt{user\_heart\_rate\_log}}
+% Migrace: 25-12-03.
+% user\_blood\_pressure\_log: systolic\_mmhg (int), diastolic\_mmhg (int)
+% user\_heart\_rate\_log: bpm (int)
+% Popis: Volitelné záznamy kardiovaskulárních měření.
+%        Implementace na straně klienta — doplnit dle aktuálního stavu.
 
-\subsubsection{Tabulka \texttt{workout}}
-% Záznamy fyzických aktivit uživatele.
-% Sloupce: id (PK), userId (FK → user), type, durationMinutes,
-%          note, locationLat, locationLng, performedAt (timestamp),
-%          createdAt
+\subsubsection{Tabulka \texttt{user\_sleep}}
+% Migrace: 25-11-03.
+% Sloupce: id (PK, uuid), user\_id (FK → user, CASCADE DELETE),
+%          sleep\_start (timestamptz, default NOW()),
+%          sleep\_end (timestamptz, nullable), note (text)
+% Popis: Záznamy spánku. Záznam s~prázdným sleep\_end představuje
+%        probíhající spánkovou relaci (\texttt{ongoingSleepSession}).
 
-\subsubsection{Tabulka \texttt{weight\_record}}
-% Historie hmotnosti uživatele.
-% Sloupce: id (PK), userId (FK → user), weightKg, recordedAt (timestamp)
+\subsubsection{Tabulky \texttt{user\_meal} a \texttt{user\_food}}
+% Migrace: 25-11-05.
+% user\_meal: id (PK, uuid), user\_id (FK → user, CASCADE DELETE),
+%   eaten\_at (timestamptz, default now()), name (text)
+% user\_food: id (PK, uuid), user\_meal\_id (FK → user\_meal, CASCADE DELETE),
+%   food\_id (FK → food), total\_grams (numeric(9,2)),
+%   quantity (numeric(6,2), default 1),
+%   portion\_id (FK → portion, nullable), description (text)
+% Popis: Dvouúrovňová struktura — jedno jídlo (meal) obsahuje
+%        jednu nebo více zkonzumovaných potravin (food).
+%        Jsou indexovány na user\_id a user\_meal\_id.
 
-\subsubsection{Tabulka \texttt{goal}}
-% Cíle uživatele (kalorický příjem, počet tréninků apod.).
-% Sloupce: id (PK), userId (FK → user), type, targetValue, — doplnit dle implementace
+\subsubsection{Tabulky \texttt{food}, \texttt{branded\_food}, \texttt{food\_category}}
+% Odvozeny z datové sady FoodData Central~\cite{usda2024fdc}.
+% food: id (PK, int), branded\_food\_id (FK), food\_category\_id (FK),
+%       description (text); fulltext index pomocí pg\_trgm.
+% branded\_food: brand\_owner, brand\_name, subbrand\_name, gtin\_upc,
+%               ingredients; index na gtin\_upc.
+% food\_category: id, name
+% Popis: Referenční číselník potravin upravený pro potřeby aplikace.
+%        Surová data z FDC (tabulky raw\_*) byla po importu odstraněna.
+
+\subsubsection{Tabulky \texttt{nutrient}, \texttt{nutrient\_value}, \texttt{portion}}
+% Odvozeny z datové sady FoodData Central~\cite{usda2024fdc}.
+% nutrient: id, name, unit, nutrient\_nbr
+% nutrient\_value: food\_id (FK → food), nutrient\_id, amount; index na food\_id.
+% portion: id, food\_id (FK → food), gram\_weight, portion\_amount,
+%          portion\_unit, modifier; index na food\_id.
+% Popis: Nutriční hodnoty a~porcovací jednotky pro každou potravinu.
+
+\subsubsection{Tabulky tréninků}
+% Migrace: 25-09-19.
+% workout: id (PK, uuid), user\_id (FK → user),
+%          workout\_template\_id (FK → workout\_template, nullable),
+%          start\_date (timestamptz), end\_date (timestamptz, nullable),
+%          label (text[]), notes (text)
+% workout\_set: id (PK, uuid), workout\_id (FK → workout, CASCADE DELETE),
+%   exercise\_id (FK → exercise), seq\_number (int, UNIQUE per workout),
+%   weight (numeric), weight\_unit\_id (FK → weight\_unit),
+%   repetitions (int), rir (int), rest\_time (interval),
+%   notes (text), style\_id (FK → set\_style), set\_type\_id (FK → set\_type)
+% workout\_template / template\_workout\_set: shodná struktura bez weight
+%   a weight\_unit\_id; šablony neobsahují skutečné váhy.
+
+\subsubsection{Referenční číselníky}
+% weight\_unit: id (serial PK), name (UNIQUE), gram\_conversion\_factor
+% length\_unit: id (serial PK), name (UNIQUE), meter\_conversion\_factor
+% activity\_level: id (serial PK), name, description, min\_factor, max\_factor
+% exercise: id (uuid PK), exercise\_type\_id (FK), exercise\_variant\_id (FK), UNIQUE(type, variant)
+% exercise\_type: id, name (UNIQUE)
+% exercise\_variant: id, name (UNIQUE)
+% muscle: id, name, action, parent\_id (self-referencing FK)
+% set\_style: id (uuid PK), name (UNIQUE)
+% set\_type: id (uuid PK), name (UNIQUE)
+% Popis: Statické číselníky naplněné při inicializaci databáze.
 
 % -----------------------------------------------------------------------
 \section{Offline režim a synchronizace}
