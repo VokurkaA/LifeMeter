@@ -57,11 +57,11 @@
 \include{meta/prohlaseni}
 \include{meta/podekovani}
 \include{meta/resume}
-
-\pagenumbering{arabic}
-\setcounter{page}{6}
-
 \include{meta/obsah}
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{8}
 
 \include{text/01_uvod}
 \include{text/02_teoreticka_cast}
@@ -70,15 +70,22 @@
 \include{text/05_diskuze}
 \include{text/06_zaver}
 
-\printbibliography
-\listoffigures
-\listoftables
+\clearpage
+\chapter*{Seznam příloh}
+\addcontentsline{toc}{chapter}{Seznam příloh}
 
 \appendix
+\renewcommand{\thesection}{\Alph{section}}
+\setcounter{section}{0}
+
 \include{prilohy/diagramy}
+
 \include{prilohy/tabulky}
+
 \include{prilohy/schemata}
+
 \include{prilohy/api_dokumentace}
+
 \include{prilohy/instalacni_navod}
 
 \end{document}
