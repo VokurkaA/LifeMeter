@@ -1,0 +1,8 @@
+\chapter*{Úvod}
+\addcontentsline{toc}{chapter}{Úvod}
+
+Sledování zdravotních metrik se v~posledních letech stalo běžnou součástí každodenního života stále většího počtu lidí. Rozšíření chytrých telefonů a~nositelných zařízení umožnilo sbírat data o~fyzické aktivitě, výživě či spánku způsobem, který byl dříve dostupný pouze ve specializovaných zařízeních. Zájem o~oblast takzvaného \textit{quantified self} -- tedy systematického zaznamenávání vlastních biologických a~behaviorálních dat za účelem osobního rozvoje -- neustále roste~\cite{swan2013quantified}.
+
+Stávající řešení na trhu (např. MyFitnessPal, Google Fit či Hevy) se často zaměřují jen na dílčí aspekty zdraví a~uživatel je nucen přecházet mezi více nepropojenými aplikacemi, mnohdy s~omezenými funkcemi v~neplacených verzích. Cílem tohoto maturitního projektu je proto návrh a~implementace aplikace \textit{LifeMeter}, která usiluje o~centralizaci sledovaných metrik (fyzické aktivity, výživa, spánek, hmotnost) do jediného prostředí s~přehlednou domovskou obrazovkou.
+
+Mobilní klient pro systémy Android a~iOS je vyvinut pomocí frameworků React Native~\cite{reactnative} a~Expo~\cite{expo}. Synchronizaci dat ze systémových úložišť lokálních zařízení zajišťují rozhraní Health Connect a~HealthKit. Serverová část, komunikující s~klientem přes REST~API, je postavena na moderním běhovém prostředí Bun~\cite{bun} s~využitím frameworku Hono a~relační databáze PostgreSQL. Celý backendový systém je kontejnerizován v~prostředí Docker a~nasazen na platformě Oracle Cloud.
