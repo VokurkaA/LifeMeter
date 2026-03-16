@@ -14,6 +14,7 @@
 \usepackage{geometry}
 \usepackage{pdfpages}
 \usepackage{titlesec}
+\usepackage{setspace}
 \usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
 
 \addbibresource{bibliography/references.bib}
@@ -24,10 +25,11 @@
     right=2.5cm,
     top=3cm,
     bottom=3cm
-    }
+}
     
 \titleformat{\chapter}[hang]{\huge\bfseries}{\thechapter.}{0.1em}{}
-\renewcommand{\baselinestretch}{1.2}
+\setstretch{1.2} 
+
 \renewcommand{\figurename}{Obr.}
 \renewcommand{\tablename}{Tab.}
 
@@ -48,7 +50,6 @@
 
 \input{metadata.tex}
 
-
 \begin{document}
 \pagenumbering{gobble}
 
@@ -59,7 +60,6 @@
 \include{meta/resume}
 \include{meta/obsah}
 
-\clearpage
 \pagenumbering{arabic}
 \setcounter{page}{8}
 
@@ -70,7 +70,15 @@
 \include{text/05_diskuze}
 \include{text/06_zaver}
 
-\clearpage
+\addcontentsline{toc}{chapter}{Literatura}
+\printbibliography[title=Literatura]
+
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+
+\addcontentsline{toc}{chapter}{\listtablename}
+\listoftables
+
 \chapter*{Seznam příloh}
 \addcontentsline{toc}{chapter}{Seznam příloh}
 
