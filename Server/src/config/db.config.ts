@@ -1,35 +1,39 @@
-import {Pool} from 'pg';
-import {logger} from "@/services/logger.service";
+import { Pool } from "pg";
+import { createLogger } from "@/services/logger.service";
+
+const log = createLogger("Database");
 
 export const config = {
-    user: process.env.POSTGRES_USER,
-    host: process.env.POSTGRES_HOST || 'localhost',
-    password: process.env.POSTGRES_PASSWORD,
-    dbName: process.env.POSTGRES_DB,
-    port: parseInt(process.env.POSTGRES_PORT || '5432')
+  user: process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST || "localhost",
+  password: process.env.POSTGRES_PASSWORD,
+  dbName: process.env.POSTGRES_DB,
+  port: parseInt(process.env.POSTGRES_PORT || "5432"),
 };
 
 export const pool = new Pool({
-    user: config.user,
-    host: config.host,
-    database: config.dbName,
-    password: config.password,
-    port: config.port,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000
+  user: config.user,
+  host: config.host,
+  database: config.dbName,
+  password: config.password,
+  port: config.port,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
-pool.on('error', (err: any) => {
-    logger.error('Unexpected error on idle client', err);
-    process.exit(-1);
+pool.on("error", (err: any) => {
+  log.error("Unexpected error on idle client", {
+    error: err,
+  });
+  process.exit(-1);
 });
 
 (async () => {
-    try {
-        await pool.query('SELECT 1');
-        logger.log('Database connection successful');
-    } catch (error) {
-        logger.critical('Error executing query', error);
-    }
+  try {
+    await pool.query("SELECT 1");
+    log.log("Database connection successful");
+  } catch (error) {
+    log.critical("Error executing query", { error });
+  }
 })();

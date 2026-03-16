@@ -1,5 +1,7 @@
 import { createMiddleware } from "hono/factory";
-import { logger } from "@/services/logger.service";
+import { createLogger } from "@/services/logger.service";
+
+const log = createLogger("HTTP");
 
 export const requestLogger = createMiddleware(async (c, next) => {
   const start = performance.now();
@@ -15,23 +17,22 @@ export const requestLogger = createMiddleware(async (c, next) => {
   const duration = (end - start).toFixed(2);
   const status = c.res.status;
 
+  const pathObj = new URL(url, "http://localhost");
+  const cleanUrl = pathObj.pathname + pathObj.search;
+
+  const logData = {
+    status,
+    duration: `${duration}ms`,
+    ip,
+  };
+
+  const message = `${method} ${cleanUrl}`;
+
   if (status >= 500) {
-    logger.error(`[HTTP] ${method} ${url}`, {
-      status,
-      duration: `${duration}ms`,
-      ip,
-    });
+    log.error(message, logData);
   } else if (status >= 400) {
-    logger.warn(`[HTTP] ${method} ${url}`, {
-      status,
-      duration: `${duration}ms`,
-      ip,
-    });
+    log.warn(message, logData);
   } else {
-    logger.log(`[HTTP] ${method} ${url}`, {
-      status,
-      duration: `${duration}ms`,
-      ip,
-    });
+    log.log(message, logData);
   }
 });
