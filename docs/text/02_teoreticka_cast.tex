@@ -1,5 +1,169 @@
 \chapter{Teoretická část}
 
 \section{Současný stav}
+
+Moderní mobilní operační systémy poskytují vývojářům třetích stran standardizovaná
+rozhraní pro přístup ke zdravotním datům uloženým v~centralizovaném systémovém
+úložišti. Na platformě Android tuto roli od verze Android~8 zastává Health
+Connect~\cite{healthconnect2024}, na platformě iOS pak HealthKit~\cite{healthkit2024},
+dostupný od verze iOS~8. Obě rozhraní fungují na principu zprostředkování --
+aplikace nezíská přímý přístup k~datům jiných aplikací, nýbrž čte z~a zapisuje do
+sdíleného úložiště, přičemž uživatel musí explicitně udělit oprávnění ke každému
+datovému typu zvlášť. Tento model výrazně zjednodušuje integraci mezi aplikacemi
+(sledování kroků, chytré hodinky, fitness tracker) a~eliminuje nutnost vytvářet
+proprietární synchronizační protokoly.
+
+Klíčovým modelem při návrhu mobilních aplikací závislých na vzdáleném serveru
+je přístup \textit{offline-first}~\cite{offlinefirst2015}. Mobilní zařízení jsou
+ze své podstaty vystavena nestabilnímu nebo zcela chybějícímu síťovému připojení,
+proto robustní aplikace nepředpokládá nepřetržitou konektivitu, nýbrž primárně
+pracuje s~lokálně uloženými daty a~se serverem se synchronizuje, jakmile je připojení
+k~dispozici. Na platformě React Native je standardním řešením pro rychlé lokální
+úložiště knihovna MMKV~\cite{mmkv2024}, která využívá nativní implementaci ve formě
+sdílené paměti mapované na soubor a~dosahuje výrazně nižší latence než
+\texttt{AsyncStorage}.
+
+Komunikace mezi mobilním klientem a serverovou částí je v současných aplikacích
+zpravidla realizována prostřednictvím architektury REST 
+(\textit{Representational State Transfer})~\cite{fielding2000rest}. REST definuje
+sadu architektonických omezení -- bezstavovost, jednotné rozhraní, vrstvený systém --
+která vedou k~interoperabilním, škálovatelným a~snadno testovatelným API. Každý
+zdroj je identifikován URL adresou, operace nad ním jsou vyjádřeny standardními
+HTTP metodami (GET, POST, PUT, DELETE) a~data jsou přenášena zpravidla ve formátu
+JSON.
+
+Autentizace uživatelů v~moderních webových a~mobilních aplikacích se nejčastěji
+řeší dvěma přístupy. Prvním jsou tokeny JWT (\textit{JSON Web Token}), které jsou
+bezstavové a~snadno horizontálně škálovatelné, avšak jejich uložení na straně
+klienta přináší bezpečnostní rizika, pokud jsou uchovávány v~přístupném úložišti.
+Druhým přístupem jsou stavové relace spravované serverem s~identifikátorem
+uloženým v~\texttt{HttpOnly} cookie, která není přístupná JavaScriptovým kódem,
+čímž je eliminováno riziko krádeže tokenu skriptem třetí strany~\cite{owasp2024mobile}.
+
 \section{Existující řešení}
+
+Na trhu existuje řada aplikací zaměřených na sledování zdravotních metrik.
+Níže jsou popsána nejrozšířenější řešení včetně jejich omezení, jež vedla
+k~rozhodnutí vytvořit vlastní aplikaci.
+
+\subsection{Google Fit}
+
+Google Fit~\cite{googlefit2024} je platforma vyvinutá společností Google,
+integrovaná přímo do operačního systému Android. Automaticky zaznamenává pohybovou
+aktivitu prostřednictvím senzorů zařízení a~slouží jako centrální úložiště
+zdravotních dat pro ekosystém Android. Aplikace nabízí jednoduché přehledy
+a~cíle, avšak detailní sledování výživy ani spánku nativně nepodporuje --
+tyto oblasti vyžadují napojení na specializované aplikace třetích stran.
+
+\subsection{Apple Health}
+
+Apple Health~\cite{applehealth2024} zastává v~ekosystému iOS analogickou roli
+jako Google Fit na Androidu -- jde o~systémové úložiště zdravotních dat přístupné
+přes rozhraní HealthKit. Aplikace agreguje záznamy z~různých zdrojů a~zobrazuje
+je v~přehledném rozhraní. Platforma je dostupná výhradně na zařízeních Apple
+a~funguje primárně jako datový hub; vlastní zadávání výživy nebo tréninkových
+plánů není nativně podporováno.
+
+\subsection{MyFitnessPal}
+
+MyFitnessPal~\cite{myfitnesspal2024} je jednou z~nejrozšířenějších aplikací pro
+sledování výživy na světě. Disponuje rozsáhlou databází potravin, podporou
+skenování čárových kódů a~integrací s~fitness zařízeními. Sledování tréninkového
+zatížení je omezeno na kalorický výdej bez možnosti podrobné analýzy silových
+tréninků. Velká část funkcionalit -- pokročilé makroanalýzy, plánování, hloubkové
+statistiky -- je dostupná pouze v~placené verzi Premium.
+
+\subsection{Cronometer}
+
+Cronometer~\cite{cronometer2024} se od konkurence odlišuje důrazem na nutriční
+přesnost. Databáze potravin vychází primárně z~ověřených vědeckých zdrojů
+(USDA, NCCDB) a~aplikace sleduje vedle makroživin také mikroživiny, vitamíny
+a~minerály. Sledování fyzické aktivity a~spánku je v~základní verzi omezeno;
+pokročilé funkce jsou vázány na placenou verzi Gold.
+
+\subsection{Sleep Cycle}
+
+Sleep Cycle~\cite{sleepcycle2024} je aplikace specializovaná výhradně na analýzu
+kvality spánku. Ke sledování využívá mikrofon zařízení nebo propojení s~chytrými
+hodinkami a~na základě detekce pohybu a~zvukových vzorů odhaduje spánkové fáze.
+Nabízí chytrý budík probouzející uživatele v~nejlehčí fázi spánku. Aplikace
+nenabízí žádnou integraci se sledováním výživy či pohybu a~pokročilé statistiky
+jsou dostupné pouze v~rámci předplatného.
+
 \section{Volba nástrojů a zdůvodnění}
+
+Výběr technologií byl proveden s~ohledem na požadavky projektu,
+a osobní znalostí s některými z technologií.
+
+\subsection{React Native a Expo}
+
+Pro vývoj mobilního částí byl zvolen framework React Native~\cite{reactnative}
+v~kombinaci s~platformou Expo~\cite{expo}. React Native umožňuje sestavit jedinou
+sdílenou kódovou základnu v~jazyce JavaScript/TypeScript, ze které jsou generovány nativní
+aplikace pro Android i~iOS. Tato vlastnost byla klíčovým kritériem výběru --
+projekt byl sice primárně navrhován pro Android, avšak podpora iOS je zachována
+pro případnou budoucí expanzi bez nutnosti přepisovat aplikaci od základu.
+Rozhodujícím faktorem byla také předchozí znalost ekosystému React, jež výrazně
+zkrátila dobu potřebnou k~osvojení frameworku.
+
+Jako alternativy připadaly v~úvahu framework Flutter a~nativní vývoj v~jazycích
+Kotlin resp. Swift. Flutter sice nabízí srovnatelnou multiplatformnost, avšak
+vyžaduje znalost jazyka Dart, který nebylo možné sdílet se serverovou částí.
+Nativní vývoj by poskytl maximální přístup k~systémovým API za cenu nutnosti
+udržovat dvě zcela oddělené kódové základny.
+
+Expo bylo zvoleno jako současný standard React Native vývoje. Managed workflow
+zjednodušuje konfiguraci nativních závislostí, nástroj EAS Build zajišťuje
+automatizované sestavení v~rámci CI/CD pipeline na GitHub Actions a~Expo SDK
+poskytuje stabilní přístup k~nativním modulům -- včetně integrace s~rozhraními
+Health Connect~\cite{healthconnect2024} a~HealthKit~\cite{healthkit2024}.
+
+\subsection{Bun a Hono}
+
+Serverová část je postavena na rozhraní Bun~\cite{bun} s~využitím
+webového frameworku Hono~\cite{hono2024}. Bun je moderní JavaScriptový runtime
+s~výrazně vyšším výkonem oproti Node.js -- v~porovnání s Node.js dosahuje násobně
+kratších dob startu i~vyšší propustnosti HTTP požadavků~\cite{bunvsnode2025}. Klíčovou
+výhodou je vestavěná podpora jazyka TypeScript bez nutnosti transpilace, což
+zjednodušuje vývojový proces při zachování plné kompatibility s~ekosystémem npm.
+
+Hono je odlehčený webový framework optimalizovaný pro serverová prostředí.
+Vyznačuje se minimálními závislostmi, typově bezpečným směrováním požadavků
+a~přímočarým API. Kombinace Bun + Hono byla zvolena jako moderní alternativa
+ke standardnímu stacku Node.js + Express.
+
+\subsection{PostgreSQL}
+
+Jako databázový systém byla zvolena databáze PostgreSQL~\cite{postgresql2024}.
+Datový model aplikace LifeMeter zahrnuje vzájemně provázané entity (uživatelé,
+jídla, tréninky, spánkové záznamy), jejichž vztahy jsou přirozeně vyjádřeny
+relačním schématem s~cizími klíči a~referenční integritou. Relační databáze
+představuje přirozenější volbu oproti dokumentovým databázím (MongoDB) nebo
+embedded řešením (SQLite), která by nebyla vhodná pro serverovou část
+s~souběžnými přístupy více uživatelů.
+
+\subsection{Better Auth}
+
+Pro správu autentizace a~uživatelských relací byla zvolena knihovna Better
+Auth~\cite{betterauth2024}. Tato volba byla upřednostněna před vlastní
+implementací i~před cloudovými řešeními typu Firebase Authentication. Better
+Auth je navržen s~nativní podporou jazyka TypeScript a~poskytuje přímočarou
+integraci s~frameworkem Hono prostřednictvím dedikovaného adaptéru.
+Jako self-hosted řešení nevyžaduje závislost na infrastruktuře třetí strany,
+čímž je zajištěna plná kontrola nad uživatelskými daty. Autentizace je
+realizována prostřednictvím \texttt{HttpOnly} cookies se stavovými relacemi
+na serveru, v~souladu s~doporučeními OWASP~\cite{owasp2024mobile}.
+
+\subsection{Docker a Oracle Cloud}
+
+Celý backendový systém je kontejnerizován pomocí nástroje Docker
+Compose~\cite{docker2024} a~nasazen na instanci Oracle Cloud Infrastructure.
+Docker Compose umožňuje deklarativní definici vícekomponentního prostředí
+(API server, databáze, reverzní proxy) v~jediném konfiguračním souboru,
+čímž zajišťuje reprodukovatelnost nasazení a~jednoduchou správu závislostí
+mezi službami.
+
+Oracle Cloud byl zvolen díky programu Always Free, který zahrnuje bezplatnou
+instanci s~architekturou ARM s~dostatečnými výpočetními prostředky pro provoz
+projektu. Na rozdíl od PaaS řešení poskytuje vlastní virtuální stroj plnou
+kontrolu nad konfigurací prostředí a~správou uložených dat.
