@@ -3,6 +3,76 @@ import type { LogLevel } from "@/types/config.types";
 import { appendFile } from "node:fs/promises";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
+import { Database } from "bun:sqlite";
+import { EventEmitter } from "node:events";
+
+try {
+  mkdirSync(loggerConfig.logDir, { recursive: true });
+} catch (err) {
+}
+
+const db = new Database(path.join(loggerConfig.logDir, "system_logs.sqlite"), { create: true });
+db.exec("PRAGMA journal_mode = WAL;");
+db.exec(`
+  CREATE TABLE IF NOT EXISTS logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    level TEXT,
+    message TEXT,
+    context TEXT,
+    created_at TEXT
+  )
+`);
+
+const insertLogStmt = db.prepare("INSERT INTO logs (level, message, context, created_at) VALUES (?, ?, ?, ?)");
+
+export const logEmitter = new EventEmitter();
+
+export function getRecentLogs(limit: number) {
+  return db.query("SELECT * FROM logs ORDER BY created_at DESC LIMIT ?").all(limit);
+}
+
+export function getLogs(filters: {
+  dateStart?: string;
+  dateEnd?: string;
+  context?: string;
+  level?: string;
+  limit: number;
+  offset: number;
+}) {
+  let query = "SELECT * FROM logs WHERE 1=1";
+  let countQuery = "SELECT COUNT(*) as total FROM logs WHERE 1=1";
+  const params: any[] = [];
+
+  if (filters.dateStart) {
+    query += " AND created_at >= ?";
+    countQuery += " AND created_at >= ?";
+    params.push(filters.dateStart);
+  }
+  if (filters.dateEnd) {
+    query += " AND created_at <= ?";
+    countQuery += " AND created_at <= ?";
+    params.push(filters.dateEnd);
+  }
+  if (filters.context) {
+    query += " AND context = ?";
+    countQuery += " AND context = ?";
+    params.push(filters.context);
+  }
+  if (filters.level) {
+    query += " AND level = ?";
+    countQuery += " AND level = ?";
+    params.push(filters.level);
+  }
+
+  const total = (db.prepare(countQuery).get(...params) as { total: number }).total;
+
+  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+  params.push(filters.limit, filters.offset);
+
+  const rows = db.prepare(query).all(...params);
+
+  return { rows, total };
+}
 
 const LEVEL_PRIORITY: Record<LogLevel, number> = {
   debug: 0,
@@ -164,8 +234,25 @@ class LoggerService {
         console.error("FAILED TO WRITE TO LOG FILE:", err);
       }
     }
+
+    const context = meta?.context || "App";
+    const timestamp = new Date().toISOString();
+    try {
+      const result = insertLogStmt.run(level, message, context, timestamp);
+
+      logEmitter.emit("new-log", {
+        id: result.lastInsertRowid.toString(),
+        level,
+        message,
+        context,
+        created_at: timestamp
+      });
+    } catch (err) {
+      console.error("FAILED TO WRITE TO SQLITE LOGS:", err);
+    }
   }
 }
+
 
 export const logger = new LoggerService();
 

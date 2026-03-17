@@ -169,37 +169,50 @@ class FoodService {
     }
 
     async addUserFood(userId: string, userFoods: UserFood[], mealName: string | undefined, eatenAt: string) {
-        const mealQuery = `
-            INSERT INTO user_meal (user_id, eaten_at, name)
-            VALUES ($1, $2, $3)
-            RETURNING id, user_id, eaten_at, name
-        `
-        const mealQueryResult = await pool.query<UserMeal>(mealQuery, [userId, eatenAt, mealName]);
-        const meal = mealQueryResult.rows[0];
-        if (!meal.id) throw new Error("Failed to initialize user meal.");
+        const client = await pool.connect();
+        let meal: UserMeal;
+        let foods: UserFood[];
+        try {
+            await client.query("BEGIN");
+            const mealQuery = `
+                INSERT INTO user_meal (user_id, eaten_at, name)
+                VALUES ($1, $2, $3)
+                RETURNING id, user_id, eaten_at, name
+            `
+            const mealQueryResult = await client.query<UserMeal>(mealQuery, [userId, eatenAt, mealName]);
+            meal = mealQueryResult.rows[0];
+            if (!meal.id) throw new Error("Failed to initialize user meal.");
 
-        const values: (string | number | null)[] = [];
-        const valuePlaceholders: string[] = [];
-        let paramIndex = 1;
+            const values: (string | number | null)[] = [];
+            const valuePlaceholders: string[] = [];
+            let paramIndex = 1;
 
-        for (const food of userFoods) {
-            const placeholders = [
-                `$${paramIndex++}`, // user_meal_id
-                `$${paramIndex++}`, // food_id
-                `$${paramIndex++}`, // total_grams
-                `$${paramIndex++}`, // quantity
-                `$${paramIndex++}`, // portion_id
-                `$${paramIndex++}`  // description
-            ];
-            valuePlaceholders.push(`(${placeholders.join(', ')})`);
+            for (const food of userFoods) {
+                const placeholders = [
+                    `$${paramIndex++}`, // user_meal_id
+                    `$${paramIndex++}`, // food_id
+                    `$${paramIndex++}`, // total_grams
+                    `$${paramIndex++}`, // quantity
+                    `$${paramIndex++}`, // portion_id
+                    `$${paramIndex++}`  // description
+                ];
+                valuePlaceholders.push(`(${placeholders.join(', ')})`);
 
-            values.push(meal.id, food.food_id, food.total_grams, food.quantity, food.portion_id ?? null, food.description ?? null);
+                values.push(meal.id, food.food_id, food.total_grams, food.quantity, food.portion_id ?? null, food.description ?? null);
+            }
+
+            const foodQuery = `INSERT INTO user_food (user_meal_id, food_id, total_grams, quantity, portion_id, description) VALUES ${valuePlaceholders.join(', ')} 
+                               RETURNING id, user_meal_id, food_id, total_grams, quantity, portion_id, description`;
+            const foodRes = await client.query<UserFood>(foodQuery, values);
+            foods = foodRes.rows;
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
         }
-
-        const foodQuery = `INSERT INTO user_food (user_meal_id, food_id, total_grams, quantity, portion_id, description) VALUES ${valuePlaceholders.join(', ')} 
-                           RETURNING id, user_meal_id, food_id, total_grams, quantity, portion_id, description`;
-        const foods = await pool.query<UserFood>(foodQuery, values);
-        return {meal, food: foods.rows};
+        return {meal, food: foods};
     }
 
     async deleteUserMeal(userId: string, mealId: string): Promise<void> {
@@ -224,15 +237,6 @@ class FoodService {
             description?: string | null;
         }>;
     }): Promise<FullUserMeal> {
-        const existsQuery = `
-            SELECT id
-            FROM user_meal
-            WHERE id = $1
-              AND user_id = $2
-        `;
-        const exists = await pool.query<{ id: string }>(existsQuery, [mealId, userId]);
-        if (exists.rows.length === 0) throw new Error("Meal not found");
-
         const parsed = mealUpdateSchema.safeParse(data);
         if (!parsed.success) {
             const msg = parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("; ");
@@ -240,43 +244,62 @@ class FoodService {
         }
         const updateData = parsed.data;
 
-        if (updateData.name !== undefined || updateData.eaten_at !== undefined) {
-            const updateMealQuery = `
-                UPDATE user_meal
-                SET name     = COALESCE($3, name),
-                    eaten_at = COALESCE($4, eaten_at)
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+
+            const existsQuery = `
+                SELECT id
+                FROM user_meal
                 WHERE id = $1
                   AND user_id = $2
-                RETURNING id, user_id, eaten_at, name
             `;
-            await pool.query<UserMeal>(updateMealQuery, [mealId, userId, updateData.name ?? null, updateData.eaten_at ?? null]);
-        }
+            const exists = await client.query<{ id: string }>(existsQuery, [mealId, userId]);
+            if (exists.rows.length === 0) throw new Error("Meal not found");
 
-        if (updateData.items !== undefined) {
-            await pool.query(`
-                DELETE
-                FROM user_food
-                WHERE user_meal_id = $1
-            `, [mealId]);
-
-            if (updateData.items.length > 0) {
-                const values: (string | number | null)[] = [];
-                const placeholders: string[] = [];
-                let p = 1;
-
-                for (const item of updateData.items) {
-                    placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
-                    values.push(mealId, item.food_id, item.total_grams, item.quantity ?? 1, item.portion_id ?? null, item.description ?? null);
-                }
-
-                const insertQuery = `
-                    INSERT INTO user_food (user_meal_id, food_id, total_grams, quantity, portion_id, description) VALUES
-                        ${placeholders.join(", ")}
+            if (updateData.name !== undefined || updateData.eaten_at !== undefined) {
+                const updateMealQuery = `
+                    UPDATE user_meal
+                    SET name     = COALESCE($3, name),
+                        eaten_at = COALESCE($4, eaten_at)
+                    WHERE id = $1
+                      AND user_id = $2
+                    RETURNING id, user_id, eaten_at, name
                 `;
-                await pool.query(insertQuery, values);
+                await client.query<UserMeal>(updateMealQuery, [mealId, userId, updateData.name ?? null, updateData.eaten_at ?? null]);
             }
-        }
 
+            if (updateData.items !== undefined) {
+                await client.query(`
+                    DELETE
+                    FROM user_food
+                    WHERE user_meal_id = $1
+                `, [mealId]);
+
+                if (updateData.items.length > 0) {
+                    const values: (string | number | null)[] = [];
+                    const placeholders: string[] = [];
+                    let p = 1;
+
+                    for (const item of updateData.items) {
+                        placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
+                        values.push(mealId, item.food_id, item.total_grams, item.quantity ?? 1, item.portion_id ?? null, item.description ?? null);
+                    }
+
+                    const insertQuery = `
+                        INSERT INTO user_food (user_meal_id, food_id, total_grams, quantity, portion_id, description) VALUES
+                            ${placeholders.join(", ")}
+                    `;
+                    await client.query(insertQuery, values);
+                }
+            }
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
         return this.getUserMealById(userId, mealId);
     }
 

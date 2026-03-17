@@ -6,14 +6,16 @@ import type { AuthSession, AuthUser } from "@/types/auth.types";
 import { logger } from "@/services/logger.service";
 import { requestLogger } from "@/middleware/logger";
 import { HTTPException } from "hono/http-exception";
+import { upgradeWebSocket, websocket } from "hono/bun";
+import { secureHeaders } from "hono/secure-headers";
 
 export const app = new Hono<{
-  Variables: {
-    user: AuthUser | null;
-    session: AuthSession | null;
-  };
+  Variables: { user: AuthUser | null; session: AuthSession | null };
 }>();
 
+export { upgradeWebSocket };
+
+app.use(secureHeaders());
 app.use(trimTrailingSlash());
 app.use(requestLogger);
 
@@ -110,5 +112,6 @@ export function startServer(port = process.env.PORT) {
   Bun.serve({
     port,
     fetch: app.fetch,
+    websocket,
   });
 }

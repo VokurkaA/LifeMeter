@@ -64,77 +64,101 @@ class WorkoutService {
     async addUserWorkoutTemplate(userId: string, data: {
         name: string; description?: string | null; label?: string[] | null; sets: InputTemplateWorkoutSet[];
     }): Promise<FullWorkoutTemplate> {
-        const templateQuery = `
-            INSERT INTO workout_template (user_id, name, description, label)
-            VALUES ($1, $2, $3, $4)
-            RETURNING *
-        `;
-        const templateRes = await pool.query<WorkoutTemplate>(templateQuery, [userId, data.name, data.description ?? null, data.label ?? null]);
-        const template = templateRes.rows[0];
-
-        if (data.sets && data.sets.length > 0) {
-            const values: any[] = [];
-            const placeholders: string[] = [];
-            let p = 1;
-
-            for (const set of data.sets) {
-                placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
-                values.push(template.id, set.exercise_id, set.seq_number, set.repetitions ?? null, set.rir ?? null, set.rest_time ?? null, set.notes ?? null, set.style_id ?? null, set.set_type_id ?? null);
-            }
-
-            const setQuery = `
-                INSERT INTO template_workout_set
-                (workout_template_id, exercise_id, seq_number, repetitions, rir, rest_time, notes, style_id,
-                 set_type_id) VALUES ${placeholders.join(", ")}
+        const client = await pool.connect();
+        let templateId: string;
+        try {
+            await client.query("BEGIN");
+            const templateQuery = `
+                INSERT INTO workout_template (user_id, name, description, label)
+                VALUES ($1, $2, $3, $4)
+                RETURNING *
             `;
-            await pool.query(setQuery, values);
-        }
+            const templateRes = await client.query<WorkoutTemplate>(templateQuery, [userId, data.name, data.description ?? null, data.label ?? null]);
+            const template = templateRes.rows[0];
+            templateId = template.id;
 
-        return this.getUserWorkoutTemplateById(userId, template.id);
-    }
-
-    async updateUserWorkoutTemplate(userId: string, templateId: string, data: {
-        name?: string; description?: string | null; label?: string[] | null; sets?: InputTemplateWorkoutSet[];
-    }): Promise<FullWorkoutTemplate> {
-        await this.getUserWorkoutTemplateById(userId, templateId);
-
-        if (data.name !== undefined || data.description !== undefined || data.label !== undefined) {
-            const updateQuery = `
-                UPDATE workout_template
-                SET name        = COALESCE($3, name),
-                    description = COALESCE($4, description),
-                    label       = COALESCE($5, label),
-                    updated_at  = now()
-                WHERE id = $1
-                  AND user_id = $2
-            `;
-            await pool.query(updateQuery, [templateId, userId, data.name, data.description, data.label]);
-        }
-
-        if (data.sets !== undefined) {
-            await pool.query(`DELETE
-                              FROM template_workout_set
-                              WHERE workout_template_id = $1`, [templateId]);
-
-            if (data.sets.length > 0) {
+            if (data.sets && data.sets.length > 0) {
                 const values: any[] = [];
                 const placeholders: string[] = [];
                 let p = 1;
 
                 for (const set of data.sets) {
                     placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
-                    values.push(templateId, set.exercise_id, set.seq_number, set.repetitions ?? null, set.rir ?? null, set.rest_time ?? null, set.notes ?? null, set.style_id ?? null, set.set_type_id ?? null);
+                    values.push(template.id, set.exercise_id, set.seq_number, set.repetitions ?? null, set.rir ?? null, set.rest_time ?? null, set.notes ?? null, set.style_id ?? null, set.set_type_id ?? null);
                 }
 
-                const insertQuery = `
+                const setQuery = `
                     INSERT INTO template_workout_set
                     (workout_template_id, exercise_id, seq_number, repetitions, rir, rest_time, notes, style_id,
                      set_type_id) VALUES ${placeholders.join(", ")}
                 `;
-                await pool.query(insertQuery, values);
+                await client.query(setQuery, values);
             }
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
         }
+        return this.getUserWorkoutTemplateById(userId, templateId);
+    }
 
+    async updateUserWorkoutTemplate(userId: string, templateId: string, data: {
+        name?: string; description?: string | null; label?: string[] | null; sets?: InputTemplateWorkoutSet[];
+    }): Promise<FullWorkoutTemplate> {
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+
+            const exists = await client.query("SELECT 1 FROM workout_template WHERE id = $1 AND user_id = $2", [templateId, userId]);
+            if (exists.rowCount === 0) {
+                throw new Error("Workout template not found");
+            }
+
+            if (data.name !== undefined || data.description !== undefined || data.label !== undefined) {
+                const updateQuery = `
+                    UPDATE workout_template
+                    SET name        = COALESCE($3, name),
+                        description = COALESCE($4, description),
+                        label       = COALESCE($5, label),
+                        updated_at  = now()
+                    WHERE id = $1
+                      AND user_id = $2
+                `;
+                await client.query(updateQuery, [templateId, userId, data.name, data.description, data.label]);
+            }
+
+            if (data.sets !== undefined) {
+                await client.query(`DELETE
+                                  FROM template_workout_set
+                                  WHERE workout_template_id = $1`, [templateId]);
+
+                if (data.sets.length > 0) {
+                    const values: any[] = [];
+                    const placeholders: string[] = [];
+                    let p = 1;
+
+                    for (const set of data.sets) {
+                        placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
+                        values.push(templateId, set.exercise_id, set.seq_number, set.repetitions ?? null, set.rir ?? null, set.rest_time ?? null, set.notes ?? null, set.style_id ?? null, set.set_type_id ?? null);
+                    }
+
+                    const insertQuery = `
+                        INSERT INTO template_workout_set
+                        (workout_template_id, exercise_id, seq_number, repetitions, rir, rest_time, notes, style_id,
+                         set_type_id) VALUES ${placeholders.join(", ")}
+                    `;
+                    await client.query(insertQuery, values);
+                }
+            }
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
         return this.getUserWorkoutTemplateById(userId, templateId);
     }
 
@@ -201,33 +225,44 @@ class WorkoutService {
         notes?: string | null;
         sets: InputWorkoutSet[];
     }): Promise<FullWorkout> {
-        const workoutQuery = `
-            INSERT INTO workout (user_id, workout_template_id, start_date, end_date, label, notes)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING *
-        `;
-        const workoutRes = await pool.query<Workout>(workoutQuery, [userId, data.workout_template_id ?? null, data.start_date, data.end_date ?? null, data.label ?? null, data.notes ?? null]);
-        const workout = workoutRes.rows[0];
-
-        if (data.sets && data.sets.length > 0) {
-            const values: any[] = [];
-            const placeholders: string[] = [];
-            let p = 1;
-
-            for (const set of data.sets) {
-                placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
-                values.push(workout.id, set.exercise_id, set.seq_number, set.weight ?? null, set.weight_unit_id ?? null, set.repetitions, set.rir ?? null, set.rest_time ?? null, set.notes ?? null, set.style_id ?? null, set.set_type_id ?? null);
-            }
-
-            const setQuery = `
-                INSERT INTO workout_set
-                (workout_id, exercise_id, seq_number, weight, weight_unit_id, repetitions, rir, rest_time, notes,
-                 style_id, set_type_id) VALUES ${placeholders.join(", ")}
+        const client = await pool.connect();
+        let workoutId: string;
+        try {
+            await client.query("BEGIN");
+            const workoutQuery = `
+                INSERT INTO workout (user_id, workout_template_id, start_date, end_date, label, notes)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING *
             `;
-            await pool.query(setQuery, values);
-        }
+            const workoutRes = await client.query<Workout>(workoutQuery, [userId, data.workout_template_id ?? null, data.start_date, data.end_date ?? null, data.label ?? null, data.notes ?? null]);
+            const workout = workoutRes.rows[0];
+            workoutId = workout.id;
 
-        return this.getUserWorkoutById(userId, workout.id);
+            if (data.sets && data.sets.length > 0) {
+                const values: any[] = [];
+                const placeholders: string[] = [];
+                let p = 1;
+
+                for (const set of data.sets) {
+                    placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
+                    values.push(workout.id, set.exercise_id, set.seq_number, set.weight ?? null, set.weight_unit_id ?? null, set.repetitions, set.rir ?? null, set.rest_time ?? null, set.notes ?? null, set.style_id ?? null, set.set_type_id ?? null);
+                }
+
+                const setQuery = `
+                    INSERT INTO workout_set
+                    (workout_id, exercise_id, seq_number, weight, weight_unit_id, repetitions, rir, rest_time, notes,
+                     style_id, set_type_id) VALUES ${placeholders.join(", ")}
+                `;
+                await client.query(setQuery, values);
+            }
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
+        return this.getUserWorkoutById(userId, workoutId);
     }
 
     async updateUserWorkout(userId: string, workoutId: string, data: {
@@ -237,55 +272,78 @@ class WorkoutService {
         notes?: string | null;
         sets?: InputWorkoutSet[];
     }): Promise<FullWorkout> {
-        await this.getUserWorkoutById(userId, workoutId);
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
 
-        if (data.start_date !== undefined || data.end_date !== undefined || data.label !== undefined || data.notes !== undefined) {
-            const updateQuery = `
-                UPDATE workout
-                SET start_date = COALESCE($3, start_date),
-                    end_date   = COALESCE($4, end_date),
-                    label      = COALESCE($5, label),
-                    notes      = COALESCE($6, notes)
-                WHERE id = $1
-                  AND user_id = $2
-            `;
-            await pool.query(updateQuery, [workoutId, userId, data.start_date, data.end_date, data.label, data.notes]);
-        }
-
-        if (data.sets !== undefined) {
-            await pool.query(`DELETE
-                              FROM workout_set
-                              WHERE workout_id = $1`, [workoutId]);
-
-            if (data.sets.length > 0) {
-                const values: any[] = [];
-                const placeholders: string[] = [];
-                let p = 1;
-
-                for (const set of data.sets) {
-                    placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
-                    values.push(workoutId, set.exercise_id, set.seq_number, set.weight ?? null, set.weight_unit_id ?? null, set.repetitions, set.rir ?? null, set.rest_time ?? null, set.notes ?? null, set.style_id ?? null, set.set_type_id ?? null);
-                }
-
-                const insertQuery = `
-                    INSERT INTO workout_set
-                    (workout_id, exercise_id, seq_number, weight, weight_unit_id, repetitions, rir, rest_time, notes,
-                     style_id, set_type_id) VALUES ${placeholders.join(", ")}
-                `;
-                await pool.query(insertQuery, values);
+            const exists = await client.query("SELECT 1 FROM workout WHERE id = $1 AND user_id = $2", [workoutId, userId]);
+            if (exists.rowCount === 0) {
+                throw new Error("Workout not found");
             }
-        }
 
+            if (data.start_date !== undefined || data.end_date !== undefined || data.label !== undefined || data.notes !== undefined) {
+                const updateQuery = `
+                    UPDATE workout
+                    SET start_date = COALESCE($3, start_date),
+                        end_date   = COALESCE($4, end_date),
+                        label      = COALESCE($5, label),
+                        notes      = COALESCE($6, notes)
+                    WHERE id = $1
+                      AND user_id = $2
+                `;
+                await client.query(updateQuery, [workoutId, userId, data.start_date, data.end_date, data.label, data.notes]);
+            }
+
+            if (data.sets !== undefined) {
+                await client.query(`DELETE
+                                  FROM workout_set
+                                  WHERE workout_id = $1`, [workoutId]);
+
+                if (data.sets.length > 0) {
+                    const values: any[] = [];
+                    const placeholders: string[] = [];
+                    let p = 1;
+
+                    for (const set of data.sets) {
+                        placeholders.push(`($${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++}, $${p++})`);
+                        values.push(workoutId, set.exercise_id, set.seq_number, set.weight ?? null, set.weight_unit_id ?? null, set.repetitions, set.rir ?? null, set.rest_time ?? null, set.notes ?? null, set.style_id ?? null, set.set_type_id ?? null);
+                    }
+
+                    const insertQuery = `
+                        INSERT INTO workout_set
+                        (workout_id, exercise_id, seq_number, weight, weight_unit_id, repetitions, rir, rest_time, notes,
+                         style_id, set_type_id) VALUES ${placeholders.join(", ")}
+                    `;
+                    await client.query(insertQuery, values);
+                }
+            }
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
         return this.getUserWorkoutById(userId, workoutId);
     }
 
     async deleteUserWorkout(userId: string, workoutId: string): Promise<void> {
-        const exists = await pool.query('SELECT id FROM workout WHERE id = $1 AND user_id = $2', [workoutId, userId]);
-        if (exists.rowCount === 0) {
-            throw new Error("Workout not found");
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+            const exists = await client.query('SELECT id FROM workout WHERE id = $1 AND user_id = $2', [workoutId, userId]);
+            if (exists.rowCount === 0) {
+                throw new Error("Workout not found");
+            }
+            await client.query('DELETE FROM workout_set WHERE workout_id = $1', [workoutId]);
+            await client.query('DELETE FROM workout WHERE id = $1', [workoutId]);
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
         }
-        await pool.query('DELETE FROM workout_set WHERE workout_id = $1', [workoutId]);
-        await pool.query('DELETE FROM workout WHERE id = $1', [workoutId]);
     }
 
     async getExercises(): Promise<Exercise[]> {

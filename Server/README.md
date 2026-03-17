@@ -54,6 +54,7 @@ Better Auth handles session management via email+password. Every incoming reques
 **Protected routes** apply `requireAuth()` at the router level:
 - All `/api/food/*` routes
 - All `/api/user/*` routes (including nested sleep, meals, workouts, profile)
+- `/api/logs` (requires `admin` role)
 
 **Public routes** (no session required):
 - `/api/auth/*` — proxied directly to the better-auth handler
@@ -87,7 +88,7 @@ Base path: `/api`
 |--------|------|------|-------------|
 | GET/POST | `/api/auth/*` | no | Handled by better-auth handler |
 
-### Food (Public Food Metadata)
+### Food (Metadata)
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/food` | yes | Paginated list of food items |
@@ -159,6 +160,12 @@ Base path: `/api`
 | POST | `/api/user/data/log/weight` | yes | Log a weight measurement |
 | GET | `/api/user/data/log/weight/latest` | yes | Get latest weight log |
 | POST | `/api/user/data/log/height` | yes | Log a height measurement |
+
+### Logs (Admin Only)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/logs` | admin | Paginated list of system logs (supports filters) |
+| WS | `/api/logs` | admin | Real-time log stream via WebSocket |
 
 ## Data Shapes
 

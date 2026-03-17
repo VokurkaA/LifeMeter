@@ -3,6 +3,7 @@ import {foodRouter} from "./food.route";
 import {userRouter} from "@/routes/user/user.route";
 import type {AuthSession, AuthUser} from "@/types/auth.types";
 import {workoutRouter} from "@/routes/workout.route";
+import {logsRouter} from "./logs.route";
 
 export const router = new Hono<{ Variables: { user: AuthUser | null; session: AuthSession | null } }>();
 
@@ -131,6 +132,19 @@ router.get("/routes", (c) => {
                     POST_LOG_HEIGHT: [{ path: `${base}/user/data/log/height` }],
                 },
             },
+            logs: {
+                base: `${base}/logs`,
+                requiresAuth: true,
+                requiresAdmin: true,
+                endpoints: {
+                    GET: [
+                        { path: `${base}/logs`, query: ["page?", "limit?", "dateStart?", "dateEnd?", "context?", "level?"] },
+                    ],
+                    WS: [
+                        { path: `${base}/logs`, query: ["context?", "level?"] },
+                    ],
+                },
+            },
         },
     } as const;
 
@@ -139,4 +153,5 @@ router.get("/routes", (c) => {
 
 router.route("/food", foodRouter);
 router.route("/user", userRouter);
-router.route('/workout', workoutRouter)
+router.route('/workout', workoutRouter);
+router.route("/logs", logsRouter);
