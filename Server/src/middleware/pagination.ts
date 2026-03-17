@@ -10,12 +10,16 @@ export function pagination(options?: { pageParam?: string }) {
 
     return async (c: Context, next: Next) => {
         const rawPage = c.req.query(pageParam)
+        const rawLimit = c.req.query("limit")
         let page = parseInt(rawPage || "1", 10)
         if (isNaN(page) || page < 1) page = 1
 
-        const offset = (page - 1) * limit
+        let customLimit = parseInt(rawLimit || limit.toString(), 10)
+        if (isNaN(customLimit) || customLimit < 1) customLimit = limit
 
-        ;(c as any)[PAGINATION_SYMBOL] = {page, limit, offset} satisfies PaginationProps
+        const offset = (page - 1) * customLimit
+
+        ;(c as any)[PAGINATION_SYMBOL] = {page, limit: customLimit, offset} satisfies PaginationProps
         await next()
     }
 }

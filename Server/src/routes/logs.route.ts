@@ -1,74 +1,114 @@
-import { Hono } from "hono";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { upgradeWebSocket } from "../server";
-import { logEmitter, getLogs } from "../services/logger.service";
+import { logEmitter, getLogs, createLogger } from "../services/logger.service";
 import { requireAdmin } from "../middleware/requireAdmin";
 import {
   getPagination,
   makePaginationResult,
   pagination,
 } from "@/middleware/pagination";
+import { paginationQuerySchema } from "@/schemas/pagination.schema";
+import type { Context, Next } from "hono";
 
-const logsRouter = new Hono();
+const logsRouter = new OpenAPIHono();
 const listeners = new WeakMap<any, (log: any) => void>();
+const log = createLogger("Logs Route");
 
-logsRouter.get(
-  "/",
-  requireAdmin(),
-  async (c, next) => {
-    if (c.req.header("upgrade")?.toLowerCase() === "websocket") {
-      const filterContext = c.req.query("context");
-      const filterLevel = c.req.query("level");
+logsRouter.use("*", requireAdmin());
+logsRouter.use("*", pagination());
 
-      return upgradeWebSocket((c) => {
-        return {
-          onOpen(event, ws) {
-            const onLog = (log: any) => {
-              if (filterContext && log.context !== filterContext) return;
-              if (filterLevel && log.level !== filterLevel) return;
+const ErrorSchema = z.object({
+  error: z.string(),
+});
 
-              ws.send(JSON.stringify({ type: "log", data: log }));
-            };
-            logEmitter.on("new-log", onLog);
-            listeners.set(ws, onLog);
-          },
-          onClose(event, ws) {
-            const onLog = listeners.get(ws);
-            if (onLog) {
-              logEmitter.off("new-log", onLog);
-              listeners.delete(ws);
-            }
-          },
-        };
-      })(c, next);
-    }
-    await next();
+const getLogsRoute = createRoute({
+  method: "get",
+  path: "/",
+  summary: "Get system logs or connect to WebSocket for live logs",
+  request: {
+    query: z.object({
+      dateStart: z.string().optional().openapi({ example: "2023-10-01" }),
+      dateEnd: z.string().optional().openapi({ example: "2023-10-02" }),
+      context: z.string().optional().openapi({ example: "Server" }),
+      level: z.string().optional().openapi({ example: "error" }),
+    }).merge(paginationQuerySchema),
   },
-  pagination(),
-  async (c) => {
-    try {
-      const { limit, offset } = getPagination(c);
+  responses: {
+    200: { 
+      description: "List of logs or WebSocket upgrade",
+      content: {
+        "application/json": {
+          schema: z.object({
+            rows: z.array(z.any()),
+            total: z.number(),
+            pagination: z.any(),
+          }),
+        },
+      },
+    },
+    401: { description: "Unauthorized", content: { "application/json": { schema: ErrorSchema } } },
+    403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
+    500: { description: "Internal server error", content: { "application/json": { schema: ErrorSchema } } },
+  },
+});
 
-      const filters = {
-        dateStart: c.req.query("dateStart"),
-        dateEnd: c.req.query("dateEnd"),
-        context: c.req.query("context"),
-        level: c.req.query("level"),
-        limit,
-        offset,
+logsRouter.openapi(getLogsRoute, (async (c: Context, next: Next): Promise<Response> => {
+  // Check for WebSocket upgrade
+  if (c.req.header("upgrade")?.toLowerCase() === "websocket") {
+    const filterContext = c.req.query("context");
+    const filterLevel = c.req.query("level");
+
+    const upgradeHandler = upgradeWebSocket((c) => {
+      return {
+        onOpen(event, ws) {
+          const onLog = (log: any) => {
+            if (filterContext && log.context !== filterContext) return;
+            if (filterLevel && log.level !== filterLevel) return;
+            ws.send(JSON.stringify({ type: "log", data: log }));
+          };
+          logEmitter.on("new-log", onLog);
+          listeners.set(ws, onLog);
+        },
+        onClose(event, ws) {
+          const onLog = listeners.get(ws);
+          if (onLog) {
+            logEmitter.off("new-log", onLog);
+            listeners.delete(ws);
+          }
+        },
       };
+    });
+    
+    return await upgradeHandler(c as any, next);
+  }
 
-      const { rows, total } = getLogs(filters);
+  try {
+    const { limit, offset } = getPagination(c as any);
+    const query = (c as any).req.valid("query");
 
-      return c.json({
+    const filters = {
+      dateStart: query.dateStart,
+      dateEnd: query.dateEnd,
+      context: query.context,
+      level: query.level,
+      limit,
+      offset,
+    };
+
+    const { rows, total } = getLogs(filters);
+
+    return c.json(
+      {
         rows,
         total,
-        pagination: makePaginationResult(total, c),
-      });
-    } catch (err) {
-      console.error("Failed to retrieve logs:", err);
-      return c.json({ error: "Failed to retrieve logs" }, 500);
-    }
-  },
-);
+        pagination: makePaginationResult(total, c as any),
+      },
+      200,
+    );
+  } catch (err: any) {
+    log.error("Failed to retrieve logs", { error: err });
+    return c.json({ error: "Failed to retrieve logs" }, 500);
+  }
+}) as any);
 
 export { logsRouter };
