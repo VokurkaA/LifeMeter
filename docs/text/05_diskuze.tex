@@ -1,2 +1,156 @@
 \chapter*{Diskuze}
 \addcontentsline{toc}{chapter}{Diskuze}
+
+\section{Zhodnocení dosažených výsledků}
+
+Aplikace LifeMeter splňuje všechny požadavky vymezené v~zadání maturitního
+projektu a~v~několika oblastech zadání překračuje. Zatímco zadání specifikuje
+podporu systému Android 10 a~vyšší, výsledná aplikace je funkční rovněž na
+platformě iOS díky sdílené kódové základně v~jazyce TypeScript. Integrace
+s~jinou aplikací, požadovaná v~zadání v~jednotném čísle, byla realizována
+souběžně pro obě platformy: prostřednictvím rozhraní Health Connect na
+Androidu a~Apple HealthKit na iOS. Serverová část, jejíž existence ze zadání
+přímo nevyplývala, byla vyvinuta jako plnohodnotné REST API s~38 endpointy,
+dokumentací generovanou ve standardu OpenAPI a~produkčním nasazením
+na cloudové infrastruktuře s~automatickým průběžným nasazením.
+
+% ------------------------------------------------------------------
+\section{Zdůvodnění volby technologií}
+% ------------------------------------------------------------------
+
+\subsection{React Native a Expo}
+
+Volba frameworku React Native namísto nativního vývoje v~jazycích
+Swift/Kotlin byla motivována požadavkem na podporu obou mobilních platforem
+při zachování jedné kódové základny. Alternativou byl framework Flutter,
+avšak jeho ekosystém zdravotních integrací (Health Connect, HealthKit)
+byl v~době zahájení vývoje méně stabilní než dostupná řešení pro React Native.
+Platforma Expo doplňuje React Native o~standardizovaný build systém
+a~přístup k~nativním API prostřednictvím typovaných modulů; použití samotného
+React Native bez Expo by vyžadovalo ruční správu nativních projektů Xcode
+a~Android Gradle, což by projekt prodražilo na čase bez přidané funkční hodnoty.
+
+\subsection{Bun a Hono}
+
+Pro serverovou část byl zvolen runtime Bun namísto zavedených alternativ
+Node.js nebo Deno. Bun dosahuje výrazně vyšší propustnosti při zpracování
+HTTP požadavků a~disponuje vestavěným správcem balíčků, testovacím
+prostředím a~bundlerem, čímž redukuje závislost na nástrojích třetích stran.
+Webový framework Hono byl upřednostněn před Express.js pro svůj
+typově bezpečný router a~nativní integraci s~knihovnou Zod pro validaci
+schémat a~generování OpenAPI dokumentace. Tato volba umožnila udržovat
+dokumentaci API v~synchronizaci se zdrojovým kódem bez nutnosti
+samostatných nástrojů.
+
+\subsection{PostgreSQL a volba relační databáze}
+
+Pro perzistenci dat byla zvolena relační databáze PostgreSQL namísto
+dokumentové databáze (např. MongoDB). Datový model aplikace -- jídla,
+porce, živiny, uživatelské záznamy -- je přirozeně relační
+a~JOIN operace přes normalizované tabulky jsou pro tento typ dotazů
+výkonnější než vyhledávání v~zanořených dokumentech. PostgreSQL navíc
+poskytuje nativní podporu pro fulltextové vyhledávání (\texttt{tsvector},
+GIN indexy) a~rozšíření \texttt{pg\_trgm}, které byly klíčové pro
+implementaci vyhledávání v~databázi přes milion potravin.
+
+\subsection{Better Auth a správa relací}
+
+Autentizace uživatelů je realizována knihovnou Better Auth s~relacemi
+uloženými v~\texttt{HttpOnly} cookies namísto tokenů JWT. Tato volba vychází
+z~doporučení OWASP~\cite{owasp2024mobile}: token JWT uložený v~dostupném
+úložišti mobilního zařízení (např. \texttt{AsyncStorage}) je zranitelný
+vůči útokům XSS a~krádeži tokenu. Relace spravovaná serverem a~identifikovaná
+cookie, která není přístupná JavaScriptovému kódu, tento vektor útoku
+eliminuje. Nevýhodou stavových relací je náročnější horizontální škálování
+(nutnost sdíleného úložiště relací), která však pro projekt tohoto rozsahu
+nepředstavuje praktické omezení.
+
+\subsection{MMKV pro offline frontu}
+
+Pro implementaci offline fronty bylo zvoleno úložiště MMKV namísto
+standardní alternativy \texttt{AsyncStorage}. MMKV je implementováno
+jako sdílená paměť mapovaná na soubor; v~benchmarcích dosahuje
+přibližně 10--30násobně vyšší rychlosti čtení a~zápisu oproti
+\texttt{AsyncStorage}~\cite{mmkv2024}. Pro frontu požadavků, do které
+jsou zapisovány i~čteny záznamy při každé síťové operaci, je tato
+výkonnostní výhoda znatelná zejména u~zařízení střední třídy.
+
+% ------------------------------------------------------------------
+\section{Srovnání s existujícími řešeními}
+% ------------------------------------------------------------------
+
+Aplikace LifeMeter je srovnávána s~řešeními analyzovanými v~teoretické
+části práce.
+
+Oproti Google Fit~\cite{googlefit2024} a~Apple Health~\cite{applehealth2024},
+které plní primárně roli datových agregátorů a~nenabízejí vlastní rozhraní
+pro zadávání výživy nebo silových tréninků, LifeMeter poskytuje kompletní
+pracovní postup od zadání dat po vizualizaci trendů v~rámci jedné aplikace.
+Obě platformy jsou zároveň využity jako zdroj dat (kroky, spánek, tělesná
+hmotnost) prostřednictvím jejich zdravotních rozhraní.
+
+MyFitnessPal~\cite{myfitnesspal2024} disponuje výrazně rozsáhlejší
+komunitně budovanou databází potravin a~skenováním čárových kódů v~globálním
+měřítku. LifeMeter oproti tomu vychází výhradně z~ověřené vědecké databáze
+USDA FoodData Central~\cite{usda2024} s~licencí CC0~1.0, čímž je zaručena
+konzistentní nutriční přesnost dat bez závislosti na správnosti komunitních
+příspěvků. Sledování silových tréninků je v~MyFitnessPal omezeno na odhad
+kalorického výdeje; LifeMeter zaznamenává kompletní strukturu tréninku
+(sady, opakování, váha, typ sady, čas odpočinku) a~sleduje individuální
+výkonnostní trend pro každé cvičení.
+
+Cronometer~\cite{cronometer2024} se od LifeMeteru liší specializací na
+nutriční přesnost a~sledování mikronutrientů s~vazbou na vědecké databáze.
+LifeMeter mikronutrienty sleduje rovněž, avšak jeho záběr je šířší --
+integruje silový trénink a~spánkové záznamy, které Cronometer v~základní
+verzi nenabízí.
+
+Vůči aplikaci Sleep Cycle~\cite{sleepcycle2024}, která se specializuje na
+analýzu spánkových fází pomocí mikrofonu nebo akcelerometru, LifeMeter
+nenabízí automatickou detekci spánkových fází přes senzory zařízení;
+fáze spánku jsou importovány z~platformy zdravotních dat, pokud je uživatel
+zaznamenává jiným zařízením (chytré hodinky apod.). Výhodou LifeMeteru je
+integrace spánkových dat s~výživovými a~tréninkovými záznamy v~jednom
+přehledu.
+
+% ------------------------------------------------------------------
+\section{Omezení implementace}
+% ------------------------------------------------------------------
+
+V~průběhu vývoje byla identifikována následující omezení:
+
+Databáze potravin USDA FoodData Central obsahuje primárně americké potraviny
+a~značkové výrobky distribuvané na americkém trhu. Dostupnost evropských
+nebo českých potravin a~zejména privátních značek tuzemských řetězců je
+omezená. Rozšíření databáze o~lokalizovaná data by vyžadovalo integraci
+dalšího datového zdroje nebo vytvoření mechanismu pro přidávání vlastních
+potravin uživatelem.
+
+Automatická detekce spánkových fází bez externího zařízení (chytrých hodinek)
+implementována není. Záznamy spánkových fází jsou importovány z~platformy
+zdravotních dat, jejichž přítomnost závisí na vybavení uživatele.
+
+% ------------------------------------------------------------------
+\section{Možná budoucí rozšíření}
+% ------------------------------------------------------------------
+
+Na základě zpětné vazby z~uživatelského testování a~identifikovaných
+omezení jsou jako nejvýznamnější potenciální rozšíření projektu
+považována:
+
+Přidání možnosti vytvářet a~upravovat vlastní potraviny uživatelem,
+čímž by bylo překonáno omezení v~pokrytí lokálních potravin databází USDA.
+
+Implementace widgetů pro domovskou obrazovku operačního systému,
+které by umožnily rychlý přehled kalorického příjmu nebo denních kroků
+bez nutnosti otevírat aplikaci.
+
+Rozšíření modulu spánku o~automatické sledování prostřednictvím senzoru
+akcelerometru zařízení jako alternativu k~importu z~chytrých hodinek.
+
+Integrace s~platebními nebo předplatitelskými modely by v~případě
+komerčního nasazení umožnila financování provozních nákladů serverové
+infrastruktury, které v~současné verzi nese autor projektu.
+
+Rozšíření na platformu Wear OS nebo watchOS by umožnilo zaznamenávat
+trénink přímo z~chytrých hodinek bez nutnosti interakce s~telefonem.
