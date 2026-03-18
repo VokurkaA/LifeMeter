@@ -93,7 +93,7 @@ Doména tréninků se skládá z~referenčních dat (typy cviků, svaly, styly a
 \input{asset/tables/workout_table.tex}
 \input{asset/tables/workout_set.tex}
 
-Referenční tabulky \texttt{exercise} (kombinace typu a varianty cviku), \texttt{exercise\_type}, \texttt{exercise\_variant}, \texttt{muscle} (hierarchická tabulka svalů s~vlastní rekurzivní vazbou \texttt{parent\_id}), \texttt{muscle\_involvement} (míra zapojení svalu v~cviku), \texttt{set\_style} a~\texttt{set\_type} obsahují pouze identifikátor a~název, případně doplňující číselné atributy, a~slouží jako číselníky.
+Referenční tabulky \texttt{exercise} (kombinace typu a~varianty cviku), \texttt{exercise\_type}, \texttt{exercise\_variant}, \texttt{muscle} (hierarchická tabulka svalů s~vlastní rekurzivní vazbou \texttt{parent\_id}), \texttt{muscle\_involvement} (míra zapojení svalu v~cviku), \texttt{set\_style} a~\texttt{set\_type} obsahují pouze identifikátor a~název, případně doplňující číselné atributy, a~slouží jako číselníky.
 
 \subsection{Uživatelský profil}
 \input{asset/tables/user_profile_table.tex}
@@ -102,6 +102,158 @@ Referenční tabulky \texttt{exercise} (kombinace typu a varianty cviku), \textt
 Dále jsou evidovány tabulky \texttt{user\_height\_log} (výška v~cm s~časovým razítkem), \texttt{user\_blood\_pressure\_log} (systolický a~diastolický tlak v~mmHg) a~\texttt{user\_heart\_rate\_log} (tepová frekvence v~bpm). Všechny protokolové tabulky sdílejí společný vzor: primární klíč \texttt{UUID}, cizí klíč \texttt{user\_id} s~\texttt{CASCADE DELETE} a~časové razítko \texttt{measured\_at} indexované sestupně pro efektivní výpis posledních hodnot.
 
 \section{Popis řešení}
+
+\subsection{Mobilní aplikace}
+
+\subsubsection{Autentizace a~správa relací}
+
+Autentizace je realizována prostřednictvím \texttt{AuthProvider} --
+kontextu obalujícího celý strom aplikace. Při inicializaci se volá
+\texttt{authService.getSession()}, jehož výsledek je uložen v~zabezpečeném
+úložišti \texttt{expo-secure-store} pod klíčem \texttt{auth-session-cache}.
+Při selhání síťového volání je relace obnovena z~tohoto lokálního záznamu,
+čímž je zachována funkčnost i~při výpadku připojení. Přihlašování
+a~registrace probíhá voláním REST endpointů Better Auth
+(\texttt{/api/auth/sign-in/email}, \texttt{/api/auth/sign-up/email});
+stavová \texttt{HttpOnly} cookie je spravována serverem a~automaticky
+přikládána ke každému požadavku prostřednictvím volby \texttt{credentials:~"include"}.
+
+\subsubsection{Modul zdravotních dat}
+
+Čtení zdravotních dat ze systémových úložišť je zapouzdřeno do abstrakční
+vrstvy \texttt{src/lib/health/}, která sjednocuje rozhraní
+Health Connect~\cite{healthconnect2024} na platformě Android
+a~HealthKit~\cite{healthkit2024} na platformě iOS do jediného
+platformově neutrálního API. Každá funkce (například \texttt{getSteps},
+\texttt{getSleep}, \texttt{getWeight}) vrací strukturu
+\texttt{Result<T>} rozlišující úspěšný výsledek a~typovanou chybu,
+čímž je zamezeno nekontrolovanému šíření výjimek do vyšších vrstev.
+
+Oprávnění jsou vyžádána jednorázově při startu aplikace funkcí
+\texttt{requestHealthPermissions()}. Na platformě Android je inicializován
+klient Health Connect a~pro každý typ dat (\texttt{Steps},
+\texttt{SleepSession}, \texttt{Weight} aj.) je vyžádáno oprávnění ke čtení;
+na platformě iOS je volána metoda \texttt{requestAuthorization()} knihovny
+HealthKit. Hodnoty spánkových fází jsou mapovány z~číselných konstant
+příslušné platformy na sjednocenou množinu
+\texttt{"awake" | "core" | "deep" | "rem" | "asleep"}.
+
+\subsubsection{Lokální úložiště}
+
+Lokální perzistence dat je realizována modulem \texttt{src/lib/storage.ts},
+který obaluje MMKV~\cite{mmkv2024} typově bezpečnými pomocnými funkcemi
+pro čtení a~zápis primitiv, objektů a~polí serializovaných do JSON.
+Pro použití uvnitř komponent React jsou exportovány hooky
+\texttt{useStorage.string()}, \texttt{useStorage.boolean()},
+\texttt{useStorage.object()} a~\texttt{useStorage.array()}, jejichž
+změna hodnoty způsobí překreslení komponenty v~souladu s~modelem React.
+Pro imperativní přístup mimo komponenty (například ve frontě offline
+požadavků) slouží synchronní API objektu \texttt{storage}.
+
+\subsubsection{Offline fronta požadavků}
+
+Síťová vrstva aplikace (\texttt{src/lib/net.ts}) implementuje mechanismus
+odložení mutujících požadavků při výpadku připojení. Při každém volání
+funkce \texttt{request()} je nejprve zkontrolován příznak \texttt{isOffline}
+ze sdíleného modulu \texttt{network-state.ts}. Je-li zařízení offline,
+požadavek není odeslán, ale serializován a~přiložen do fronty uložené
+v~MMKV pod klíčem \texttt{offline-queue}. Duplicitní záznamy jsou
+odfiltrována porovnáním cesty a~těla požadavku.
+
+Stav sítě je monitorován komponentou \texttt{NetworkProvider}
+prostřednictvím funkce \texttt{addNetworkStateListener()} z~knihovny
+\texttt{expo-network}. Při obnovení připojení je zavolána funkce
+\texttt{flushQueue()}, která sekvenčně přehraje uložené požadavky
+a~neúspěšné ponechá ve frontě pro příští pokus. Souběžně je emitována
+událost \texttt{emitReconnect()}, na kterou jsou přihlášeny všechny
+doménové Context Providers a~reagují opětovným načtením dat ze serveru.
+Podrobný popis algoritmů \texttt{request()} a~\texttt{flushQueue()} je
+uveden v~sekci~\ref{sec:offline-fronta}.
+
+\subsubsection{Lokální oznámení}
+
+Plánování oznámení je centralizováno do hooku \texttt{useNotifications()}
+(\texttt{src/lib/notifications.ts}). Funkce \texttt{scheduleNotification()}
+přijímá identifikátor, titulek, text, čas a~příznak opakování. Opakující
+se oznámení (připomenutí spánku, vstávání, cvičení) jsou naplánována
+s~triggerem typu \texttt{DAILY} zadáváním hodiny a~minuty; jednorázová
+s~triggerem \texttt{TIME\_INTERVAL}. Stav naplánovaných oznámení je
+synchronizován s~MMKV, aby byl dostupný i~bez živého systémového volání.
+Při globálním vypnutí oznámení jsou zrušena všechna naplánovaná upozornění.
+
+\subsection{Serverová část}
+
+\subsubsection{Middlewarový řetězec}
+
+Každý příchozí HTTP požadavek prochází middlewarovým řetězcem definovaným
+v~\texttt{src/server.ts}. Jako první je aplikován middleware
+\texttt{secureHeaders()} nastavující bezpečnostní HTTP hlavičky
+(například \texttt{X-Content-Type-Options}, \texttt{X-Frame-Options}),
+následuje \texttt{trimTrailingSlash()} pro normalizaci cest URL
+a~\texttt{requestLogger}, který zaznamenává metodu, cestu, stavový kód,
+dobu zpracování a~IP adresu klienta. Na všech cestách je poté injektována
+informace o~relaci voláním \texttt{auth.api.getSession()}: výsledek
+je uložen do kontextu jako \texttt{c.get("user")} a~\texttt{c.get("session")};
+pro nepřihlášené požadavky jsou obě hodnoty nastaveny na \texttt{null}.
+Chráněné routy uplatňují middleware \texttt{requireAuth()}, který vrací
+odpověď \texttt{401~Unauthorized} při chybějící relaci, resp.\
+\texttt{requireAdmin()}, jenž navíc ověřuje roli \texttt{"admin"} v~poli
+role uživatele.
+
+\subsubsection{Struktura endpointů}
+
+Routy jsou organizovány do čtyř doménových skupin pod základní cestou
+\texttt{/api}. Skupina \texttt{/api/auth/*} je delegována přímo
+na handler knihovny Better Auth a~nevyžaduje autentizaci. Skupina
+\texttt{/api/workout/*} vystavuje veřejně dostupná referenční data
+(cviky, styly a~typy sérií, váhové možnosti). Skupina
+\texttt{/api/food} poskytuje stránkovaný seznam potravin a~fulltextové
+vyhledávání (parametr \texttt{name} využívající \texttt{pg\_trgm}~\cite{pg_trgm2024},
+parametr \texttt{gtin} pro vyhledávání dle čárového kódu). Skupina
+\texttt{/api/user/*} sdružuje chráněné endpointy pro spánek
+(\texttt{/sleep}), výživu (\texttt{/food}), tréninky
+(\texttt{/workout}, \texttt{/workout/template}) a~uživatelský profil
+(\texttt{/data}). Schémata požadavků a~odpovědí jsou validována
+knihovnou Zod a~dokumentována prostřednictvím integrace
+\texttt{@hono/zod-openapi} přístupné na \texttt{/api/ui}
+ve vývojovém prostředí.
+
+\subsubsection{Nasazení a~reverzní proxy}
+
+Serverová část je provozována na instanci Oracle Cloud Infrastructure
+s~architekturou ARM. Kontejnerizační soubor \texttt{docker-compose.yml}
+definuje dvě služby: \texttt{db} (PostgreSQL~17 s~pojmenovaným svazkem
+\texttt{pgdata} pro perzistenci dat) a~\texttt{api} (sestavení ze zdrojového
+kódu adresáře \texttt{Server/}, mapování portu~3000 a~sdílený svazek
+pro výstup logovacích souborů). Docker Compose~\cite{docker2024} běží přímo
+na VM; reverzní proxy Caddy je nainstalována odděleně jako systémová služba
+a~spravuje ukončení TLS pro domény \texttt{lifemeter.fit}
+a~\texttt{www.lifemeter.fit}.
+
+Caddy je nakonfigurována se dvěma pravidly omezení frekvence požadavků
+(\textit{rate limiting}) rozlišujícími dvě časová okna: maximálně
+10~požadavků za sekundu a~100~požadavků za minutu, obojí klíčované
+IP adresou klienta (\texttt{key \{remote\_host\}}). Veškeré požadavky
+nesměřující na cestu \texttt{/api} nebo její podstromy jsou okamžitě
+odmítnuty direktivou \texttt{abort}, čímž je server vystaven výhradně
+definovanému API. Vyhovující požadavky jsou předávány na interní port~3000
+aplikačního kontejneru direktivou \texttt{reverse\_proxy localhost:3000}.
+
+\subsection{CI/CD pipeline}
+
+Průběžné nasazení serverové části je zajištěno workflow GitHub Actions
+(\texttt{.github/workflows/deploy.yml}). Workflow se spouští automaticky
+při každém přímém commitu nebo sloučení pull requestu do větve
+\texttt{main}, pokud změna zasahuje do adresáře \texttt{Server/}.
+Jediný krok \textit{Deploy to Oracle VM} využívá akce
+\texttt{appleboy/ssh-action}, která se připojí na produkční server
+prostřednictvím SSH klíče uloženého v~tajných proměnných repozitáře
+(\texttt{SSH\_HOST}, \texttt{SSH\_USER}, \texttt{SSH\_KEY}).
+Na serveru jsou poté provedeny příkazy \texttt{git pull origin main},
+\texttt{docker compose down} a~\texttt{docker compose up -d --build},
+čímž dochází k~sestavení aktualizované Docker image a~opětovnému spuštění
+služeb s~minimálním výpadkem. Databáze zůstává v~provozu díky pojmenovanému
+svazku \texttt{pgdata}, který není součástí životního cyklu kontejnerů.
 
 \section{Návrh aplikace}
 
@@ -112,9 +264,7 @@ diagram navigace zachycující strukturu obrazovek a~přechody mezi nimi
 a~diagram tříd dokumentující architekturu doménových kontextů klientské
 vrstvy.
 
-% ─────────────────────────────────────────────────────────────────────────────
 \subsection{Případy užití}
-% ─────────────────────────────────────────────────────────────────────────────
 
 V~systému LifeMeter jsou definováni tři aktéři. \textit{Nepřihlášený
   uživatel} může provést registraci nebo přihlášení. \textit{Přihlášený
@@ -134,9 +284,7 @@ obrázku~\ref{fig:usecase-diagram}
   \label{fig:usecase-diagram}
 \end{figure}
 
-% ─────────────────────────────────────────────────────────────────────────────
 \subsection{Diagram navigace}
-% ─────────────────────────────────────────────────────────────────────────────
 
 Navigační struktura aplikace je rozdělena do dvou zásobníků obrazovek
 (\textit{stack navigátorů}), jejichž zobrazení závisí na stavu autentizace
@@ -168,9 +316,7 @@ informaci o~aktuálním uživateli prostřednictvím React Context API.
   \label{fig:navigation-diagram}
 \end{figure}
 
-% ─────────────────────────────────────────────────────────────────────────────
 \subsection{Diagram tříd}
-% ─────────────────────────────────────────────────────────────────────────────
 
 Správa aplikačního stavu klientské vrstvy je realizována čtveřicí
 doménových rozhraní (\textit{Context Providers}), z~nichž každý
@@ -360,8 +506,8 @@ stručné a~přesné shody před delšími nebo méně relevantními záznamy:
         a~délky popisu -- priorita~2.
 \end{enumerate}
 
-% ---------------------------------------------------------------
 \subsection{Offline fronta požadavků}
+\label{sec:offline-fronta}
 
 Aplikace implementuje princip \textit{offline-first}~\cite{offlinefirst2015}:
 při ztrátě síťového připojení nejsou mutační požadavky (POST, PUT,
@@ -399,6 +545,8 @@ END FUNCTION
 
 Deduplikace je zajištěna porovnáním serializované cesty a~těla požadavku
 před vložením do fronty, čímž je zamezeno opakovanému záznamu totožné
-operace. Každý HTTP požadavek je opatřen timeoutem $5\,000\,\text{ms}$
+operace.
+
+Každý HTTP požadavek je opatřen timeoutem $5\,000\,\text{ms}$
 prostřednictvím \texttt{AbortController}, čímž je zamezeno blokování
 při nedostupném serveru.
