@@ -1,0 +1,136 @@
+<mxfile host="65bd71144e">
+    <diagram name="Use Case Diagram" id="uc1">
+        <mxGraphModel dx="250" dy="281" grid="0" gridSize="10" guides="0" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="boundary" value="Aplikace LifeMeter" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=13;fontStyle=1;fillColor=none;strokeColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="25" width="684" height="546" as="geometry"/>
+                </mxCell>
+                <mxCell id="g_auth" value="Autentizace" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=10;fontStyle=1;fillColor=#f0f0f0;strokeColor=#888888;" vertex="1" parent="1">
+                    <mxGeometry x="114" y="61" width="322" height="144" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc01" value="UC-01  Registrace" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="126" y="97" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc02" value="UC-02  Přihlášení" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="293" y="97" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc03" value="UC-03  Odhlášení" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="126" y="145" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="g_profile" value="Profil &amp; Metriky" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=10;fontStyle=1;fillColor=#f0f0f0;strokeColor=#888888;" vertex="1" parent="1">
+                    <mxGeometry x="448" y="61" width="322" height="144" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc04" value="UC-04  Onboarding" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="97" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc05" value="UC-05  Aktualizace profilu" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="627" y="97" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc06" value="UC-06  Nastavení cílů" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="145" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc07" value="UC-07  Zaznamenat hmotnost" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="627" y="145" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="g_sleep" value="Spánek" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=10;fontStyle=1;fillColor=#f0f0f0;strokeColor=#888888;" vertex="1" parent="1">
+                    <mxGeometry x="114" y="213" width="322" height="192" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc08" value="UC-08  Zahájit sledování" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="126" y="249" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc09" value="UC-09  Ukončit sledování" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="293" y="249" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc10" value="UC-10  Přidat záznam" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="126" y="297" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc11" value="UC-11  Upravit / Smazat" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="293" y="297" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc12" value="UC-12  Zobrazit přehled" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="126" y="345" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="g_nutr" value="Výživa" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=10;fontStyle=1;fillColor=#f0f0f0;strokeColor=#888888;" vertex="1" parent="1">
+                    <mxGeometry x="448" y="213" width="322" height="192" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc13" value="UC-13  Vyhledat potravinu" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="249" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc14" value="UC-14  Přidat jídlo" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="627" y="249" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc15" value="UC-15  Upravit / Smazat" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="297" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc16" value="UC-16  Zobrazit přehled" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="627" y="297" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="g_train" value="Tréninky" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=10;fontStyle=1;fillColor=#f0f0f0;strokeColor=#888888;" vertex="1" parent="1">
+                    <mxGeometry x="114" y="413" width="489" height="144" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc17" value="UC-17  Zahájit trénink" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="126" y="449" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc18" value="UC-18  Přidat sérii cviků" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="293" y="449" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc19" value="UC-19  Ukončit trénink" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="449" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc20" value="UC-20  Vytvořit / Upravit šablonu" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="126" y="497" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc21" value="UC-21  Zobrazit přehled" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="293" y="497" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="g_dash" value="Přehled &amp; Sync" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=10;fontStyle=1;fillColor=#f0f0f0;strokeColor=#888888;" vertex="1" parent="1">
+                    <mxGeometry x="615" y="413" width="155" height="144" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc22" value="UC-22  Domovský přehled" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="627" y="449" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="uc23" value="UC-23  Synchronizovat zdravotní data" style="ellipse;whiteSpace=wrap;html=1;fontSize=9;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="627" y="497" width="155" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_guest" value="Nepřihlášený uživatel" style="shape=umlActor;whiteSpace=wrap;html=1;fillColor=#000;strokeColor=#000;fontSize=9;verticalLabelPosition=bottom;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="28" y="105.5" width="40" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_user" value="Přihlášený uživatel" style="shape=umlActor;whiteSpace=wrap;html=1;fillColor=#000;strokeColor=#000;fontSize=9;verticalLabelPosition=bottom;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="28" y="270.5" width="40" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_health" value="Health Connect / HealthKit" style="shape=umlActor;whiteSpace=wrap;html=1;fillColor=#000;strokeColor=#000;fontSize=9;verticalLabelPosition=bottom;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="806" y="457.5" width="40" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="eg01" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_guest" target="uc01">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eg02" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_guest" target="uc02">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eu_g_auth" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_user" target="g_auth">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eu_g_profile" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_user" target="g_profile">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eu_g_sleep" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_user" target="g_sleep">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eu_g_nutr" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_user" target="g_nutr">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eu_g_train" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_user" target="g_train">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eu_g_dash" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_user" target="g_dash">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eh23" value="" style="endArrow=open;endFill=0;html=1;fontSize=9;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="a_health" target="uc23">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

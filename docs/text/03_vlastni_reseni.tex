@@ -8,10 +8,10 @@ REST API přes protokol HTTPS. Celkové uspořádání systému je znázorněno
 na obrázku~\ref{fig:system-overview}.
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.92\textwidth]{asset/diagrams/system_overview.png}
-    \caption{Přehled architektury systému LifeMeter}
-    \label{fig:system-overview}
+  \centering
+  \includegraphics[width=0.92\textwidth]{asset/diagrams/system_overview.png}
+  \caption{Přehled architektury systému LifeMeter}
+  \label{fig:system-overview}
 \end{figure}
 
 \subsection{Klientská vrstva}
@@ -62,10 +62,10 @@ verzováno prostřednictvím migračních SQL souborů. Entity-relationship diag
 celého schématu je uveden na obrázku~\ref{fig:er-diagram}.
 
 \begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{asset/diagrams/er_diagram.png}
-    \caption{Entity-relationship diagram databázového schématu}
-    \label{fig:er-diagram}
+  \centering
+  \includegraphics[width=\textwidth]{asset/diagrams/er_diagram.png}
+  \caption{Entity-relationship diagram databázového schématu}
+  \label{fig:er-diagram}
 \end{figure}
 
 \subsection{Autentizace}
@@ -102,10 +102,115 @@ Referenční tabulky \texttt{exercise} (kombinace typu a varianty cviku), \textt
 Dále jsou evidovány tabulky \texttt{user\_height\_log} (výška v~cm s~časovým razítkem), \texttt{user\_blood\_pressure\_log} (systolický a~diastolický tlak v~mmHg) a~\texttt{user\_heart\_rate\_log} (tepová frekvence v~bpm). Všechny protokolové tabulky sdílejí společný vzor: primární klíč \texttt{UUID}, cizí klíč \texttt{user\_id} s~\texttt{CASCADE DELETE} a~časové razítko \texttt{measured\_at} indexované sestupně pro efektivní výpis posledních hodnot.
 
 \section{Popis řešení}
+
 \section{Návrh aplikace}
-\subsection{Use Cases}
-\subsection{UML diagram}
-\subsection{Class diagram}
+
+Návrh aplikace LifeMeter byl proveden před zahájením implementace a~sloužil
+jako závazný rámec pro vývoj. Výsledkem návrhu jsou tři vzájemně doplňující se
+modely: diagram případů užití popisující funkcionalitu z~pohledu uživatele,
+diagram navigace zachycující strukturu obrazovek a~přechody mezi nimi
+a~diagram tříd dokumentující architekturu doménových kontextů klientské
+vrstvy.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Případy užití}
+% ─────────────────────────────────────────────────────────────────────────────
+
+V~systému LifeMeter jsou definováni tři aktéři. \textit{Nepřihlášený
+  uživatel} může provést registraci nebo přihlášení. \textit{Přihlášený
+  uživatel} má přístup ke všem funkcím aplikace včetně správy profilu,
+záznamu spánku, výživy a~tréninků a~zobrazení domovského přehledu.
+Externím aktérem je systémová platforma \textit{Health Connect} (Android)
+resp.\ \textit{HealthKit} (iOS), se kterou aplikace synchronizuje
+zdravotní data.
+
+Identifikované případy užití jsou znázorněny na
+obrázku~\ref{fig:usecase-diagram}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{asset/diagrams/usecase_diagram.png}
+  \caption{Diagram případů užití aplikace LifeMeter}
+  \label{fig:usecase-diagram}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Diagram navigace}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Navigační struktura aplikace je rozdělena do dvou zásobníků obrazovek
+(\textit{stack navigátorů}), jejichž zobrazení závisí na stavu autentizace
+a~existenci uživatelského profilu (obrázek~\ref{fig:navigation-diagram}).
+
+\textbf{OnboardingStack} je prezentován nepřihlášeným uživatelům
+a~obsahuje uvítací obrazovku (\textit{Title}), formulář přihlášení
+(\textit{SignIn}) a~registrace (\textit{SignUp}). Po úspěšné autentizaci
+je zkontrolována existence profilu: pokud profil neexistuje nebo nebyl
+dokončen onboarding, je uživatel přesměrován na obrazovku
+\textit{OnboardingInfoScreen}.
+
+\textbf{AppStack} je zpřístupněn přihlášeným uživatelům s~dokončeným
+profilem. Výchozím prvkem je \textit{AppTabs} -- zásobník se spodní
+navigační lištou obsahující čtyři záložky: \textit{Home}, \textit{Training},
+\textit{Nutrition} a~\textit{Sleep}. Nad tímto zásobníkem jsou nadřazeny
+dvě modální obrazovky: \textit{ActiveWorkout} (aktivní trénink v~reálném
+čase) a~\textit{TemplateBuilder} (editor šablony tréninku), přístupné
+z~obrazovky \textit{Training}.
+
+Správa přihlašovacího stavu je zajišťována komponentou
+\texttt{AuthProvider}, která obaluje celý strom aplikace a~poskytuje
+informaci o~aktuálním uživateli prostřednictvím React Context API.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{asset/diagrams/navigation_diagram.png}
+  \caption{Diagram navigační struktury aplikace LifeMeter}
+  \label{fig:navigation-diagram}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Diagram tříd}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Správa aplikačního stavu klientské vrstvy je realizována čtveřicí
+doménových rozhraní (\textit{Context Providers}), z~nichž každý
+zapouzdřuje data a~operace jedné funkční domény
+(obrázek~\ref{fig:class-diagram}).
+
+\texttt{SleepStoreContext} spravuje kolekci spánkových záznamů
+a~zpřístupňuje operace pro jejich vytváření, editaci a~mazání
+včetně detekce probíhající spánkové relace (\texttt{ongoingSleepSession}).
+
+\texttt{NutritionStoreContext} uchovává jídelní záznamy ve struktuře
+\texttt{\{userMeal, userFoods\}[]} a~poskytuje operace CRUD nad
+jídly a~jídelními deníky.
+
+\texttt{WorkoutStoreContext} spravuje zaznamenané tréninky, šablony
+tréninků a~referenční číselníky (cviky, styly a~typy sérií). Jeho
+rozhraní je nejrozsáhlejší a~odráží komplexnost tréninkové domény.
+
+\texttt{UserStoreContext} poskytuje přístup k~uživatelskému profilu,
+stanoveným cílům a~protokolárním záznamům tělesných metrik
+(hmotnost, výška).
+
+Všechny čtyři providery jsou kompozičně zahrnuty v~komponentě
+\texttt{StoreProvider}, která je vložena do kořene stromu aplikace.
+Pro zpětnou kompatibilitu a~pohodlné použití v~místech, kde je
+potřeba přistupovat k~více doménám současně, je k~dispozici fasádní
+hook \texttt{useStore()}, který sloučí výstupy všech čtyř kontextů
+do jediné struktury \texttt{StoreContextType}. Jeho použití však
+způsobuje překreslení komponenty při změně v~\textit{jakékoliv}
+doméně; z~toho důvodu je doporučeno v~nových komponentách
+preferovat granulární hooky \texttt{useSleepStore()},
+\texttt{useNutritionStore()}, \texttt{useWorkoutStore()}
+a~\texttt{useUserStore()}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{asset/diagrams/class_diagram.png}
+  \caption{Diagram tříd -- doménové Context Providers klientské vrstvy}
+  \label{fig:class-diagram}
+\end{figure}
 
 \section{Popis důležitých algoritmů}
 
@@ -120,14 +225,14 @@ pro obecnou populaci.
 
 Pro pohlaví \textit{muž} platí:
 \begin{equation}
-    \text{BMR}_{\text{muž}} = 10 \cdot m + 6{,}25 \cdot h - 5 \cdot a + 5
-    \label{eq:bmr-male}
+  \text{BMR}_{\text{muž}} = 10 \cdot m + 6{,}25 \cdot h - 5 \cdot a + 5
+  \label{eq:bmr-male}
 \end{equation}
 
 Pro pohlaví \textit{žena} platí:
 \begin{equation}
-    \text{BMR}_{\text{žena}} = 10 \cdot m + 6{,}25 \cdot h - 5 \cdot a - 161
-    \label{eq:bmr-female}
+  \text{BMR}_{\text{žena}} = 10 \cdot m + 6{,}25 \cdot h - 5 \cdot a - 161
+  \label{eq:bmr-female}
 \end{equation}
 
 kde $m$ je tělesná hmotnost v~kilogramech, $h$ je výška v~centimetrech
@@ -138,8 +243,8 @@ Celkový denní energetický výdej (\textit{Total Daily Energy Expenditure},
 TDEE) je získán vynásobením BMR koeficientem fyzické aktivity~$f$:
 
 \begin{equation}
-    \text{TDEE} = \text{BMR} \cdot f
-    \label{eq:tdee}
+  \text{TDEE} = \text{BMR} \cdot f
+  \label{eq:tdee}
 \end{equation}
 
 Koeficient~$f$ je uživatelem volen při onboardingu na základě úrovně
@@ -159,20 +264,20 @@ $7\,700\,\text{kcal}$~\cite{hall2008energy}.
 Celková kalorická bilance potřebná ke změně hmotnosti o~$\Delta m$
 kilogramů za $d$~dní:
 \begin{equation}
-    \Delta E = \Delta m \cdot 7700 \quad [\text{kcal}]
-    \label{eq:delta-e}
+  \Delta E = \Delta m \cdot 7700 \quad [\text{kcal}]
+  \label{eq:delta-e}
 \end{equation}
 
 Denní kalorická korekce:
 \begin{equation}
-    \delta = \frac{\Delta E}{d}
-    \label{eq:daily-delta}
+  \delta = \frac{\Delta E}{d}
+  \label{eq:daily-delta}
 \end{equation}
 
 Cílový denní příjem:
 \begin{equation}
-    C_{\text{cíl}} = \text{TDEE} + \delta
-    \label{eq:calorie-goal}
+  C_{\text{cíl}} = \text{TDEE} + \delta
+  \label{eq:calorie-goal}
 \end{equation}
 
 Hodnota $\delta > 0$ odpovídá kalorickému přebytku (nabírání hmotnosti),
@@ -188,16 +293,16 @@ jídla uživatel zadá skutečnou gramáž porce~$g$; obsah živiny~$N$ pro
 danou potravinu je pak škálován proporčním faktorem:
 
 \begin{equation}
-    N_{\text{porce}} = N_{100} \cdot \frac{g}{100}
-    \label{eq:nutrient-scale}
+  N_{\text{porce}} = N_{100} \cdot \frac{g}{100}
+  \label{eq:nutrient-scale}
 \end{equation}
 
 Celkový kalorický obsah jídla je stanoven na základě Atwaterových
 energetických koeficientů~\cite{atwater1902}:
 
 \begin{equation}
-    E = 4 \cdot P + 4 \cdot S + 9 \cdot T \quad [\text{kcal}]
-    \label{eq:atwater}
+  E = 4 \cdot P + 4 \cdot S + 9 \cdot T \quad [\text{kcal}]
+  \label{eq:atwater}
 \end{equation}
 
 kde $P$ je obsah bílkovin, $S$ obsah sacharidů a~$T$ obsah tuků v~gramech.
@@ -209,9 +314,9 @@ jsou tyto automaticky odvozeny z~TDEE s~výchozím rozložením 30\,\%
 bílkoviny, 40\,\% sacharidy a~30\,\% tuky:
 
 \begin{align}
-    P_{\text{cíl}} & = \left\lfloor \frac{\text{TDEE} \cdot 0{,}30}{4} \right\rfloor \label{eq:macro-p} \\[4pt]
-    S_{\text{cíl}} & = \left\lfloor \frac{\text{TDEE} \cdot 0{,}40}{4} \right\rfloor \label{eq:macro-s} \\[4pt]
-    T_{\text{cíl}} & = \left\lfloor \frac{\text{TDEE} \cdot 0{,}30}{9} \right\rfloor \label{eq:macro-t}
+  P_{\text{cíl}} & = \left\lfloor \frac{\text{TDEE} \cdot 0{,}30}{4} \right\rfloor \label{eq:macro-p} \\[4pt]
+  S_{\text{cíl}} & = \left\lfloor \frac{\text{TDEE} \cdot 0{,}40}{4} \right\rfloor \label{eq:macro-s} \\[4pt]
+  T_{\text{cíl}} & = \left\lfloor \frac{\text{TDEE} \cdot 0{,}30}{9} \right\rfloor \label{eq:macro-t}
 \end{align}
 
 \subsection{Fulltextové vyhledávání potravin}
@@ -249,10 +354,10 @@ Výsledky jsou řazeny víceúrovňovým klíčem tak, aby byly upřednostněny
 stručné a~přesné shody před delšími nebo méně relevantními záznamy:
 
 \begin{enumerate}
-    \item přesná shoda s~dotazem (\texttt{ILIKE \$query}) -- priorita~0,
-    \item prefixová shoda (\texttt{ILIKE \$query||'\%'}) -- priorita~1,
-    \item ostatní výsledky seřazené dle \texttt{ts\_rank\_cd}
-          a~délky popisu -- priorita~2.
+  \item přesná shoda s~dotazem (\texttt{ILIKE \$query}) -- priorita~0,
+  \item prefixová shoda (\texttt{ILIKE \$query||'\%'}) -- priorita~1,
+  \item ostatní výsledky seřazené dle \texttt{ts\_rank\_cd}
+        a~délky popisu -- priorita~2.
 \end{enumerate}
 
 % ---------------------------------------------------------------
