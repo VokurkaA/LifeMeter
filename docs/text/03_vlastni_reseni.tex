@@ -69,37 +69,25 @@ celého schématu je uveden na obrázku~\ref{fig:er-diagram}.
 \end{figure}
 
 \subsection{Autentizace}
-Tabulky pro správu uživatelů, relací a ověřování jsou generovány knihovnou Better Auth~\cite{betterauth2024} a~nejsou spravovány vlastními migracemi. Centrální entitou je tabulka \texttt{user}, na kterou jsou pomocí cizích klíčů navázány všechny uživatelské záznamy v~ostatních doménách.
-\input{asset/tables/user_table.tex}
+Tabulky pro správu uživatelů, relací a ověřování jsou generovány knihovnou Better Auth~\cite{betterauth2024} a~nejsou spravovány vlastními migracemi. Centrální entitou je tabulka \texttt{user} (viz tabulka~\ref{app:tab:user} v~příloze~B), na kterou jsou pomocí cizích klíčů navázány všechny uživatelské záznamy v~ostatních doménách.
 
-Dále jsou generovány tabulky \texttt{session} (aktivní relace s~tokenem a~IP adresou), \texttt{account} (přihlašovací metoda a~přihlašovací údaje) a~\texttt{verification} (jednorázové ověřovací tokeny).
+Dále jsou generovány tabulky \texttt{session} (aktivní relace s~tokenem a~IP adresou, viz tabulka~\ref{app:tab:session}), \texttt{account} (přihlašovací metoda a~přihlašovací údaje, viz tabulka~\ref{app:tab:account}) a~\texttt{verification} (jednorázové ověřovací tokeny, viz tabulka~\ref{app:tab:verification}). Podrobné definice všech autentizačních tabulek jsou uvedeny v~příloze~B.
 
 \subsection{Výživa}
-Skupina výživových tabulek se skládá ze dvou částí: referenčních dat importovaných z~databáze USDA FoodData Central~\cite{usda2024} a~uživatelských záznamů o~konzumovaných jídlech.
-\input{asset/tables/food_table.tex}
-\input{asset/tables/nutrient_value_table.tex}
-\input{asset/tables/portion_table.tex}
-\input{asset/tables/user_meal_table.tex}
-\input{asset/tables/user_food_table.tex}
+Skupina výživových tabulek se skládá ze dvou částí: referenčních dat importovaných z~databáze USDA FoodData Central~\cite{usda2024} a~uživatelských záznamů o~konzumovaných jídlech. Struktura těchto tabulek (\texttt{food}, \texttt{nutrient\_value}, \texttt{portion}, \texttt{user\_meal} a~\texttt{user\_food}) je detailně popsána v~příloze~B (tabulky~\ref{app:tab:food} až~\ref{app:tab:user_food}).
 
 \subsection{Spánek}
-Doména spánku zahrnuje tabulku pro záznam denního spánku uživatele.
-\input{asset/tables/user_sleep_table.tex}
+Doména spánku zahrnuje tabulku \texttt{user\_sleep} pro záznam denního spánku uživatele (viz tabulka~\ref{app:tab:user_sleep} v~příloze~B).
 
 \subsection{Tréninky}
-Doména tréninků se skládá z~referenčních dat (typy cviků, svaly, styly a~typy sérií) a~uživatelských dat (šablony tréninků a~zaznamenané tréninky).
-\input{asset/tables/workout_template_table.tex}
-\input{asset/tables/template_set.tex}
-\input{asset/tables/workout_table.tex}
-\input{asset/tables/workout_set.tex}
+Doména tréninků se skládá z~referenčních dat (typy cviků, svaly, styly a~typy sérií) a~uživatelských dat (šablony tréninků a~zaznamenané tréninky). Definice hlavních tréninkových tabulek (\texttt{workout\_template}, \texttt{template\_workout\_set}, \texttt{workout} a~\texttt{workout\_set}) jsou uvedeny v~příloze~B (tabulky~\ref{app:tab:workout_template} až~\ref{app:tab:workout_set}).
 
-Referenční tabulky \texttt{exercise} (kombinace typu a~varianty cviku), \texttt{exercise\_type}, \texttt{exercise\_variant}, \texttt{muscle} (hierarchická tabulka svalů s~vlastní rekurzivní vazbou \texttt{parent\_id}), \texttt{muscle\_involvement} (míra zapojení svalu v~cviku), \texttt{set\_style} a~\texttt{set\_type} obsahují pouze identifikátor a~název, případně doplňující číselné atributy, a~slouží jako číselníky.
+Referenční tabulky \texttt{exercise} (kombinace typu a~varianty cviku), \texttt{exercise\_type}, \texttt{exercise\_variant}, \texttt{muscle} (hierarchická tabulka svalů s~vlastní rekurzivní vazbou \texttt{parent\_id}), \texttt{muscle\_involvement} (míra zapojení svalu v~cviku), \texttt{set\_style} a~\texttt{set\_type} obsahují pouze identifikátor a~název, případně doplňující číselné atributy, a~slouží jako číselníky (viz příloha~B).
 
 \subsection{Uživatelský profil}
-\input{asset/tables/user_profile_table.tex}
-\input{asset/tables/user_goals_table.tex}
-\input{asset/tables/weight_log_table.tex}
-Dále jsou evidovány tabulky \texttt{user\_height\_log} (výška v~cm s~časovým razítkem), \texttt{user\_blood\_pressure\_log} (systolický a~diastolický tlak v~mmHg) a~\texttt{user\_heart\_rate\_log} (tepová frekvence v~bpm). Všechny protokolové tabulky sdílejí společný vzor: primární klíč \texttt{UUID}, cizí klíč \texttt{user\_id} s~\texttt{CASCADE DELETE} a~časové razítko \texttt{measured\_at} indexované sestupně pro efektivní výpis posledních hodnot.
+Struktura profilu a~cílů je uložena v~tabulkách \texttt{user\_profile} a~\texttt{user\_goal} (viz tabulky~\ref{app:tab:user_profile} a~\ref{app:tab:user_goal} v~příloze~B).
+
+Dále jsou evidovány tabulky \texttt{user\_weight\_log} (hmotnost, viz tabulka~\ref{app:tab:user_weight_log}), \texttt{user\_height\_log} (výška v~cm s~časovým razítkem), \texttt{user\_blood\_pressure\_log} (systolický a~diastolický tlak v~mmHg) a~\texttt{user\_heart\_rate\_log} (tepová frekvence v~bpm). Všechny protokolové tabulky sdílejí společný vzor: primární klíč \texttt{UUID}, cizí klíč \texttt{user\_id} s~\texttt{CASCADE DELETE} a~časové razítko \texttt{measured\_at} indexované sestupně pro efektivní výpis posledních hodnot. Kompletní definice těchto tabulek jsou k~dispozici v~příloze~B.
 
 \section{Popis řešení}
 

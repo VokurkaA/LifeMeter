@@ -1,5 +1,5 @@
 % ==========================================
-% Tabulka: user_meal
+% Tabulka: muscle
 % ==========================================
 \begin{table}[ht!] 
 \centering
@@ -7,10 +7,10 @@
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & UUID & Unikátní identifikátor záznamu \\ \hline
-user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
-eaten\_at & TIMESTAMP WITH TIME ZONE & Datum a čas konzumace jídla \\ \hline
-name & TEXT & Název jídla (např. Snídaně, Oběd) \\ \hline
+name & TEXT & Název svalu \\ \hline
+action & TEXT & Funkce nebo pohyb svalu \\ \hline
+parent\_id & UUID & Identifikátor nadřazené svalové skupiny \\ \hline
 \end{tabular}
-\caption{Tabulka \texttt{user\_meal}}
-\label{tab:user_meal}
+\caption{Tabulka \texttt{muscle}}
+\label{tab:muscle}
 \end{table}

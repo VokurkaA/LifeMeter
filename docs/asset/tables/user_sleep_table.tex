@@ -1,20 +1,17 @@
-\begin{table}[htbp]
-    \centering
-    \caption{Tabulka \texttt{user\_sleep} -- spánková seance}
-    \label{tab:user-sleep}
-    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
-        \hline
-        \textbf{Sloupec}      & \textbf{Datový typ}  & \textbf{Popis}                                \\
-        \hline
-        \texttt{id}           & \texttt{UUID PK}     & Identifikátor záznamu                         \\
-        \hline
-        \texttt{user\_id}     & \texttt{TEXT FK}     & Odkaz na uživatele (CASCADE DELETE)           \\
-        \hline
-        \texttt{sleep\_start} & \texttt{TIMESTAMPTZ} & Čas začátku spánku                            \\
-        \hline
-        \texttt{sleep\_end}   & \texttt{TIMESTAMPTZ} & Čas konce spánku (nullable -- aktivní seance) \\
-        \hline
-        \texttt{note}         & \texttt{TEXT}        & Volitelná poznámka                            \\
-        \hline
-    \end{tabular}
+% ==========================================
+% Tabulka: user_sleep
+% ==========================================
+\begin{table}[ht!] 
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
+id & UUID & Unikátní identifikátor záznamu \\ \hline
+user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
+sleep\_start & TIMESTAMP WITH TIME ZONE & Datum a čas začátku spánku \\ \hline
+sleep\_end & TIMESTAMP WITH TIME ZONE & Datum a čas konce spánku \\ \hline
+note & TEXT & Poznámka ke kvalitě nebo průběhu spánku \\ \hline
+\end{tabular}
+\caption{Tabulka \texttt{user\_sleep}}
+\label{tab:user_sleep}
 \end{table}

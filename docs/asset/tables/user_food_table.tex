@@ -1,22 +1,19 @@
-\begin{table}[htbp]
-    \centering
-    \caption{Tabulka \texttt{user\_food} -- položka jídla}
-    \label{tab:user-food}
-    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
-        \hline
-        \textbf{Sloupec}        & \textbf{Datový typ}   & \textbf{Popis}                         \\
-        \hline
-        \texttt{id}             & \texttt{UUID PK}      & Identifikátor záznamu                  \\
-        \hline
-        \texttt{user\_meal\_id} & \texttt{UUID FK}      & Odkaz na jídlo (CASCADE DELETE)        \\
-        \hline
-        \texttt{food\_id}       & \texttt{INT FK}       & Odkaz na potravinu z~databáze          \\
-        \hline
-        \texttt{total\_grams}   & \texttt{NUMERIC(9,2)} & Celková hmotnost konzumované potraviny \\
-        \hline
-        \texttt{quantity}       & \texttt{NUMERIC(6,2)} & Počet porcí (výchozí hodnota 1)        \\
-        \hline
-        \texttt{portion\_id}    & \texttt{INT FK}       & Odkaz na zvolenou porci (nullable)     \\
-        \hline
-    \end{tabular}
+% ==========================================
+% Tabulka: user_food
+% ==========================================
+\begin{table}[ht!] 
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
+id & UUID & Unikátní identifikátor záznamu \\ \hline
+user\_meal\_id & UUID & Identifikátor jídla uživatele \\ \hline
+food\_id & INTEGER & Identifikátor potraviny z databáze \\ \hline
+total\_grams & NUMERIC & Celková hmotnost zkonzumované potraviny v gramech \\ \hline
+quantity & NUMERIC & Množství porcí \\ \hline
+portion\_id & INTEGER & Identifikátor použité porce \\ \hline
+description & TEXT & Vlastní popis nebo poznámka k potravině \\ \hline
+\end{tabular}
+\caption{Tabulka \texttt{user\_food}}
+\label{tab:user_food}
 \end{table}

@@ -1,24 +1,19 @@
-\begin{table}[htbp]
-    \centering
-    \caption{Tabulka \texttt{workout\_template} -- šablona tréninku}
-    \label{tab:workout-template}
-    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
-        \hline
-        \textbf{Sloupec}     & \textbf{Datový typ}  & \textbf{Popis}                                     \\
-        \hline
-        \texttt{id}          & \texttt{UUID PK}     & Identifikátor šablony                              \\
-        \hline
-        \texttt{user\_id}    & \texttt{TEXT FK}     & Odkaz na uživatele                                 \\
-        \hline
-        \texttt{name}        & \texttt{TEXT}        & Název šablony                                      \\
-        \hline
-        \texttt{description} & \texttt{TEXT}        & Volitelný popis                                    \\
-        \hline
-        \texttt{label}       & \texttt{TEXT[]}      & Pole štítků (např. \texttt{\{Push, Hypertrophy\}}) \\
-        \hline
-        \texttt{created\_at} & \texttt{TIMESTAMPTZ} & Datum vytvoření                                    \\
-        \hline
-        \texttt{updated\_at} & \texttt{TIMESTAMPTZ} & Datum poslední změny                               \\
-        \hline
-    \end{tabular}
+% ==========================================
+% Tabulka: workout_template
+% ==========================================
+\begin{table}[ht!] 
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
+id & UUID & Unikátní identifikátor záznamu \\ \hline
+user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
+name & TEXT & Název šablony tréninku \\ \hline
+description & TEXT & Podrobný popis šablony \\ \hline
+label & ARRAY & Štítky pro kategorizaci šablony \\ \hline
+created\_at & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření šablony \\ \hline
+updated\_at & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace šablony \\ \hline
+\end{tabular}
+\caption{Tabulka \texttt{workout\_template}}
+\label{tab:workout_template}
 \end{table}

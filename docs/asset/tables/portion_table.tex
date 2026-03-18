@@ -1,22 +1,19 @@
-\begin{table}[htbp]
-    \centering
-    \caption{Tabulka \texttt{portion} -- porce potraviny}
-    \label{tab:portion}
-    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
-        \hline
-        \textbf{Sloupec}         & \textbf{Datový typ}   & \textbf{Popis}                                     \\
-        \hline
-        \texttt{id}              & \texttt{SERIAL PK}    & Identifikátor porce                                \\
-        \hline
-        \texttt{food\_id}        & \texttt{INT FK}       & Odkaz na potravinu                                 \\
-        \hline
-        \texttt{gram\_weight}    & \texttt{NUMERIC(9,2)} & Hmotnost porce v~gramech                           \\
-        \hline
-        \texttt{portion\_amount} & \texttt{NUMERIC(4,1)} & Počet jednotek porce (nullable)                    \\
-        \hline
-        \texttt{portion\_unit}   & \texttt{VARCHAR(16)}  & Jednotka porce (např. \texttt{cup}, \texttt{tbsp}) \\
-        \hline
-        \texttt{description}     & \texttt{TEXT}         & Slovní popis porce                                 \\
-        \hline
-    \end{tabular}
+% ==========================================
+% Tabulka: portion
+% ==========================================
+\begin{table}[ht!] 
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
+id & INTEGER & Unikátní identifikátor záznamu \\ \hline
+food\_id & INTEGER & Identifikátor potraviny \\ \hline
+gram\_weight & NUMERIC & Hmotnost porce v gramech \\ \hline
+portion\_amount & NUMERIC & Množství jednotek v porci \\ \hline
+portion\_unit & CHARACTER VARYING(16) & Označení jednotky porce \\ \hline
+description & TEXT & Popis porce \\ \hline
+modifier & TEXT & Upřesňující informace k porci \\ \hline
+\end{tabular}
+\caption{Tabulka \texttt{portion}}
+\label{tab:portion}
 \end{table}

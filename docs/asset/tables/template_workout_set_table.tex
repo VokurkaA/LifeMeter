@@ -1,0 +1,22 @@
+% ==========================================
+% Tabulka: template_workout_set
+% ==========================================
+\begin{table}[ht!] 
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
+id & UUID & Unikátní identifikátor záznamu \\ \hline
+workout\_template\_id & UUID & Identifikátor šablony tréninku \\ \hline
+exercise\_id & UUID & Identifikátor cviku \\ \hline
+seq\_number & INTEGER & Pořadové číslo série v tréninku \\ \hline
+repetitions & INTEGER & Počet opakování v sérii \\ \hline
+rir & INTEGER & Rezerva v opakování (Reps In Reserve) \\ \hline
+rest\_time & INTERVAL & Doba odpočinku po sérii \\ \hline
+notes & TEXT & Poznámky k sérii \\ \hline
+style\_id & UUID & Identifikátor stylu série \\ \hline
+set\_type\_id & UUID & Identifikátor typu série \\ \hline
+\end{tabular}
+\caption{Tabulka \texttt{template\_workout\_set}}
+\label{tab:template_workout_set}
+\end{table}

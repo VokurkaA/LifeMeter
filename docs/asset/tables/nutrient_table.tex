@@ -1,5 +1,5 @@
 % ==========================================
-% Tabulka: nutrient_value
+% Tabulka: nutrient
 % ==========================================
 \begin{table}[ht!] 
 \centering
@@ -7,10 +7,10 @@
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & INTEGER & Unikátní identifikátor záznamu \\ \hline
-food\_id & INTEGER & Identifikátor potraviny \\ \hline
-nutrient\_id & INTEGER & Identifikátor živiny \\ \hline
-amount & NUMERIC & Množství živiny v potravině \\ \hline
+name & CHARACTER VARYING(128) & Název živiny \\ \hline
+unit & USER-DEFINED & Měrná jednotka živiny \\ \hline
+nutrient\_nbr & INTEGER & Číselné označení živiny \\ \hline
 \end{tabular}
-\caption{Tabulka \texttt{nutrient\_value}}
-\label{tab:nutrient_value}
+\caption{Tabulka \texttt{nutrient}}
+\label{tab:nutrient}
 \end{table}

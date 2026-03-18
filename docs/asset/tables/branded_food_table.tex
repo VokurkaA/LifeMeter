@@ -1,0 +1,18 @@
+% ==========================================
+% Tabulka: branded_food
+% ==========================================
+\begin{table}[ht!] 
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
+id & INTEGER & Unikátní identifikátor záznamu \\ \hline
+brand\_owner & CHARACTER VARYING(128) & Vlastník obchodní značky \\ \hline
+brand\_name & CHARACTER VARYING(128) & Název obchodní značky \\ \hline
+subbrand\_name & CHARACTER VARYING(128) & Název podznačky \\ \hline
+gtin\_upc & CHARACTER VARYING(32) & Čárový kód produktu (GTIN/UPC) \\ \hline
+ingredients & TEXT & Seznam ingrediencí a složení \\ \hline
+\end{tabular}
+\caption{Tabulka \texttt{branded\_food}}
+\label{tab:branded_food}
+\end{table}

@@ -1,18 +1,17 @@
-\begin{table}[htbp]
-    \centering
-    \caption{Tabulka \texttt{food} -- potravina}
-    \label{tab:food}
-    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
-        \hline
-        \textbf{Sloupec}            & \textbf{Datový typ}    & \textbf{Popis}                                    \\
-        \hline
-        \texttt{id}                 & \texttt{SERIAL PK}     & Identifikátor potraviny                           \\
-        \hline
-        \texttt{description}        & \texttt{TEXT}          & Název potraviny; indexován přes \texttt{pg\_trgm} \\
-        \hline
-        \texttt{food\_category\_id} & \texttt{INT FK}        & Odkaz na kategorii potraviny                      \\
-        \hline
-        \texttt{branded\_food\_id}  & \texttt{INT FK UNIQUE} & Odkaz na značkové potraviny (nullable)            \\
-        \hline
-    \end{tabular}
+% ==========================================
+% Tabulka: food
+% ==========================================
+\begin{table}[ht!] 
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
+id & INTEGER & Unikátní identifikátor záznamu \\ \hline
+branded\_food\_id & INTEGER & Identifikátor značkové potraviny (volitelné) \\ \hline
+food\_category\_id & INTEGER & Identifikátor kategorie potraviny \\ \hline
+description & TEXT & Podrobný název nebo popis potraviny \\ \hline
+search\_vector & TSVECTOR & Vektor pro plnotextové vyhledávání \\ \hline
+\end{tabular}
+\caption{Tabulka \texttt{food}}
+\label{tab:food}
 \end{table}

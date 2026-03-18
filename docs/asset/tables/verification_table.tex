@@ -1,0 +1,18 @@
+% ==========================================
+% Tabulka: verification
+% ==========================================
+\begin{table}[ht!] 
+\centering
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
+id & TEXT & Unikátní identifikátor záznamu \\ \hline
+identifier & TEXT & Identifikátor pro ověření (např. e-mail) \\ \hline
+value & TEXT & Hodnota ověřovacího kódu nebo tokenu \\ \hline
+expiresAt & TIMESTAMP WITH TIME ZONE & Datum a čas expirace ověření \\ \hline
+createdAt & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření požadavku na ověření \\ \hline
+updatedAt & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace požadavku \\ \hline
+\end{tabular}
+\caption{Tabulka \texttt{verification}}
+\label{tab:verification}
+\end{table}
