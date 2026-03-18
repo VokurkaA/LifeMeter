@@ -15,6 +15,36 @@
 \usepackage{pdfpages}
 \usepackage{titlesec}
 \usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+\definecolor{kwcolor}{RGB}{30, 60, 130}   % tmava modra -- klicova slova
+\definecolor{cmcolor}{RGB}{120, 120, 120} % stredni seda -- komentare
+
+\lstdefinelanguage{pseudocode}{
+  morekeywords={FUNCTION,END,IF,THEN,ELSE,FOR,EACH,IN,DO,RETURN,NOT,AND,OR},
+  sensitive=true,
+  morecomment=[l]{--},
+  literate=
+    {<-}{{$\leftarrow$}}2
+    {!=}{{$\neq$}}2
+}
+
+\lstset{
+  language=pseudocode,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{kwcolor}\bfseries,
+  commentstyle=\color{cmcolor}\itshape,
+  showstringspaces=false,
+  columns=flexible,
+  keepspaces=true,
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{gray!40},
+  xleftmargin=1em,
+  xrightmargin=1em,
+}
+
 \usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
 
 \addbibresource{bibliography/references.bib}
