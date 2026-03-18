@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+    \centering
+    \caption{Tabulka \texttt{user\_sleep} -- spánková seance}
+    \label{tab:user-sleep}
+    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
+        \hline
+        \textbf{Sloupec}      & \textbf{Datový typ}  & \textbf{Popis}                                \\
+        \hline
+        \texttt{id}           & \texttt{UUID PK}     & Identifikátor záznamu                         \\
+        \hline
+        \texttt{user\_id}     & \texttt{TEXT FK}     & Odkaz na uživatele (CASCADE DELETE)           \\
+        \hline
+        \texttt{sleep\_start} & \texttt{TIMESTAMPTZ} & Čas začátku spánku                            \\
+        \hline
+        \texttt{sleep\_end}   & \texttt{TIMESTAMPTZ} & Čas konce spánku (nullable -- aktivní seance) \\
+        \hline
+        \texttt{note}         & \texttt{TEXT}        & Volitelná poznámka                            \\
+        \hline
+    \end{tabular}
+\end{table}

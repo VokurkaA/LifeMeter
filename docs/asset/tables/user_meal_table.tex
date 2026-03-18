@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+    \centering
+    \caption{Tabulka \texttt{user\_meal} -- jídlo uživatele}
+    \label{tab:user-meal}
+    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
+        \hline
+        \textbf{Sloupec}   & \textbf{Datový typ}  & \textbf{Popis}        \\
+        \hline
+        \texttt{id}        & \texttt{UUID PK}     & Identifikátor záznamu \\
+        \hline
+        \texttt{user\_id}  & \texttt{TEXT FK}     & Odkaz na uživatele    \\
+        \hline
+        \texttt{eaten\_at} & \texttt{TIMESTAMPTZ} & Čas konzumace         \\
+        \hline
+        \texttt{name}      & \texttt{TEXT}        & Volitelný název jídla \\
+        \hline
+    \end{tabular}
+\end{table}

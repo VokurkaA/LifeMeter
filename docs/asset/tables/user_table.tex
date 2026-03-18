@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+    \centering
+    \caption{Tabulka \texttt{user} -- uživatelský účet}
+    \label{tab:user}
+    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
+        \hline
+        \textbf{Sloupec}       & \textbf{Datový typ}  & \textbf{Popis}                                  \\
+        \hline
+        \texttt{id}            & \texttt{TEXT PK}     & Unikátní identifikátor uživatele                \\
+        \hline
+        \texttt{name}          & \texttt{TEXT}        & Zobrazované jméno                               \\
+        \hline
+        \texttt{email}         & \texttt{TEXT UNIQUE} & E-mailová adresa (přihlašovací jméno)           \\
+        \hline
+        \texttt{emailVerified} & \texttt{BOOLEAN}     & Příznak ověření e-mailové adresy                \\
+        \hline
+        \texttt{role}          & \texttt{TEXT}        & Role uživatele (\texttt{user} / \texttt{admin}) \\
+        \hline
+        \texttt{banned}        & \texttt{BOOLEAN}     & Příznak zablokování účtu                        \\
+        \hline
+        \texttt{createdAt}     & \texttt{TIMESTAMPTZ} & Datum a~čas registrace                          \\
+        \hline
+        \texttt{updatedAt}     & \texttt{TIMESTAMPTZ} & Datum a~čas poslední změny                      \\
+        \hline
+    \end{tabular}
+\end{table}

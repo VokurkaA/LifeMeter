@@ -1,7 +1,106 @@
 \chapter{Metodika a vlastní řešení}
 
 \section{Architektura systému}
+
+Systém LifeMeter se skládá ze dvou hlavních součástí: mobilního klienta a~serverové
+části nasazené v~cloudovém prostředí. Mobilní klient komunikuje se serverem za použití
+REST API přes protokol HTTPS. Celkové uspořádání systému je znázorněno
+na obrázku~\ref{fig:system-overview}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\textwidth]{asset/diagrams/system_overview.png}
+    \caption{Přehled architektury systému LifeMeter}
+    \label{fig:system-overview}
+\end{figure}
+
+\subsection{Klientská vrstva}
+
+Mobilní aplikace je vyvinuta pomocí frameworku React Native ve spojení s~platformou
+Expo~\cite{expo}, která zajišťuje přenositelnost mezi operačními systémy Android a~iOS
+z~jedné sdílené kódové základny. Na platformě Android jsou zdravotní data čtena přes
+rozhraní Health Connect~\cite{healthconnect2024}, na platformě iOS pak prostřednictvím
+HealthKit~\cite{healthkit2024}.
+
+Aplikační stav je spravován čtveřicí doménových Context Providers -- \texttt{SleepStoreContext},
+\texttt{NutritionStoreContext}, \texttt{WorkoutStoreContext} a~\texttt{UserStoreContext}.
+Každý provider zapouzdřuje data a~operace pro příslušnou doménu a~vystavuje je potomkům
+stromu komponent prostřednictvím React Context API. Lokální perzistenci dat zajišťuje knihovna
+MMKV~\cite{mmkv2024}: data jsou primárně čtena z~cache v~paměti zařízení a~synchronizována
+se serverem při obnovení síťového připojení, v~souladu s~principem \textit{offline-first}~\cite{offlinefirst2015}.
+Přihlašovací údaje jsou ukládány šifrovaně prostřednictvím \texttt{expo-secure-store}.
+
+\subsection{Serverová vrstva}
+
+Serverová část je implementována v~prostředí Bun s~využitím webového frameworku
+Hono~\cite{hono2024}. Každý příchozí požadavek prochází globálním middlewarovým řetězcem:
+\texttt{requestLogger} zaznamenává HTTP provoz, autentizační middleware injektuje informace
+o~relaci (\texttt{c.get("user")}) a~\texttt{pagination()} normalizuje parametry stránkování.
+Správu uživatelských relací zajišťuje knihovna Better Auth~\cite{betterauth2024} prostřednictvím
+stavových \texttt{HttpOnly} cookies, v~souladu s~doporučeními OWASP~\cite{owasp2024mobile}.
+
+Routy jsou organizovány doménově: \texttt{/api/auth} zpracovává přihlášení a~registraci,
+\texttt{/api/food} poskytuje přístup k~databázi potravin, \texttt{/api/user/*} sdružuje
+endpointy pro spánek, jídla, tréninky a~uživatelský profil a~\texttt{/api/workout}
+vystavuje referenční data (cviky, styly sérií). Chráněné routy vyžadují middleware
+\texttt{requireAuth()}, administrátorské pak \texttt{requireAdmin()}.
+
+\subsection{Datová vrstva}
+
+Datová vrstva je tvořena relační databází PostgreSQL~17~\cite{postgresql2024}.
+Rozšíření \texttt{pg\_trgm}~\cite{pg_trgm2024} umožňuje efektivní trigram-based
+fulltextové vyhledávání v~databázi potravin, jejíž obsah pochází z~veřejně dostupného
+zdroje USDA FoodData Central~\cite{usda2024}. Serverová část komunikuje s~databází
+prostřednictvím connection poolu knihovny \texttt{pg}.
+
 \section{Datový model}
+
+Databázové schéma aplikace LifeMeter je rozdělena do pěti doménových skupin:
+autentizace a~správa relací (spravováno knihovnou Better Auth), výživa, spánek,
+tréninky a~uživatelský profil. Schéma je implementováno v~PostgreSQL~17 a~je
+verzováno prostřednictvím migračních SQL souborů. Entity-relationship diagram
+celého schématu je uveden na obrázku~\ref{fig:er-diagram}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{asset/diagrams/er_diagram.png}
+    \caption{Entity-relationship diagram databázového schématu}
+    \label{fig:er-diagram}
+\end{figure}
+
+\subsection{Autentizace}
+Tabulky pro správu uživatelů, relací a ověřování jsou generovány knihovnou Better Auth~\cite{betterauth2024} a~nejsou spravovány vlastními migracemi. Centrální entitou je tabulka \texttt{user}, na kterou jsou pomocí cizích klíčů navázány všechny uživatelské záznamy v~ostatních doménách.
+\input{asset/tables/user_table.tex}
+
+Dále jsou generovány tabulky \texttt{session} (aktivní relace s~tokenem a~IP adresou), \texttt{account} (přihlašovací metoda a~přihlašovací údaje) a~\texttt{verification} (jednorázové ověřovací tokeny).
+
+\subsection{Výživa}
+Skupina výživových tabulek se skládá ze dvou částí: referenčních dat importovaných z~databáze USDA FoodData Central~\cite{usda2024} a~uživatelských záznamů o~konzumovaných jídlech.
+\input{asset/tables/food_table.tex}
+\input{asset/tables/nutrient_value_table.tex}
+\input{asset/tables/portion_table.tex}
+\input{asset/tables/user_meal_table.tex}
+\input{asset/tables/user_food_table.tex}
+
+\subsection{Spánek}
+Doména spánku zahrnuje tabulku pro záznam denního spánku uživatele.
+\input{asset/tables/user_sleep_table.tex}
+
+\subsection{Tréninky}
+Doména tréninků se skládá z~referenčních dat (typy cviků, svaly, styly a~typy sérií) a~uživatelských dat (šablony tréninků a~zaznamenané tréninky).
+\input{asset/tables/workout_template_table.tex}
+\input{asset/tables/template_set.tex}
+\input{asset/tables/workout_table.tex}
+\input{asset/tables/workout_set.tex}
+
+Referenční tabulky \texttt{exercise} (kombinace typu a varianty cviku), \texttt{exercise\_type}, \texttt{exercise\_variant}, \texttt{muscle} (hierarchická tabulka svalů s~vlastní rekurzivní vazbou \texttt{parent\_id}), \texttt{muscle\_involvement} (míra zapojení svalu v~cviku), \texttt{set\_style} a~\texttt{set\_type} obsahují pouze identifikátor a~název, případně doplňující číselné atributy, a~slouží jako číselníky.
+
+\subsection{Uživatelský profil}
+\input{asset/tables/user_profile_table.tex}
+\input{asset/tables/user_goals_table.tex}
+\input{asset/tables/weight_log_table.tex}
+Dále jsou evidovány tabulky \texttt{user\_height\_log} (výška v~cm s~časovým razítkem), \texttt{user\_blood\_pressure\_log} (systolický a~diastolický tlak v~mmHg) a~\texttt{user\_heart\_rate\_log} (tepová frekvence v~bpm). Všechny protokolové tabulky sdílejí společný vzor: primární klíč \texttt{UUID}, cizí klíč \texttt{user\_id} s~\texttt{CASCADE DELETE} a~časové razítko \texttt{measured\_at} indexované sestupně pro efektivní výpis posledních hodnot.
+
 \section{Popis řešení}
 \section{Návrh aplikace}
 \subsection{Use Cases}

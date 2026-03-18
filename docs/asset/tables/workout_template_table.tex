@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+    \centering
+    \caption{Tabulka \texttt{workout\_template} -- šablona tréninku}
+    \label{tab:workout-template}
+    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
+        \hline
+        \textbf{Sloupec}     & \textbf{Datový typ}  & \textbf{Popis}                                     \\
+        \hline
+        \texttt{id}          & \texttt{UUID PK}     & Identifikátor šablony                              \\
+        \hline
+        \texttt{user\_id}    & \texttt{TEXT FK}     & Odkaz na uživatele                                 \\
+        \hline
+        \texttt{name}        & \texttt{TEXT}        & Název šablony                                      \\
+        \hline
+        \texttt{description} & \texttt{TEXT}        & Volitelný popis                                    \\
+        \hline
+        \texttt{label}       & \texttt{TEXT[]}      & Pole štítků (např. \texttt{\{Push, Hypertrophy\}}) \\
+        \hline
+        \texttt{created\_at} & \texttt{TIMESTAMPTZ} & Datum vytvoření                                    \\
+        \hline
+        \texttt{updated\_at} & \texttt{TIMESTAMPTZ} & Datum poslední změny                               \\
+        \hline
+    \end{tabular}
+\end{table}

@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+    \centering
+    \caption{Tabulka \texttt{nutrient\_value} -- nutriční hodnota potraviny}
+    \label{tab:nutrient-value}
+    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
+        \hline
+        \textbf{Sloupec}      & \textbf{Datový typ}    & \textbf{Popis}                              \\
+        \hline
+        \texttt{id}           & \texttt{SERIAL PK}     & Identifikátor záznamu                       \\
+        \hline
+        \texttt{food\_id}     & \texttt{INT FK}        & Odkaz na potravinu                          \\
+        \hline
+        \texttt{nutrient\_id} & \texttt{INT FK}        & Odkaz na nutrient (bílkoviny, tuky, \ldots) \\
+        \hline
+        \texttt{amount}       & \texttt{NUMERIC(11,2)} & Množství nutientu na 100~g potraviny        \\
+        \hline
+    \end{tabular}
+\end{table}

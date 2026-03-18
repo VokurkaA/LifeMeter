@@ -1,0 +1,22 @@
+\begin{table}[htbp]
+    \centering
+    \caption{Tabulka \texttt{portion} -- porce potraviny}
+    \label{tab:portion}
+    \begin{tabular}{|p{4.2cm}|p{3.2cm}|p{6.8cm}|}
+        \hline
+        \textbf{Sloupec}         & \textbf{Datový typ}   & \textbf{Popis}                                     \\
+        \hline
+        \texttt{id}              & \texttt{SERIAL PK}    & Identifikátor porce                                \\
+        \hline
+        \texttt{food\_id}        & \texttt{INT FK}       & Odkaz na potravinu                                 \\
+        \hline
+        \texttt{gram\_weight}    & \texttt{NUMERIC(9,2)} & Hmotnost porce v~gramech                           \\
+        \hline
+        \texttt{portion\_amount} & \texttt{NUMERIC(4,1)} & Počet jednotek porce (nullable)                    \\
+        \hline
+        \texttt{portion\_unit}   & \texttt{VARCHAR(16)}  & Jednotka porce (např. \texttt{cup}, \texttt{tbsp}) \\
+        \hline
+        \texttt{description}     & \texttt{TEXT}         & Slovní popis porce                                 \\
+        \hline
+    \end{tabular}
+\end{table}
