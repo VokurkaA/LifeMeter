@@ -110,33 +110,22 @@
 \listoftables
 
 \chapter*{Seznam příloh}
+\phantomsection
 \addcontentsline{toc}{chapter}{Seznam příloh}
- 
+
+\addtocontents{toc}{\protect\vspace{1ex}}
+\addtocontents{toc}{\noindent\hspace{1.5em}A: Diagramy\par}
+\addtocontents{toc}{\noindent\hspace{1.5em}B: Tabulky\par}
+\addtocontents{toc}{\noindent\hspace{1.5em}C: Schémata\par}
+\addtocontents{toc}{\noindent\hspace{1.5em}D: API dokumentace\par}
+\addtocontents{toc}{\noindent\hspace{1.5em}E: Instalační návod\par}
+
 \begin{itemize}
-  \item[\textbf{A}] \hyperlink{priloha:diagramy}{Diagramy}
-  \item[\textbf{B}] \hyperlink{priloha:tabulky}{Tabulky}
-  \item[\textbf{C}] \hyperlink{priloha:schemata}{Schémata}
-  \item[\textbf{D}] \hyperlink{priloha:api}{API dokumentace}
-  \item[\textbf{E}] \hyperlink{priloha:instalace}{Instalační návod}
+  \item[\textbf{A}] Diagramy
+  \item[\textbf{B}] Tabulky
+  \item[\textbf{C}] Schémata
+  \item[\textbf{D}] API dokumentace
+  \item[\textbf{E}] Instalační návod
 \end{itemize}
- 
-\appendix
-\renewcommand{\thesection}{\Alph{section}}
-\setcounter{section}{0}
- 
-\hypertarget{priloha:diagramy}{}
-\include{prilohy/diagramy}
- 
-\hypertarget{priloha:tabulky}{}
-\include{prilohy/tabulky}
- 
-\hypertarget{priloha:schemata}{}
-\include{prilohy/schemata}
- 
-\hypertarget{priloha:api}{}
-\include{prilohy/api_dokumentace}
- 
-\hypertarget{priloha:instalace}{}
-\include{prilohy/instalacni_navod}
- 
+
 \end{document}
