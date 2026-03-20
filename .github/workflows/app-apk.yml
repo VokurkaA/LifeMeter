@@ -1,0 +1,109 @@
+name: Publish Android APK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'App/**'
+      - '.github/workflows/app-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      GRADLE_USER_HOME: ${{ github.workspace }}/.gradle-home
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: App/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install app dependencies
+        working-directory: App
+        run: npm ci
+
+      - name: Resolve APK metadata
+        id: meta
+        run: |
+          set -euo pipefail
+
+          app_version="$(node -p "require('./App/app.json').expo.version")"
+          short_sha="${GITHUB_SHA::7}"
+          apk_name="lifemeter-${app_version}-${short_sha}.apk"
+
+          {
+            echo "app_version=${app_version}"
+            echo "apk_name=${apk_name}"
+            echo "short_sha=${short_sha}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build release APK
+        working-directory: App/android
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Prepare SSH key
+        run: |
+          set -euo pipefail
+          install -m 600 /dev/null "$RUNNER_TEMP/deploy_key"
+          printf '%s\n' "${{ secrets.SSH_KEY }}" > "$RUNNER_TEMP/deploy_key"
+
+      - name: Ensure remote release directory exists
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=no "${SSH_USER}@${SSH_HOST}" \
+            'mkdir -p ~/LifeMeter/releases/apk'
+
+      - name: Upload APK to Oracle VM
+        env:
+          APK_NAME: ${{ steps.meta.outputs.apk_name }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          scp -i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=no \
+            App/android/app/build/outputs/apk/release/app-release.apk \
+            "${SSH_USER}@${SSH_HOST}:~/LifeMeter/releases/apk/.tmp-${APK_NAME}"
+
+      - name: Publish latest APK metadata
+        env:
+          APK_NAME: ${{ steps.meta.outputs.apk_name }}
+          APP_VERSION: ${{ steps.meta.outputs.app_version }}
+          COMMIT_SHA: ${{ github.sha }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+
+          ssh -i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=no "${SSH_USER}@${SSH_HOST}" <<EOF
+          set -euo pipefail
+          cd ~/LifeMeter/releases/apk
+          mv ".tmp-${APK_NAME}" "${APK_NAME}"
+          built_at=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          printf '%s\n' "{\"fileName\":\"${APK_NAME}\",\"version\":\"${APP_VERSION}\",\"commitSha\":\"${COMMIT_SHA}\",\"builtAt\":\"\${built_at}\"}" > latest.json.tmp
+          mv latest.json.tmp latest.json
+          EOF

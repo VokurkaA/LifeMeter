@@ -1,4 +1,4 @@
-name: Deploy Server
+name: Deploy Stack
 
 on:
   push:
@@ -6,6 +6,10 @@ on:
       - main
     paths:
       - 'Server/**'
+      - 'Web/**'
+      - '.dockerignore'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   deploy:

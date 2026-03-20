@@ -8,7 +8,8 @@ import {
   pagination,
 } from "@/middleware/pagination";
 import { paginationQuerySchema } from "@/schemas/pagination.schema";
-import type { Context, Next } from "hono";
+import type { Context } from "hono";
+import type { WSEvents } from "hono/ws";
 
 const logsRouter = new OpenAPIHono();
 const listeners = new WeakMap<any, (log: any) => void>();
@@ -52,34 +53,32 @@ const getLogsRoute = createRoute({
   },
 });
 
-logsRouter.openapi(getLogsRoute, (async (c: Context, next: Next): Promise<Response> => {
+logsRouter.openapi(getLogsRoute, (async (c: Context): Promise<Response> => {
   // Check for WebSocket upgrade
   if (c.req.header("upgrade")?.toLowerCase() === "websocket") {
     const filterContext = c.req.query("context");
     const filterLevel = c.req.query("level");
 
-    const upgradeHandler = upgradeWebSocket((c) => {
-      return {
-        onOpen(event, ws) {
-          const onLog = (log: any) => {
-            if (filterContext && log.context !== filterContext) return;
-            if (filterLevel && log.level !== filterLevel) return;
-            ws.send(JSON.stringify({ type: "log", data: log }));
-          };
-          logEmitter.on("new-log", onLog);
-          listeners.set(ws, onLog);
-        },
-        onClose(event, ws) {
-          const onLog = listeners.get(ws);
-          if (onLog) {
-            logEmitter.off("new-log", onLog);
-            listeners.delete(ws);
-          }
-        },
-      };
-    });
-    
-    return await upgradeHandler(c as any, next);
+    const wsEvents: WSEvents = {
+      onOpen(event, ws) {
+        const onLog = (log: any) => {
+          if (filterContext && log.context !== filterContext) return;
+          if (filterLevel && log.level !== filterLevel) return;
+          ws.send(JSON.stringify({ type: "log", data: log }));
+        };
+        logEmitter.on("new-log", onLog);
+        listeners.set(ws, onLog);
+      },
+      onClose(event, ws) {
+        const onLog = listeners.get(ws);
+        if (onLog) {
+          logEmitter.off("new-log", onLog);
+          listeners.delete(ws);
+        }
+      },
+    };
+
+    return upgradeWebSocket(c, wsEvents);
   }
 
   try {

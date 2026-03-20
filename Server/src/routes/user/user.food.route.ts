@@ -22,6 +22,8 @@ export const userFoodRouter = new OpenAPIHono<{
 
 const log = createLogger("User Food Route");
 
+userFoodRouter.use("*", pagination());
+
 const ErrorSchema = z.object({
   error: z.string(),
 });
@@ -248,7 +250,7 @@ userFoodRouter.openapi(createMealRoute, async (c) => {
   }
 });
 
-userFoodRouter.openapi(getAllMealsRoute, pagination(), async (c) => {
+userFoodRouter.openapi(getAllMealsRoute, async (c) => {
   try {
     const user = c.get("user")!;
     const paginationProps = getPagination(c);

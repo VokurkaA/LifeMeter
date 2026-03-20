@@ -1,0 +1,33 @@
+{
+  "name": "lifemeter-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "browser:review": "playwright test e2e/browser-review.spec.ts",
+    "browser:review:headed": "playwright test e2e/browser-review.spec.ts --headed",
+    "browser:review:install": "playwright install chromium"
+  },
+  "dependencies": {
+    "@heroui/react": "^3.0.0-rc.1",
+    "@heroui/styles": "^3.0.0-rc.1",
+    "lucide-react": "^0.562.0",
+    "next": "^15.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwind-variants": "^3.2.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.8.3"
+  }
+}

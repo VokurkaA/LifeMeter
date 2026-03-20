@@ -1,0 +1,21 @@
+lifemeter.fit, www.lifemeter.fit {
+	rate_limit {
+		zone per_ip_second {
+			key {remote_host}
+			events 10
+			window 1s
+		}
+		zone per_ip_minute {
+			key {remote_host}
+			events 100
+			window 1m
+		}
+	}
+
+	@api {
+		path /api /api/*
+	}
+
+	reverse_proxy @api localhost:3000
+	reverse_proxy localhost:3001
+}
