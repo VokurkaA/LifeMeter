@@ -13,10 +13,15 @@ import {
   WorkoutTemplateListItem,
 } from "@/lib/types";
 
-const API_URL =
+const DEFAULT_API_URL = "http://localhost:3001";
+const SERVER_API_URL =
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3001";
+  DEFAULT_API_URL;
+const PUBLIC_API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.API_URL ||
+  DEFAULT_API_URL;
 
 export type ApiAvailability =
   | { ok: true }
@@ -50,11 +55,11 @@ type ApiConfig =
       message: string;
     };
 
-function resolveApiConfig(): ApiConfig {
-  const rawValue = API_URL.trim();
+function resolveApiConfig(rawValue: string): ApiConfig {
+  const normalizedValue = rawValue.trim();
 
   try {
-    const url = new URL(rawValue);
+    const url = new URL(normalizedValue);
 
     if (!["http:", "https:"].includes(url.protocol)) {
       return {
@@ -72,10 +77,29 @@ function resolveApiConfig(): ApiConfig {
     return {
       ok: false,
       message:
-        `API_URL or NEXT_PUBLIC_API_URL must be an absolute URL. Received "${rawValue}". ` +
+        `API_URL or NEXT_PUBLIC_API_URL must be an absolute URL. Received "${normalizedValue}". ` +
         'Example: "http://localhost:3001" for local development.',
     };
   }
+}
+
+function getResolvedBaseUrl(rawValue: string) {
+  const config = resolveApiConfig(rawValue);
+
+  if (!config.ok) {
+    throw new Error(config.message);
+  }
+
+  return config.baseUrl;
+}
+
+function tryResolveBaseUrl(rawValue: string) {
+  const config = resolveApiConfig(rawValue);
+  return config.ok ? config.baseUrl : null;
+}
+
+function getApiDisplayBaseUrl() {
+  return tryResolveBaseUrl(PUBLIC_API_URL) || tryResolveBaseUrl(SERVER_API_URL);
 }
 
 function normalizeApiPath(path: string) {
@@ -89,18 +113,19 @@ function isUserScopedAdminPath(path: string) {
 }
 
 export function getApiBaseUrl() {
-  const config = resolveApiConfig();
-
-  if (!config.ok) {
-    throw new Error(config.message);
-  }
-
-  return config.baseUrl;
+  return getResolvedBaseUrl(SERVER_API_URL);
 }
 
 export function tryGetApiBaseUrl() {
-  const config = resolveApiConfig();
-  return config.ok ? config.baseUrl : null;
+  return tryResolveBaseUrl(SERVER_API_URL);
+}
+
+export function getPublicApiBaseUrl() {
+  return getResolvedBaseUrl(PUBLIC_API_URL);
+}
+
+export function tryGetPublicApiBaseUrl() {
+  return tryResolveBaseUrl(PUBLIC_API_URL);
 }
 
 export function getAdminApiErrorMessage(error: unknown) {
@@ -170,7 +195,7 @@ export function isAdminRole(role?: string | null) {
 }
 
 export async function checkAuthApiAvailability(): Promise<ApiAvailability> {
-  const config = resolveApiConfig();
+  const config = resolveApiConfig(SERVER_API_URL);
 
   if (!config.ok) {
     return {
@@ -180,6 +205,7 @@ export async function checkAuthApiAvailability(): Promise<ApiAvailability> {
     };
   }
 
+  const displayBaseUrl = getApiDisplayBaseUrl() || config.baseUrl;
   const url = `${config.baseUrl}/api/auth/get-session`;
 
   let response: Response;
@@ -193,7 +219,7 @@ export async function checkAuthApiAvailability(): Promise<ApiAvailability> {
       ok: false,
       kind: "unreachable",
       message:
-        `Could not reach the auth API at ${config.baseUrl}. ` +
+        `Could not reach the auth API at ${displayBaseUrl}. ` +
         "Start the backend server and point NEXT_PUBLIC_API_URL or API_URL to that origin.",
     };
   }
@@ -209,7 +235,7 @@ export async function checkAuthApiAvailability(): Promise<ApiAvailability> {
       ok: false,
       kind: "invalid-response",
       message:
-        `The configured API origin ${config.baseUrl} points back to the web app, so the local auth proxy is calling itself. ` +
+        `The configured API origin ${displayBaseUrl} points back to the web app, so the local auth proxy is calling itself. ` +
         "Point NEXT_PUBLIC_API_URL or API_URL to the backend origin instead.",
     };
   }
@@ -219,7 +245,7 @@ export async function checkAuthApiAvailability(): Promise<ApiAvailability> {
       ok: false,
       kind: "unreachable",
       message:
-        `Could not reach the auth API at ${config.baseUrl}. ` +
+        `Could not reach the auth API at ${displayBaseUrl}. ` +
         "Start the backend server and point NEXT_PUBLIC_API_URL or API_URL to that origin.",
     };
   }
@@ -232,7 +258,7 @@ export async function checkAuthApiAvailability(): Promise<ApiAvailability> {
       ok: false,
       kind: "invalid-response",
       message:
-        `The configured API origin ${config.baseUrl} responded with HTML or a 404 for /api/auth/get-session. ` +
+        `The configured API origin ${displayBaseUrl} responded with HTML or a 404 for /api/auth/get-session. ` +
         "That usually means it points to the Next.js app instead of the backend API server.",
     };
   }
@@ -241,7 +267,7 @@ export async function checkAuthApiAvailability(): Promise<ApiAvailability> {
     ok: false,
     kind: "invalid-response",
     message:
-      `The auth API at ${config.baseUrl} returned an unexpected response (${response.status}). ` +
+      `The auth API at ${displayBaseUrl} returned an unexpected response (${response.status}). ` +
       "Expected a Better Auth JSON response from /api/auth/get-session.",
   };
 }
@@ -251,7 +277,7 @@ async function sleep(ms: number) {
 }
 
 export const getSessionFromApi = cache(async function getSessionFromApi() {
-  const config = resolveApiConfig();
+  const config = resolveApiConfig(SERVER_API_URL);
 
   if (!config.ok) {
     return null;
@@ -294,7 +320,7 @@ export const getSessionFromApi = cache(async function getSessionFromApi() {
 });
 
 async function adminFetch<T>(path: string) {
-  const config = resolveApiConfig();
+  const config = resolveApiConfig(SERVER_API_URL);
 
   if (!config.ok) {
     throw new Error(config.message);
@@ -307,11 +333,13 @@ async function adminFetch<T>(path: string) {
   });
 
   if (!response.ok) {
+    const displayBaseUrl = getApiDisplayBaseUrl() || config.baseUrl;
+
     throw new AdminApiError(
       `Admin fetch failed (${response.status})`,
       response.status,
       path,
-      config.baseUrl,
+      displayBaseUrl,
     );
   }
 

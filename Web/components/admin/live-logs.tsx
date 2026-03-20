@@ -442,7 +442,7 @@ export function LiveLogs({
         <div className="flex flex-wrap items-center gap-2">
           <Select
             aria-label="Date format"
-            className="min-w-[10rem]"
+            className="min-w-40"
             selectedKey={dateFormat}
             onSelectionChange={(key) => {
               if (

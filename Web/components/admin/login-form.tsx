@@ -27,7 +27,7 @@ function extractErrorMessage(text: string, contentType: string | null, apiBaseUr
     trimmed.startsWith("<!DOCTYPE html>") ||
     trimmed.startsWith("<html")
   ) {
-    return `The local auth proxy returned HTML instead of JSON. Check that the upstream API is running and that NEXT_PUBLIC_API_URL points to the backend origin. Current upstream API base: ${apiBaseUrl}`;
+    return `The local auth proxy returned HTML instead of JSON. Check that the upstream API is running and that API_URL or NEXT_PUBLIC_API_URL points to the backend origin. Current upstream API base: ${apiBaseUrl}`;
   }
 
   try {

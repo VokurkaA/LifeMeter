@@ -22,7 +22,7 @@ import {
   Surface,
 } from "@/components/ui/heroui";
 
-const apkUrl = process.env.NEXT_PUBLIC_APK_URL || "#download";
+const apkUrl = "/downloads/android/latest";
 
 const heroMetrics = [
   {

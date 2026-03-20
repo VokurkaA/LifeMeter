@@ -19,5 +19,24 @@ services:
       - ./Server/.env
     volumes:
       - ./Server/logs:/app/logs
+  web:
+    build:
+      context: .
+      dockerfile: Web/Dockerfile
+    restart: always
+    depends_on:
+      - api
+    environment:
+      API_URL: http://api:3000
+      NEXT_PUBLIC_API_URL: https://lifemeter.fit
+      APK_STORAGE_DIR: /app/releases/apk
+      HOSTNAME: 0.0.0.0
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      PORT: 3000
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./releases/apk:/app/releases/apk:ro
 volumes:
   pgdata:

@@ -16,6 +16,7 @@ import {
   getSessionFromApi,
   isAdminRole,
   tryGetApiBaseUrl,
+  tryGetPublicApiBaseUrl,
 } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 
 export default async function AdminLoginPage() {
   const apiBaseUrl = tryGetApiBaseUrl();
+  const publicApiBaseUrl = tryGetPublicApiBaseUrl();
   const authApiAvailability = apiBaseUrl ? await checkAuthApiAvailability() : null;
   const canUseAuth = Boolean(apiBaseUrl && authApiAvailability?.ok);
   const session = canUseAuth ? await getSessionFromApi() : null;
@@ -75,11 +77,17 @@ export default async function AdminLoginPage() {
               </Alert>
             ) : null}
 
-            <LoginForm apiBaseUrl={apiBaseUrl || ""} isDisabled={!canUseAuth} />
+            <LoginForm
+              apiBaseUrl={publicApiBaseUrl || apiBaseUrl || ""}
+              isDisabled={!canUseAuth}
+            />
 
             <div className="admin-card-divider grid gap-3 pt-4 sm:grid-cols-3">
               <DetailItem label="Access" value="Admin role required" />
-              <DetailItem label="Backend" value={apiBaseUrl || "Not configured"} />
+              <DetailItem
+                label="Backend"
+                value={publicApiBaseUrl || apiBaseUrl || "Not configured"}
+              />
               <DetailItem
                 label="Status"
                 value={

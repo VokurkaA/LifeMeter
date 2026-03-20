@@ -17,7 +17,7 @@ import {
 import {
   getAdminApiErrorMessage,
   getAdminLogs,
-  getApiBaseUrl,
+  getPublicApiBaseUrl,
   getSessionFromApi,
 } from "@/lib/api";
 import { formatDate, formatNumber } from "@/lib/format";
@@ -148,7 +148,7 @@ export default async function AdminLogsPage({ searchParams }: LogsPageProps) {
             </CardHeader>
             <CardContent>
               <LiveLogs
-                apiBaseUrl={getApiBaseUrl()}
+                apiBaseUrl={getPublicApiBaseUrl()}
                 context={params.context}
                 initialLogs={logs.rows}
                 initialPage={logs.pagination.page}
