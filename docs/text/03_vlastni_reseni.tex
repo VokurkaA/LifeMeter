@@ -22,8 +22,8 @@ z~jedné sdílené kódové základny. Na platformě Android jsou zdravotní dat
 rozhraní Health Connect~\cite{healthconnect2024}, na platformě iOS pak prostřednictvím
 HealthKit~\cite{healthkit2024}.
 
-Aplikační stav je spravován čtveřicí doménových Context Providers -- \texttt{SleepStoreContext},
-\texttt{NutritionStoreContext}, \texttt{WorkoutStoreContext} a~\texttt{UserStoreContext}.
+Aplikační stav je spravován čtveřicí doménových Context Providers -- \texttt{SleepStore}\allowbreak\texttt{Context},
+\texttt{Nutrition}\allowbreak\texttt{StoreContext}, \texttt{Workout}\allowbreak\texttt{StoreContext} a~\texttt{UserStore}\allowbreak\texttt{Context}.
 Každý provider zapouzdřuje data a~operace pro příslušnou doménu a~vystavuje je potomkům
 stromu komponent prostřednictvím React Context API. Lokální perzistenci dat zajišťuje knihovna
 MMKV~\cite{mmkv2024}: data jsou primárně čtena z~cache v~paměti zařízení a~synchronizována
@@ -69,7 +69,9 @@ celého schématu je uveden na obrázku~\ref{fig:er-diagram}.
 \end{figure}
 
 \subsection{Autentizace}
-Tabulky pro správu uživatelů, relací a ověřování jsou generovány knihovnou Better Auth~\cite{betterauth2024} a~nejsou spravovány vlastními migracemi. Centrální entitou je tabulka \texttt{user} (viz tabulka~\ref{app:tab:user} v~příloze~B), na kterou jsou pomocí cizích klíčů navázány všechny uživatelské záznamy v~ostatních doménách.
+{\sloppy
+Tabulky pro správu uživatelů, relací a ověřování jsou generovány knihovnou Better Auth \cite{betterauth2024} a~nejsou spravovány vlastními migracemi. Centrální entitou je tabulka \texttt{user} (viz tabulka~\ref{app:tab:user} v~příloze~B), na kterou jsou pomocí cizích klíčů navázány všechny uživatelské záznamy v~ostatních doménách.
+}
 
 Dále jsou generovány tabulky \texttt{session} (aktivní relace s~tokenem a~IP adresou, viz tabulka~\ref{app:tab:session}), \texttt{account} (přihlašovací metoda a~přihlašovací údaje, viz tabulka~\ref{app:tab:account}) a~\texttt{verification} (jednorázové ověřovací tokeny, viz tabulka~\ref{app:tab:verification}). Podrobné definice všech autentizačních tabulek jsou uvedeny v~příloze~B.
 
@@ -82,12 +84,16 @@ Doména spánku zahrnuje tabulku \texttt{user\_sleep} pro záznam denního spán
 \subsection{Tréninky}
 Doména tréninků se skládá z~referenčních dat (typy cviků, svaly, styly a~typy sérií) a~uživatelských dat (šablony tréninků a~zaznamenané tréninky). Definice hlavních tréninkových tabulek (\texttt{workout\_template}, \texttt{template\_workout\_set}, \texttt{workout} a~\texttt{workout\_set}) jsou uvedeny v~příloze~B (tabulky~\ref{app:tab:workout_template} až~\ref{app:tab:workout_set}).
 
-Referenční tabulky \texttt{exercise} (kombinace typu a~varianty cviku), \texttt{exercise\_type}, \texttt{exercise\_variant}, \texttt{muscle} (hierarchická tabulka svalů s~vlastní rekurzivní vazbou \texttt{parent\_id}), \texttt{muscle\_involvement} (míra zapojení svalu v~cviku), \texttt{set\_style} a~\texttt{set\_type} obsahují pouze identifikátor a~název, případně doplňující číselné atributy, a~slouží jako číselníky (viz příloha~B).
+{\sloppy
+Referenční tabulky \texttt{exercise} (kombinace typu a~varianty cviku), \texttt{exercise\_}\allowbreak\texttt{type}, \texttt{exercise\_}\allowbreak\texttt{variant}, \texttt{muscle} (hierarchická tabulka svalů s~vlastní rekurzivní vazbou \texttt{parent\_}\allowbreak\texttt{id}), \texttt{muscle\_}\allowbreak\texttt{involvement} (míra zapojení svalu v~cviku), \texttt{set\_}\allowbreak\texttt{style} a~\texttt{set\_}\allowbreak\texttt{type} obsahují pouze identifikátor a~název, případně doplňující číselné atributy, a~slouží jako číselníky (viz příloha~B).
+}
 
 \subsection{Uživatelský profil}
+{\sloppy
 Struktura profilu a~cílů je uložena v~tabulkách \texttt{user\_profile} a~\texttt{user\_goal} (viz tabulky~\ref{app:tab:user_profile} a~\ref{app:tab:user_goal} v~příloze~B).
 
-Dále jsou evidovány tabulky \texttt{user\_weight\_log} (hmotnost, viz tabulka~\ref{app:tab:user_weight_log}), \texttt{user\_height\_log} (výška v~cm s~časovým razítkem), \texttt{user\_blood\_pressure\_log} (systolický a~diastolický tlak v~mmHg) a~\texttt{user\_heart\_rate\_log} (tepová frekvence v~bpm). Všechny protokolové tabulky sdílejí společný vzor: primární klíč \texttt{UUID}, cizí klíč \texttt{user\_id} s~\texttt{CASCADE DELETE} a~časové razítko \texttt{measured\_at} indexované sestupně pro efektivní výpis posledních hodnot. Kompletní definice těchto tabulek jsou k~dispozici v~příloze~B.
+Dále jsou evidovány tabulky \texttt{user\_weight\_log} (hmotnost, viz tabulka~\ref{app:tab:user_weight_log}), \texttt{user\_}\allowbreak\texttt{height\_}\allowbreak\texttt{log} (výška v~cm s~časovým razítkem), \texttt{user\_}\allowbreak\texttt{blood\_}\allowbreak\texttt{pressure\_}\allowbreak\texttt{log} (systolický a~diastolický tlak v~mmHg) a~\texttt{user\_}\allowbreak\texttt{heart\_}\allowbreak\texttt{rate\_}\allowbreak\texttt{log} (tepová frekvence v~bpm). Všechny protokolové tabulky sdílejí společný vzor: primární klíč \texttt{UUID}, cizí klíč \texttt{user\_id} s~\texttt{CASCADE DELETE} a~časové razítko \texttt{measured\_at} indexované sestupně pro efektivní výpis posledních hodnot. Kompletní definice těchto tabulek jsou k~dispozici v~příloze~B.
+}
 
 \section{Popis řešení}
 
@@ -95,36 +101,40 @@ Dále jsou evidovány tabulky \texttt{user\_weight\_log} (hmotnost, viz tabulka~
 
 \subsubsection{Autentizace a~správa relací}
 
+{\sloppy
 Autentizace je realizována prostřednictvím \texttt{AuthProvider} --
 kontextu obalujícího celý strom aplikace. Při inicializaci se volá
-\texttt{authService.getSession()}, jehož výsledek je uložen v~zabezpečeném
-úložišti \texttt{expo-secure-store} pod klíčem \texttt{auth-session-cache}.
+\texttt{authService.\allowbreak getSession()}, jehož výsledek je uložen v~zabezpečeném
+úložišti \texttt{expo-secure-}\allowbreak\texttt{store} pod klíčem \texttt{auth-session-}\allowbreak\texttt{cache}.
 Při selhání síťového volání je relace obnovena z~tohoto lokálního záznamu,
 čímž je zachována funkčnost i~při výpadku připojení. Přihlašování
 a~registrace probíhá voláním REST endpointů Better Auth
-(\texttt{/api/auth/sign-in/email}, \texttt{/api/auth/sign-up/email});
+(\texttt{/api/}\allowbreak\texttt{auth/}\allowbreak\texttt{sign-in/}\allowbreak\texttt{email}, \texttt{/api/}\allowbreak\texttt{auth/}\allowbreak\texttt{sign-up/}\allowbreak\texttt{email});
 stavová \texttt{HttpOnly} cookie je spravována serverem a~automaticky
 přikládána ke každému požadavku prostřednictvím volby \texttt{credentials:~"include"}.
+}
 
 \subsubsection{Modul zdravotních dat}
 
+{\sloppy
 Čtení zdravotních dat ze systémových úložišť je zapouzdřeno do abstrakční
-vrstvy \texttt{src/lib/health/}, která sjednocuje rozhraní
+vrstvy \texttt{src/lib/}\allowbreak\texttt{health/}, která sjednocuje rozhraní
 Health Connect~\cite{healthconnect2024} na platformě Android
 a~HealthKit~\cite{healthkit2024} na platformě iOS do jediného
-platformově neutrálního API. Každá funkce (například \texttt{getSteps},
+platformově neutrálního API. Každá funkce (například \texttt{getSteps}, 
 \texttt{getSleep}, \texttt{getWeight}) vrací strukturu
 \texttt{Result<T>} rozlišující úspěšný výsledek a~typovanou chybu,
 čímž je zamezeno nekontrolovanému šíření výjimek do vyšších vrstev.
+}
 
 Oprávnění jsou vyžádána jednorázově při startu aplikace funkcí
-\texttt{requestHealthPermissions()}. Na platformě Android je inicializován
+\texttt{requestHealth\-Permissions()}. Na platformě Android je inicializován
 klient Health Connect a~pro každý typ dat (\texttt{Steps},
 \texttt{SleepSession}, \texttt{Weight} aj.) je vyžádáno oprávnění ke čtení;
 na platformě iOS je volána metoda \texttt{requestAuthorization()} knihovny
 HealthKit. Hodnoty spánkových fází jsou mapovány z~číselných konstant
 příslušné platformy na sjednocenou množinu
-\texttt{"awake" | "core" | "deep" | "rem" | "asleep"}.
+\texttt{"awake"\allowbreak\ | "core"\allowbreak\ | "deep"\allowbreak\ | "rem"\allowbreak\ | "asleep"}.
 
 \subsubsection{Lokální úložiště}
 
@@ -148,8 +158,9 @@ požadavek není odeslán, ale serializován a~přiložen do fronty uložené
 v~MMKV pod klíčem \texttt{offline-queue}. Duplicitní záznamy jsou
 odfiltrována porovnáním cesty a~těla požadavku.
 
+{\sloppy
 Stav sítě je monitorován komponentou \texttt{NetworkProvider}
-prostřednictvím funkce \texttt{addNetworkStateListener()} z~knihovny
+prostřednictvím funkce \texttt{addNetworkState\-Listener()} z~knihovny
 \texttt{expo-network}. Při obnovení připojení je zavolána funkce
 \texttt{flushQueue()}, která sekvenčně přehraje uložené požadavky
 a~neúspěšné ponechá ve frontě pro příští pokus. Souběžně je emitována
@@ -157,17 +168,20 @@ událost \texttt{emitReconnect()}, na kterou jsou přihlášeny všechny
 doménové Context Providers a~reagují opětovným načtením dat ze serveru.
 Podrobný popis algoritmů \texttt{request()} a~\texttt{flushQueue()} je
 uveden v~sekci~\ref{sec:offline-fronta}.
+}
 
 \subsubsection{Lokální oznámení}
 
+{\sloppy
 Plánování oznámení je centralizováno do hooku \texttt{useNotifications()}
-(\texttt{src/lib/notifications.ts}). Funkce \texttt{scheduleNotification()}
+(\texttt{src/lib/}\allowbreak\texttt{notifications.ts}). Funkce \texttt{scheduleNotification()}
 přijímá identifikátor, titulek, text, čas a~příznak opakování. Opakující
 se oznámení (připomenutí spánku, vstávání, cvičení) jsou naplánována
 s~triggerem typu \texttt{DAILY} zadáváním hodiny a~minuty; jednorázová
 s~triggerem \texttt{TIME\_INTERVAL}. Stav naplánovaných oznámení je
 synchronizován s~MMKV, aby byl dostupný i~bez živého systémového volání.
 Při globálním vypnutí oznámení jsou zrušena všechna naplánovaná upozornění.
+}
 
 \subsection{Serverová část}
 
@@ -196,7 +210,7 @@ na handler knihovny Better Auth a~nevyžaduje autentizaci. Skupina
 \texttt{/api/workout/*} vystavuje veřejně dostupná referenční data
 (cviky, styly a~typy sérií, váhové možnosti). Skupina
 \texttt{/api/food} poskytuje stránkovaný seznam potravin a~fulltextové
-vyhledávání (parametr \texttt{name} využívající \texttt{pg\_trgm}~\cite{pg_trgm2024},
+vyhledávání (parametr \texttt{name} využívající \texttt{pg\_trgm}\allowbreak\ \cite{pg_trgm2024},
 parametr \texttt{gtin} pro vyhledávání dle čárového kódu). Skupina
 \texttt{/api/user/*} sdružuje chráněné endpointy pro spánek
 (\texttt{/sleep}), výživu (\texttt{/food}), tréninky
@@ -209,7 +223,7 @@ ve vývojovém prostředí.
 \subsubsection{Nasazení a~reverzní proxy}
 
 Serverová část je provozována na instanci Oracle Cloud Infrastructure
-s~architekturou ARM. Kontejnerizační soubor \texttt{docker-compose.yml}
+s~architekturou ARM. Kontejnerizační soubor \texttt{docker-\allowbreak compose.yml}
 definuje dvě služby: \texttt{db} (PostgreSQL~17 s~pojmenovaným svazkem
 \texttt{pgdata} pro perzistenci dat) a~\texttt{api} (sestavení ze zdrojového
 kódu adresáře \texttt{Server/}, mapování portu~3000 a~sdílený svazek
@@ -229,19 +243,21 @@ aplikačního kontejneru direktivou \texttt{reverse\_proxy localhost:3000}.
 
 \subsection{CI/CD pipeline}
 
+{\sloppy
 Průběžné nasazení serverové části je zajištěno workflow GitHub Actions
 (\texttt{.github/workflows/deploy.yml}). Workflow se spouští automaticky
 při každém přímém commitu nebo sloučení pull requestu do větve
 \texttt{main}, pokud změna zasahuje do adresáře \texttt{Server/}.
 Jediný krok \textit{Deploy to Oracle VM} využívá akce
-\texttt{appleboy/ssh-action}, která se připojí na produkční server
+\texttt{appleboy/}\allowbreak\texttt{ssh-action}, která se připojí na produkční server
 prostřednictvím SSH klíče uloženého v~tajných proměnných repozitáře
-(\texttt{SSH\_HOST}, \texttt{SSH\_USER}, \texttt{SSH\_KEY}).
+(\texttt{SSH\_HOST}, \allowbreak \texttt{SSH\_USER}, \allowbreak \texttt{SSH\_KEY}).
 Na serveru jsou poté provedeny příkazy \texttt{git pull origin main},
 \texttt{docker compose down} a~\texttt{docker compose up -d --build},
 čímž dochází k~sestavení aktualizované Docker image a~opětovnému spuštění
 služeb s~minimálním výpadkem. Databáze zůstává v~provozu díky pojmenovanému
 svazku \texttt{pgdata}, který není součástí životního cyklu kontejnerů.
+}
 
 \section{Návrh aplikace}
 
@@ -278,12 +294,14 @@ Navigační struktura aplikace je rozdělena do dvou zásobníků obrazovek
 (\textit{stack navigátorů}), jejichž zobrazení závisí na stavu autentizace
 a~existenci uživatelského profilu (obrázek~\ref{fig:navigation-diagram}).
 
-\textbf{OnboardingStack} je prezentován nepřihlášeným uživatelům
+{\sloppy
+\textbf{Onboarding\-Stack} je prezentován nepřihlášeným uživatelům
 a~obsahuje uvítací obrazovku (\textit{Title}), formulář přihlášení
 (\textit{SignIn}) a~registrace (\textit{SignUp}). Po úspěšné autentizaci
 je zkontrolována existence profilu: pokud profil neexistuje nebo nebyl
 dokončen onboarding, je uživatel přesměrován na obrazovku
 \textit{OnboardingInfoScreen}.
+}
 
 \textbf{AppStack} je zpřístupněn přihlášeným uživatelům s~dokončeným
 profilem. Výchozím prvkem je \textit{AppTabs} -- zásobník se spodní
@@ -315,9 +333,11 @@ zapouzdřuje data a~operace jedné funkční domény
 a~zpřístupňuje operace pro jejich vytváření, editaci a~mazání
 včetně detekce probíhající spánkové relace (\texttt{ongoingSleepSession}).
 
+{\sloppy
 \texttt{NutritionStoreContext} uchovává jídelní záznamy ve struktuře
-\texttt{\{userMeal, userFoods\}[]} a~poskytuje operace CRUD nad
+\texttt{\{userMeal,}\allowbreak\ \texttt{userFoods\}[]} a~poskytuje operace CRUD nad
 jídly a~jídelními deníky.
+}
 
 \texttt{WorkoutStoreContext} spravuje zaznamenané tréninky, šablony
 tréninků a~referenční číselníky (cviky, styly a~typy sérií). Jeho
@@ -536,5 +556,5 @@ před vložením do fronty, čímž je zamezeno opakovanému záznamu totožné
 operace.
 
 Každý HTTP požadavek je opatřen timeoutem $5\,000\,\text{ms}$
-prostřednictvím \texttt{AbortController}, čímž je zamezeno blokování
+prostřednictvím \texttt{Abort}\allowbreak\texttt{Controller}, čímž je zamezeno blokování
 při nedostupném serveru.

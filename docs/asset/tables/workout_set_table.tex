@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & UUID & Unikátní identifikátor záznamu \\ \hline
@@ -18,7 +18,7 @@ rest\_time & INTERVAL & Doba odpočinku po sérii \\ \hline
 notes & TEXT & Poznámky k sérii \\ \hline
 style\_id & UUID & Identifikátor stylu série \\ \hline
 set\_type\_id & UUID & Identifikátor typu série \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{workout\_set}}
 \label{tab:workout_set}
 \end{table}

@@ -11,12 +11,18 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
+\usepackage{url}
 \usepackage{geometry}
+\usepackage[patch=none]{microtype}
+\emergencystretch=3em
 \usepackage{pdfpages}
 \usepackage{titlesec}
 \usepackage{setspace}
 \usepackage{amsmath}
 \usepackage{xcolor}
+\usepackage{tabularx}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\usepackage{booktabs}
 
 \definecolor{kwcolor}{RGB}{30, 60, 130}   % tmava modra -- klicova slova
 \definecolor{cmcolor}{RGB}{120, 120, 120} % stredni seda -- komentare
@@ -88,7 +94,7 @@
 \include{meta/prohlaseni}
 \include{meta/podekovani}
 \include{meta/resume}
-\include{meta/obsah}
+{\sloppy\include{meta/obsah}}
 
 \pagenumbering{arabic}
 \setcounter{page}{8}
@@ -101,7 +107,7 @@
 \include{text/06_zaver}
 
 \addcontentsline{toc}{chapter}{Literatura}
-\printbibliography[title=Literatura]
+{\sloppy\printbibliography[title=Literatura]}
 
 \addcontentsline{toc}{chapter}{\listfigurename}
 \listoffigures
@@ -122,12 +128,12 @@
 
 \begin{itemize}
   \item[\textbf{A}] Diagramy
-  \item[\textbf{B}] Tabulky
+  % \item[\textbf{B}] Tabulky
+  \include{prilohy/tabulky}
   \item[\textbf{C}] Schémata
   \item[\textbf{D}] API dokumentace
   \item[\textbf{E}] Instalační návod
 \end{itemize}
 
-\include{prilohy/tabulky}
 
 \end{document}

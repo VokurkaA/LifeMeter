@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & UUID & Unikátní identifikátor záznamu \\ \hline
@@ -13,7 +13,7 @@ description & TEXT & Podrobný popis šablony \\ \hline
 label & ARRAY & Štítky pro kategorizaci šablony \\ \hline
 created\_at & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření šablony \\ \hline
 updated\_at & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace šablony \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{workout\_template}}
 \label{tab:workout_template}
 \end{table}

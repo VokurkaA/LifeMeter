@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & INTEGER & Unikátní identifikátor záznamu \\ \hline
@@ -11,7 +11,7 @@ name & TEXT & Název úrovně aktivity \\ \hline
 description & TEXT & Podrobný popis úrovně aktivity \\ \hline
 min\_factor & NUMERIC & Minimální koeficient pro výpočet energetického výdeje \\ \hline
 max\_factor & NUMERIC & Maximální koeficient pro výpočet energetického výdeje \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{activity\_level}}
 \label{tab:activity_level}
 \end{table}

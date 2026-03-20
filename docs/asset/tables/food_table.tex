@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & INTEGER & Unikátní identifikátor záznamu \\ \hline
@@ -11,7 +11,7 @@ branded\_food\_id & INTEGER & Identifikátor značkové potraviny (volitelné) \
 food\_category\_id & INTEGER & Identifikátor kategorie potraviny \\ \hline
 description & TEXT & Podrobný název nebo popis potraviny \\ \hline
 search\_vector & TSVECTOR & Vektor pro plnotextové vyhledávání \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{food}}
 \label{tab:food}
 \end{table}

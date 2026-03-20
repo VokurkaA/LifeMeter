@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
@@ -15,7 +15,7 @@ daily\_fat\_goal\_grams & INTEGER & Cílový denní příjem tuků v gramech \\ 
 daily\_carbs\_goal\_grams & INTEGER & Cílový denní příjem sacharidů v gramech \\ \hline
 target\_weight\_grams & NUMERIC & Cílová tělesná hmotnost v gramech \\ \hline
 target\_weight\_date & DATE & Cílové datum pro dosažení hmotnosti \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{user\_goal}}
 \label{tab:user_goal}
 \end{table}

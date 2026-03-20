@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & UUID & Unikátní identifikátor záznamu \\ \hline
@@ -13,7 +13,7 @@ total\_grams & NUMERIC & Celková hmotnost zkonzumované potraviny v gramech \\ 
 quantity & NUMERIC & Množství porcí \\ \hline
 portion\_id & INTEGER & Identifikátor použité porce \\ \hline
 description & TEXT & Vlastní popis nebo poznámka k potravině \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{user\_food}}
 \label{tab:user_food}
 \end{table}

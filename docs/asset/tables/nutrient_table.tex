@@ -3,14 +3,14 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & INTEGER & Unikátní identifikátor záznamu \\ \hline
 name & CHARACTER VARYING(128) & Název živiny \\ \hline
 unit & USER-DEFINED & Měrná jednotka živiny \\ \hline
 nutrient\_nbr & INTEGER & Číselné označení živiny \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{nutrient}}
 \label{tab:nutrient}
 \end{table}

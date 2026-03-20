@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & UUID & Unikátní identifikátor záznamu \\ \hline
@@ -11,7 +11,7 @@ user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
 sleep\_start & TIMESTAMP WITH TIME ZONE & Datum a čas začátku spánku \\ \hline
 sleep\_end & TIMESTAMP WITH TIME ZONE & Datum a čas konce spánku \\ \hline
 note & TEXT & Poznámka ke kvalitě nebo průběhu spánku \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{user\_sleep}}
 \label{tab:user_sleep}
 \end{table}

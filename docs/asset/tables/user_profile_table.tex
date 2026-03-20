@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
@@ -14,7 +14,7 @@ current\_bmr\_calories & INTEGER & Aktuální hodnota bazálního metabolismu v 
 default\_weight\_unit\_id & INTEGER & Preferovaná jednotka hmotnosti \\ \hline
 default\_length\_unit\_id & INTEGER & Preferovaná jednotka délky \\ \hline
 finished\_onboarding & BOOLEAN & Příznak dokončení úvodního nastavení (onboarding) \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{user\_profile}}
 \label{tab:user_profile}
 \end{table}

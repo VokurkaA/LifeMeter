@@ -3,14 +3,14 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & UUID & Unikátní identifikátor záznamu \\ \hline
 exercise\_id & UUID & Identifikátor cviku \\ \hline
 muscle\_id & UUID & Identifikátor svalu \\ \hline
 involvement & NUMERIC & Míra zapojení svalu při daném cviku \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{muscle\_involvement}}
 \label{tab:muscle_involvement}
 \end{table}

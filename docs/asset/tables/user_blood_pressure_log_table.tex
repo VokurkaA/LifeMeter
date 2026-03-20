@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & UUID & Unikátní identifikátor záznamu \\ \hline
@@ -11,7 +11,7 @@ user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
 measured\_at & TIMESTAMP WITH TIME ZONE & Datum a čas měření krevního tlaku \\ \hline
 systolic\_mmhg & INTEGER & Systolický krevní tlak (mmHg) \\ \hline
 diastolic\_mmhg & INTEGER & Diastolický krevní tlak (mmHg) \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{user\_blood\_pressure\_log}}
 \label{tab:user_blood_pressure_log}
 \end{table}

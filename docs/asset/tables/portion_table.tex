@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & INTEGER & Unikátní identifikátor záznamu \\ \hline
@@ -13,7 +13,7 @@ portion\_amount & NUMERIC & Množství jednotek v porci \\ \hline
 portion\_unit & CHARACTER VARYING(16) & Označení jednotky porce \\ \hline
 description & TEXT & Popis porce \\ \hline
 modifier & TEXT & Upřesňující informace k porci \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{portion}}
 \label{tab:portion}
 \end{table}

@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & TEXT & Unikátní identifikátor záznamu \\ \hline
@@ -19,7 +19,7 @@ banReason & TEXT & Důvod zablokování uživatele \\ \hline
 banExpires & TIMESTAMP WITH TIME ZONE & Datum a čas vypršení zablokování \\ \hline
 lastLoginMethod & TEXT & Poslední použitý způsob přihlášení \\ \hline
 normalizedEmail & TEXT & Normalizovaná verze e-mailové adresy \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{user}}
 \label{tab:user}
 \end{table}

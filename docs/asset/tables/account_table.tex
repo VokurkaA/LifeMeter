@@ -3,7 +3,7 @@
 % ==========================================
 \begin{table}[ht!] 
 \centering
-\begin{tabular}{|l|l|p{7cm}|}
+\begin{tabularx}{\textwidth}{|l|l|L|}
 \hline
 \textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
 id & TEXT & Unikátní identifikátor záznamu \\ \hline
@@ -19,7 +19,7 @@ scope & TEXT & Rozsah oprávnění tokenu \\ \hline
 password & TEXT & Hash hesla uživatele \\ \hline
 createdAt & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření záznamu \\ \hline
 updatedAt & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace záznamu \\ \hline
-\end{tabular}
+\end{tabularx}
 \caption{Tabulka \texttt{account}}
 \label{tab:account}
 \end{table}
