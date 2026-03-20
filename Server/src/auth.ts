@@ -11,7 +11,10 @@ const plugins = [admin(), lastLoginMethod({
 export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET,
     baseURL: process.env.BASE_URL || `http://localhost:${process.env.PORT}`,
-    trustedOrigins:process.env.CORS_ORIGINS?.split(', '),
+    trustedOrigins: process.env.CORS_ORIGINS
+        ?.split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean),
     database: pool,
     emailAndPassword: {
         enabled: true,

@@ -19,16 +19,55 @@ db.exec(`
     level TEXT,
     message TEXT,
     context TEXT,
-    created_at TEXT
+    created_at TEXT,
+    meta TEXT
   )
 `);
 
-const insertLogStmt = db.prepare("INSERT INTO logs (level, message, context, created_at) VALUES (?, ?, ?, ?)");
+const logTableColumns = db
+  .query("PRAGMA table_info(logs)")
+  .all() as Array<{ name: string }>;
+
+if (!logTableColumns.some((column) => column.name === "meta")) {
+  db.exec("ALTER TABLE logs ADD COLUMN meta TEXT");
+}
+
+const insertLogStmt = db.prepare(
+  "INSERT INTO logs (level, message, context, created_at, meta) VALUES (?, ?, ?, ?, ?)",
+);
 
 export const logEmitter = new EventEmitter();
 
+type StoredLogRow = {
+  id: number | string;
+  level: string;
+  message: string;
+  context: string;
+  created_at: string;
+  meta?: string | null;
+};
+
+function parseStoredMeta(meta?: string | null) {
+  if (!meta) return null;
+
+  try {
+    return JSON.parse(meta);
+  } catch {
+    return { raw: meta };
+  }
+}
+
+function normalizeStoredLogRow(row: StoredLogRow) {
+  return {
+    ...row,
+    meta: parseStoredMeta(row.meta),
+  };
+}
+
 export function getRecentLogs(limit: number) {
-  return db.query("SELECT * FROM logs ORDER BY created_at DESC LIMIT ?").all(limit);
+  return (
+    db.query("SELECT * FROM logs ORDER BY created_at DESC LIMIT ?").all(limit) as StoredLogRow[]
+  ).map(normalizeStoredLogRow);
 }
 
 export function getLogs(filters: {
@@ -69,7 +108,9 @@ export function getLogs(filters: {
   query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
   params.push(filters.limit, filters.offset);
 
-  const rows = db.prepare(query).all(...params);
+  const rows = (db.prepare(query).all(...params) as StoredLogRow[]).map(
+    normalizeStoredLogRow,
+  );
 
   return { rows, total };
 }
@@ -110,6 +151,20 @@ const errorReplacer = (_: string, v: any) => {
   }
   return v;
 };
+
+function sanitizeMetaValue(meta?: LogMeta) {
+  const { context = "App", ...restMeta } = meta ?? {};
+  const payload =
+    Object.keys(restMeta).length > 0
+      ? JSON.parse(JSON.stringify(restMeta, errorReplacer))
+      : null;
+
+  return {
+    context,
+    payload,
+    serialized: payload ? JSON.stringify(payload) : null,
+  };
+}
 
 class LoggerService {
   private config = loggerConfig;
@@ -163,7 +218,7 @@ class LoggerService {
     message: string,
     meta: LogMeta = {},
   ): string {
-    const { context = "App", ...restMeta } = meta;
+    const { context, payload } = sanitizeMetaValue(meta);
 
     if (this.config.format === "json") {
       return JSON.stringify({
@@ -173,10 +228,7 @@ class LoggerService {
         level,
         context,
         message,
-        meta:
-          Object.keys(restMeta).length > 0
-            ? JSON.parse(JSON.stringify(restMeta, errorReplacer))
-            : undefined,
+        meta: payload ?? undefined,
       });
     }
 
@@ -184,10 +236,7 @@ class LoggerService {
       ? `[${this.getTimestamp()}]`
       : "";
     const levelUpper = level.toUpperCase().padEnd(5);
-    const metaStr =
-      Object.keys(restMeta).length > 0
-        ? ` ${JSON.stringify(restMeta, errorReplacer)}`
-        : "";
+    const metaStr = payload ? ` ${JSON.stringify(payload)}` : "";
 
     return `${timestamp} ${levelUpper} [${context}] ${message}${metaStr}`;
   }
@@ -200,7 +249,7 @@ class LoggerService {
     if (this.config.format === "json")
       return this.formatMessage(level, message, meta);
 
-    const { context = "App", ...restMeta } = meta;
+    const { context, payload } = sanitizeMetaValue(meta);
 
     const timestamp = this.config.includeTimestamp
       ? `${COLORS.dim}${this.getTimestamp()}${COLORS.reset}`
@@ -209,10 +258,9 @@ class LoggerService {
     const levelStr = `${color}[${level.toUpperCase()}]${COLORS.reset}`;
     const contextStr = `${COLORS.context}[${context}]${COLORS.reset}`;
 
-    const metaStr =
-      Object.keys(restMeta).length > 0
-        ? ` \n${COLORS.dim}${JSON.stringify(restMeta, errorReplacer, 2)}${COLORS.reset}`
-        : "";
+    const metaStr = payload
+      ? ` \n${COLORS.dim}${JSON.stringify(payload, null, 2)}${COLORS.reset}`
+      : "";
 
     return `${timestamp} ${levelStr} ${contextStr} ${message}${metaStr}`;
   }
@@ -235,17 +283,24 @@ class LoggerService {
       }
     }
 
-    const context = meta?.context || "App";
+    const normalizedMeta = sanitizeMetaValue(meta);
     const timestamp = new Date().toISOString();
     try {
-      const result = insertLogStmt.run(level, message, context, timestamp);
+      const result = insertLogStmt.run(
+        level,
+        message,
+        normalizedMeta.context,
+        timestamp,
+        normalizedMeta.serialized,
+      );
 
       logEmitter.emit("new-log", {
         id: result.lastInsertRowid.toString(),
         level,
         message,
-        context,
-        created_at: timestamp
+        context: normalizedMeta.context,
+        created_at: timestamp,
+        meta: normalizedMeta.payload,
       });
     } catch (err) {
       console.error("FAILED TO WRITE TO SQLITE LOGS:", err);

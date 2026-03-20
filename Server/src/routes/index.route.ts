@@ -4,6 +4,7 @@ import { userRouter } from "@/routes/user/user.route";
 import type { AuthSession, AuthUser } from "@/types/auth.types";
 import { workoutRouter } from "@/routes/workout.route";
 import { logsRouter } from "./logs.route";
+import { adminRouter } from "./admin.route";
 import { swaggerUI } from "@hono/swagger-ui";
 
 export const router = new OpenAPIHono<{
@@ -60,3 +61,4 @@ router.route("/food", foodRouter);
 router.route("/user", userRouter);
 router.route("/workout", workoutRouter);
 router.route("/logs", logsRouter);
+router.route("/admin", adminRouter);
