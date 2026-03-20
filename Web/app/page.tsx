@@ -310,7 +310,7 @@ export default function HomePage() {
                       <p className="landing-image-kicker text-xs uppercase tracking-[0.3em]">
                         Quiet enough for daily use
                       </p>
-                      <p className="landing-image-text max-w-md font-(--font-body) text-2xl leading-tight sm:text-3xl">
+                       <p className="landing-image-text max-w-md font-(--font-body) text-2xl leading-tight sm:text-3xl">
                         The interface is shaped to keep context close and friction low when
                         motivation is average.
                       </p>
