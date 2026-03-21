@@ -17,8 +17,6 @@ import {
   Table,
 } from "@/components/ui/heroui";
 import type { LogEntry, PaginatedResponse } from "@/lib/types";
-import { formatDateTime } from "@/lib/format";
-
 type LiveLogsProps = {
   apiBaseUrl: string;
   initialLogs: LogEntry[];
@@ -59,10 +57,17 @@ const COMPACT_DATE_FORMATTER = new Intl.DateTimeFormat("en", {
   day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: "UTC",
 });
 const DETAILED_DATE_FORMATTER = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
   timeStyle: "medium",
+  timeZone: "UTC",
+});
+const TITLE_DATE_FORMATTER = new Intl.DateTimeFormat("en", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "UTC",
 });
 
 function toneForStatus(status: "idle" | "connecting" | "live" | "error") {
@@ -128,6 +133,15 @@ function getFormattedDates(value: string): Record<LogDateFormat, string> {
   };
 }
 
+function getTitleDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return TITLE_DATE_FORMATTER.format(date);
+}
+
 function createLogRow(
   entry: LogEntry,
   index: number,
@@ -138,7 +152,7 @@ function createLogRow(
     kind,
     index,
     context: entry.context,
-    createdAtTitle: formatDateTime(entry.created_at),
+    createdAtTitle: getTitleDate(entry.created_at),
     dates: getFormattedDates(entry.created_at),
     details: getMetaSummary(entry.meta) || "—",
     level: entry.level,
@@ -173,6 +187,7 @@ export function LiveLogs({
   const [status, setStatus] = useState<"idle" | "connecting" | "live" | "error">(
     "idle",
   );
+  const [canConnectLive, setCanConnectLive] = useState(false);
   const [dateFormat, setDateFormat] = useState<LogDateFormat>("compact");
   const socketRef = useRef<WebSocket | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -181,8 +196,6 @@ export function LiveLogs({
   const seenKeysRef = useRef<Set<string>>(
     new Set(initialLogs.map((entry) => getLogKey(entry))),
   );
-  const canConnectLive =
-    typeof window !== "undefined" && window.location.origin === apiBaseUrl;
 
   const wsUrl = useMemo(() => {
     const base = apiBaseUrl.replace(/^http/, "ws");
@@ -230,6 +243,11 @@ export function LiveLogs({
   }, [initialLogs, initialPage, initialTotal, initialTotalPages, wsUrl]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    setCanConnectLive(window.location.origin === apiBaseUrl);
+  }, [apiBaseUrl]);
+
+  useEffect(() => {
     return () => {
       disconnect();
     };
@@ -252,6 +270,15 @@ export function LiveLogs({
     if (typeof window === "undefined") return;
     window.localStorage.setItem(DATE_FORMAT_STORAGE_KEY, dateFormat);
   }, [dateFormat]);
+
+  useEffect(() => {
+    if (!canConnectLive) {
+      disconnect();
+      return;
+    }
+
+    connect(true);
+  }, [canConnectLive, wsUrl]);
 
   const rows = useMemo<LogRow[]>(
     () => (liveRows.length > 0 ? [...liveRows, ...snapshotRows] : snapshotRows),
@@ -357,8 +384,12 @@ export function LiveLogs({
     };
   }, [hasMorePages, currentPage, totalPages, queryString]);
 
-  function connect() {
-    if (!canConnectLive || status === "connecting" || status === "live") {
+  function connect(force = false) {
+    if (!canConnectLive) {
+      return;
+    }
+
+    if (!force && (status === "connecting" || status === "live")) {
       return;
     }
 
@@ -485,6 +516,10 @@ export function LiveLogs({
               setLoadMoreError(null);
               setIsLoadingMore(false);
               isLoadingMoreRef.current = false;
+
+              if (canConnectLive) {
+                connect(true);
+              }
             }}
             variant="tertiary"
           >
@@ -493,7 +528,7 @@ export function LiveLogs({
           </Button>
           <Button
             isDisabled={!canConnectLive || status === "connecting" || status === "live"}
-            onPress={connect}
+            onPress={() => connect()}
             variant="primary"
           >
             <RadioTower className="h-4 w-4" />
