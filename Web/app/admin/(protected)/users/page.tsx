@@ -18,6 +18,13 @@ import {
   Label,
   Link,
   Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableContent,
+  TableHeader,
+  TableRow,
+  TableScrollContainer,
   TextField,
 } from "@/components/ui/heroui";
 import {
@@ -144,29 +151,29 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
           <CardContent className="pt-0">
             {users.rows.length > 0 ? (
               <Table variant="secondary">
-                <Table.ScrollContainer className="overflow-x-auto">
-                  <Table.Content aria-label="User directory table">
-                    <Table.Header>
-                      <Table.Column className={TABLE_HEADER_CLASS_NAME} isRowHeader>
+                <TableScrollContainer className="overflow-x-auto">
+                  <TableContent aria-label="User directory table">
+                    <TableHeader>
+                      <TableColumn className={TABLE_HEADER_CLASS_NAME} isRowHeader>
                         User
-                      </Table.Column>
-                      <Table.Column className={TABLE_HEADER_CLASS_NAME}>
+                      </TableColumn>
+                      <TableColumn className={TABLE_HEADER_CLASS_NAME}>
                         Role
-                      </Table.Column>
-                      <Table.Column className={TABLE_HEADER_CLASS_NAME}>
+                      </TableColumn>
+                      <TableColumn className={TABLE_HEADER_CLASS_NAME}>
                         Status
-                      </Table.Column>
-                      <Table.Column className={TABLE_HEADER_CLASS_NAME}>
+                      </TableColumn>
+                      <TableColumn className={TABLE_HEADER_CLASS_NAME}>
                         Onboarding
-                      </Table.Column>
-                      <Table.Column className={TABLE_HEADER_CLASS_NAME}>
+                      </TableColumn>
+                      <TableColumn className={TABLE_HEADER_CLASS_NAME}>
                         Last session
-                      </Table.Column>
-                    </Table.Header>
-                    <Table.Body items={users.rows}>
+                      </TableColumn>
+                    </TableHeader>
+                    <TableBody items={users.rows}>
                       {(user) => (
-                        <Table.Row id={user.id}>
-                          <Table.Cell>
+                        <TableRow id={user.id}>
+                          <TableCell>
                             <Link
                               className="flex flex-col gap-1 no-underline"
                               href={`/admin/users/${user.id}`}
@@ -176,13 +183,13 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
                               </span>
                               <span className="admin-muted-copy text-sm">{user.email}</span>
                             </Link>
-                          </Table.Cell>
-                          <Table.Cell>
+                          </TableCell>
+                          <TableCell>
                             <Chip color="accent" size="sm" variant="soft">
                               {user.role || "user"}
                             </Chip>
-                          </Table.Cell>
-                          <Table.Cell>
+                          </TableCell>
+                          <TableCell>
                             <Chip
                               color={user.banned ? "danger" : "success"}
                               size="sm"
@@ -190,8 +197,8 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
                             >
                               {user.banned ? "Banned" : "Active"}
                             </Chip>
-                          </Table.Cell>
-                          <Table.Cell>
+                          </TableCell>
+                          <TableCell>
                             <Chip
                               color={user.finishedOnboarding ? "success" : "accent"}
                               size="sm"
@@ -199,15 +206,15 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
                             >
                               {user.finishedOnboarding ? "Complete" : "Pending"}
                             </Chip>
-                          </Table.Cell>
-                          <Table.Cell className="admin-table-meta">
+                          </TableCell>
+                          <TableCell className="admin-table-meta">
                             {formatDateTime(user.lastSessionAt)}
-                          </Table.Cell>
-                        </Table.Row>
+                          </TableCell>
+                        </TableRow>
                       )}
-                    </Table.Body>
-                  </Table.Content>
-                </Table.ScrollContainer>
+                    </TableBody>
+                  </TableContent>
+                </TableScrollContainer>
               </Table>
             ) : (
               <EmptyState className="p-6">

@@ -12,6 +12,13 @@ import {
   Chip,
   Link,
   Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableContent,
+  TableHeader,
+  TableRow,
+  TableScrollContainer,
 } from "@/components/ui/heroui";
 import {
   getAdminApiErrorMessage,
@@ -88,20 +95,20 @@ function MetricCard({
 function NewestUsersTable({ users }: { users: AdminUserSummary[] }) {
   return (
     <Table variant="secondary">
-      <Table.ScrollContainer className="overflow-x-auto">
-        <Table.Content aria-label="Newest users table">
-          <Table.Header>
-            <Table.Column className={TABLE_HEADER_CLASS_NAME} isRowHeader>
+      <TableScrollContainer className="overflow-x-auto">
+        <TableContent aria-label="Newest users table">
+          <TableHeader>
+            <TableColumn className={TABLE_HEADER_CLASS_NAME} isRowHeader>
               User
-            </Table.Column>
-            <Table.Column className={TABLE_HEADER_CLASS_NAME}>Role</Table.Column>
-            <Table.Column className={TABLE_HEADER_CLASS_NAME}>Onboarding</Table.Column>
-            <Table.Column className={TABLE_HEADER_CLASS_NAME}>Last session</Table.Column>
-          </Table.Header>
-          <Table.Body items={users}>
+            </TableColumn>
+            <TableColumn className={TABLE_HEADER_CLASS_NAME}>Role</TableColumn>
+            <TableColumn className={TABLE_HEADER_CLASS_NAME}>Onboarding</TableColumn>
+            <TableColumn className={TABLE_HEADER_CLASS_NAME}>Last session</TableColumn>
+          </TableHeader>
+          <TableBody items={users}>
             {(user) => (
-              <Table.Row id={user.id}>
-                <Table.Cell>
+              <TableRow id={user.id}>
+                <TableCell>
                   <Link
                     className="flex flex-col gap-1 no-underline"
                     href={`/admin/users/${user.id}`}
@@ -111,13 +118,13 @@ function NewestUsersTable({ users }: { users: AdminUserSummary[] }) {
                     </span>
                     <span className="admin-muted-copy text-sm">{user.email}</span>
                   </Link>
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <Chip color="accent" size="sm" variant="soft">
                     {user.role || "user"}
                   </Chip>
-                </Table.Cell>
-                <Table.Cell>
+                </TableCell>
+                <TableCell>
                   <Chip
                     color={user.finishedOnboarding ? "success" : "accent"}
                     size="sm"
@@ -125,15 +132,15 @@ function NewestUsersTable({ users }: { users: AdminUserSummary[] }) {
                   >
                     {user.finishedOnboarding ? "Complete" : "Pending"}
                   </Chip>
-                </Table.Cell>
-                <Table.Cell className="admin-table-meta">
+                </TableCell>
+                <TableCell className="admin-table-meta">
                   {formatDateTime(user.lastSessionAt)}
-                </Table.Cell>
-              </Table.Row>
+                </TableCell>
+              </TableRow>
             )}
-          </Table.Body>
-        </Table.Content>
-      </Table.ScrollContainer>
+          </TableBody>
+        </TableContent>
+      </TableScrollContainer>
     </Table>
   );
 }
