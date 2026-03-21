@@ -38,6 +38,16 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Cache Gradle state
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.GRADLE_USER_HOME }}/caches
+            ${{ env.GRADLE_USER_HOME }}/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('App/package-lock.json', 'App/package.json', 'App/app.json') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Install app dependencies
         working-directory: App
         run: npm ci
@@ -46,7 +56,7 @@ jobs:
         working-directory: App
         run: |
           set -euo pipefail
-          npx expo prebuild --platform android --non-interactive
+          CI=1 npx expo prebuild --platform android
 
       - name: Resolve APK metadata
         id: meta
@@ -68,7 +78,10 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew assembleRelease
+          # Published APKs target physical devices, not emulator ABIs.
+          NODE_ENV=production ./gradlew \
+            assembleRelease \
+            -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
 
       - name: Prepare SSH key
         run: |
@@ -76,14 +89,42 @@ jobs:
           install -m 600 /dev/null "$RUNNER_TEMP/deploy_key"
           printf '%s\n' "${{ secrets.SSH_KEY }}" > "$RUNNER_TEMP/deploy_key"
 
-      - name: Ensure remote release directory exists
+      - name: Prepare remote release directory
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=no "${SSH_USER}@${SSH_HOST}" \
-            'mkdir -p ~/LifeMeter/releases/apk'
+          ssh -i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=no "${SSH_USER}@${SSH_HOST}" <<EOF
+          set -euo pipefail
+
+          release_root="\$HOME/LifeMeter/releases"
+          release_dir="\$release_root/apk"
+
+          mkdir -p "\$release_root"
+
+          if [ -e "\$release_dir" ] && [ ! -w "\$release_dir" ]; then
+            if [ -w "\$release_root" ]; then
+              stale_dir="\$release_root/apk.stale.\$(date +%s)"
+              mv "\$release_dir" "\$stale_dir"
+            elif command -v docker >/dev/null 2>&1; then
+              uid="\$(id -u)"
+              gid="\$(id -g)"
+
+              docker run --rm --user 0:0 \
+                -v "\$release_root:/releases" \
+                --entrypoint sh \
+                node:20-alpine \
+                -c "mkdir -p /releases/apk && chown -R \$uid:\$gid /releases && chmod -R u+rwX /releases"
+            fi
+          fi
+
+          mkdir -p "\$release_dir"
+          chmod u+rwx "\$release_dir" || true
+
+          test -d "\$release_dir"
+          test -w "\$release_dir"
+          EOF
 
       - name: Upload APK to Oracle VM
         env:
@@ -108,7 +149,8 @@ jobs:
 
           ssh -i "$RUNNER_TEMP/deploy_key" -o StrictHostKeyChecking=no "${SSH_USER}@${SSH_HOST}" <<EOF
           set -euo pipefail
-          cd ~/LifeMeter/releases/apk
+          release_dir="\$HOME/LifeMeter/releases/apk"
+          cd "\$release_dir"
           mv ".tmp-${APK_NAME}" "${APK_NAME}"
           built_at=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           printf '%s\n' "{\"fileName\":\"${APK_NAME}\",\"version\":\"${APP_VERSION}\",\"commitSha\":\"${COMMIT_SHA}\",\"builtAt\":\"\${built_at}\"}" > latest.json.tmp
