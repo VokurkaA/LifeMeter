@@ -7,6 +7,7 @@ on:
     paths:
       - 'App/**'
       - '.github/workflows/app-apk.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
