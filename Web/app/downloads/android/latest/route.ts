@@ -1,18 +1,19 @@
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { ApkLookupError, getLatestApkMetadata } from "@/lib/apk";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const { metadata } = await getLatestApkMetadata();
-    const targetUrl = new URL(
-      `/downloads/android/${encodeURIComponent(metadata.fileName)}`,
-      request.url,
-    );
-    const response = NextResponse.redirect(targetUrl, 307);
+    const targetPath = `/downloads/android/${encodeURIComponent(metadata.fileName)}`;
+    const response = new NextResponse(null, {
+      status: 307,
+      headers: {
+        Location: targetPath,
+      },
+    });
 
     response.headers.set("Cache-Control", "no-store");
 
