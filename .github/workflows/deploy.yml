@@ -22,7 +22,16 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
             cd ~/LifeMeter
             git pull origin main
-            docker compose down
-            docker compose up -d --build
+
+            if ! docker compose build --pull; then
+              echo "Initial Docker build failed. Pruning builder cache and retrying."
+              docker system df || true
+              docker builder prune -af || true
+              docker buildx prune -af || true
+              docker compose build --pull --no-cache
+            fi
+
+            docker compose up -d --remove-orphans
