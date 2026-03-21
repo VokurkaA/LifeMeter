@@ -42,6 +42,12 @@ jobs:
         working-directory: App
         run: npm ci
 
+      - name: Generate Android project
+        working-directory: App
+        run: |
+          set -euo pipefail
+          npx expo prebuild --platform android --non-interactive
+
       - name: Resolve APK metadata
         id: meta
         run: |
