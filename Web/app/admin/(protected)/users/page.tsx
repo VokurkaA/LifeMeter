@@ -170,9 +170,9 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
                         Last session
                       </TableColumn>
                     </TableHeader>
-                    <TableBody items={users.rows}>
-                      {(user) => (
-                        <TableRow id={user.id}>
+                    <TableBody>
+                      {users.rows.map((user) => (
+                        <TableRow id={user.id} key={user.id}>
                           <TableCell>
                             <Link
                               className="flex flex-col gap-1 no-underline"
@@ -211,7 +211,7 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
                             {formatDateTime(user.lastSessionAt)}
                           </TableCell>
                         </TableRow>
-                      )}
+                      ))}
                     </TableBody>
                   </TableContent>
                 </TableScrollContainer>

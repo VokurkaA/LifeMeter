@@ -105,9 +105,9 @@ function NewestUsersTable({ users }: { users: AdminUserSummary[] }) {
             <TableColumn className={TABLE_HEADER_CLASS_NAME}>Onboarding</TableColumn>
             <TableColumn className={TABLE_HEADER_CLASS_NAME}>Last session</TableColumn>
           </TableHeader>
-          <TableBody items={users}>
-            {(user) => (
-              <TableRow id={user.id}>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow id={user.id} key={user.id}>
                 <TableCell>
                   <Link
                     className="flex flex-col gap-1 no-underline"
@@ -137,7 +137,7 @@ function NewestUsersTable({ users }: { users: AdminUserSummary[] }) {
                   {formatDateTime(user.lastSessionAt)}
                 </TableCell>
               </TableRow>
-            )}
+            ))}
           </TableBody>
         </TableContent>
       </TableScrollContainer>
