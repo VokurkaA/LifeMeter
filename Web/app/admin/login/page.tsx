@@ -33,9 +33,8 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 export default async function AdminLoginPage() {
   const apiBaseUrl = tryGetApiBaseUrl();
   const publicApiBaseUrl = tryGetPublicApiBaseUrl();
-  const authApiAvailability = apiBaseUrl ? await checkAuthApiAvailability() : null;
-  const canUseAuth = Boolean(apiBaseUrl && authApiAvailability?.ok);
-  const session = canUseAuth ? await getSessionFromApi() : null;
+
+  const session = apiBaseUrl ? await getSessionFromApi() : null;
 
   if (session && isAdminRole(session.user.role)) {
     redirect("/admin");
@@ -44,6 +43,12 @@ export default async function AdminLoginPage() {
   if (session && !isAdminRole(session.user.role)) {
     redirect("/admin/forbidden");
   }
+
+  const authApiAvailability = (apiBaseUrl && !session)
+    ? await checkAuthApiAvailability()
+    : (session ? { ok: true } : null);
+
+  const canUseAuth = Boolean(apiBaseUrl && (session || authApiAvailability?.ok));
 
   return (
     <div className="admin-page">
@@ -72,7 +77,9 @@ export default async function AdminLoginPage() {
               <Alert status="warning">
                 <AlertContent>
                   <AlertTitle>Backend auth is unavailable</AlertTitle>
-                  <AlertDescription>{authApiAvailability.message}</AlertDescription>
+                  <AlertDescription>
+                    {"message" in authApiAvailability ? authApiAvailability.message : "The auth API returned an unexpected response."}
+                  </AlertDescription>
                 </AlertContent>
               </Alert>
             ) : null}

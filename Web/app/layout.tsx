@@ -33,6 +33,22 @@ const landingThemeScript = `
 })();
 `;
 
+const chunkErrorScript = `
+window.addEventListener("error", (event) => {
+  if (event.message && event.message.includes("ChunkLoadError")) {
+    const key = "lifemeter-chunk-reload";
+    const lastReload = sessionStorage.getItem(key);
+    const now = Date.now();
+
+    // Only reload once every 10 seconds to avoid reload loops
+    if (!lastReload || now - Number(lastReload) > 10000) {
+      sessionStorage.setItem(key, String(now));
+      window.location.reload();
+    }
+  }
+}, true);
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -52,10 +68,15 @@ export default function RootLayout({
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: landingThemeScript }}
         />
+        <Script
+          id="chunk-error-handler"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: chunkErrorScript }}
+        />
       </head>
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-background font-[var(--font-body)] text-foreground antialiased"
+        className="min-h-screen bg-background font-(--font-body) text-foreground antialiased"
       >
         {children}
       </body>

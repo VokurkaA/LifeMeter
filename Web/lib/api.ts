@@ -327,23 +327,33 @@ async function adminFetch<T>(path: string) {
   }
 
   const cookie = await getCookieHeader();
-  const response = await fetch(`${config.baseUrl}${path}`, {
-    headers: cookie ? { cookie } : {},
-    cache: "no-store",
-  });
 
-  if (!response.ok) {
-    const displayBaseUrl = getApiDisplayBaseUrl() || config.baseUrl;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch(`${config.baseUrl}${path}`, {
+      headers: cookie ? { cookie } : {},
+      cache: "no-store",
+    });
 
-    throw new AdminApiError(
-      `Admin fetch failed (${response.status})`,
-      response.status,
-      path,
-      displayBaseUrl,
-    );
+    if (response.status === 429 && attempt < 2) {
+      await sleep(250 * (attempt + 1));
+      continue;
+    }
+
+    if (!response.ok) {
+      const displayBaseUrl = getApiDisplayBaseUrl() || config.baseUrl;
+
+      throw new AdminApiError(
+        `Admin fetch failed (${response.status})`,
+        response.status,
+        path,
+        displayBaseUrl,
+      );
+    }
+
+    return (await response.json()) as T;
   }
 
-  return (await response.json()) as T;
+  throw new Error("Maximum retry attempts reached for rate-limited request.");
 }
 
 export async function getAdminOverview() {
