@@ -131,6 +131,7 @@ export type HealthSyncBatchRequest =
       syncRunId: string;
       batchIndex: number;
       isFinalBatch: boolean;
+      resetExistingData?: boolean;
       currentSyncState: HealthConnectSyncState | null;
       nextSyncState: HealthConnectSyncState | null;
       records: HealthConnectUploadRecord[];
@@ -140,6 +141,7 @@ export type HealthSyncBatchRequest =
       syncRunId: string;
       batchIndex: number;
       isFinalBatch: boolean;
+      resetExistingData?: boolean;
       currentSyncState: AppleHealthSyncState | null;
       nextSyncState: AppleHealthSyncState | null;
       records: AppleHealthUploadRecord[];

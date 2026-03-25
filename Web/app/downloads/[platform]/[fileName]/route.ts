@@ -1,3 +1,5 @@
+import { createReadStream } from "node:fs";
+import { Readable } from "node:stream";
 import { NextResponse } from "next/server";
 import {
   ReleaseLookupError,
@@ -17,8 +19,11 @@ export async function GET(_request: Request, context: RouteContext) {
 
   try {
     const releaseFile = await readReleaseFile(parseRoutePlatform(platform), fileName);
+    const stream = Readable.toWeb(
+      createReadStream(releaseFile.filePath),
+    ) as ReadableStream<Uint8Array>;
 
-    return new NextResponse(releaseFile.buffer, {
+    return new NextResponse(stream, {
       status: 200,
       headers: {
         "Cache-Control": "public, max-age=31536000, immutable",

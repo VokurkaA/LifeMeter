@@ -331,10 +331,9 @@ export async function readReleaseFile(platform: ReleasePlatform, fileName: strin
 
   const { filePath, parsedFile } = resolveReleasePath(storageDir, platform, fileName);
   const fileInfo = await ensureReadableFile(filePath, platform);
-  const buffer = await readFile(filePath);
 
   return {
-    buffer,
+    filePath,
     fileName,
     size: fileInfo.size,
     mimeType: getPlatformConfig(platform).mimeType,

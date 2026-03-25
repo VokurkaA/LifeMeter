@@ -51,6 +51,7 @@ type SyncOptions = {
 type PreparedSyncPayload<TRecord, TState extends HealthSyncState> = {
   records: TRecord[];
   nextSyncState: TState | null;
+  resetExistingData?: boolean;
 };
 
 let inFlightSync: Promise<HealthSyncRunResult> | null = null;
@@ -315,10 +316,17 @@ const mapHealthConnectRecord = (record: any): HealthConnectUploadRecord[] => {
 
 const bootstrapHealthConnect = async (
   onProgress?: SyncOptions["onProgress"],
+  options: {
+    resetExistingData?: boolean;
+  } = {},
 ): Promise<PreparedSyncPayload<HealthConnectUploadRecord, HealthConnectSyncState>> => {
   emitProgress(onProgress, {
     stage: "reading",
     message: "Reading all Health Connect records...",
+  });
+
+  const changes = await healthConnect.getChanges({
+    recordTypes: [...HEALTH_CONNECT_RECORD_TYPES],
   });
 
   const [sleepRecords, weightRecords, heightRecords, heartRateRecords, bloodPressureRecords] =
@@ -348,15 +356,12 @@ const bootstrapHealthConnect = async (
     ),
   ];
 
-  const changes = await healthConnect.getChanges({
-    recordTypes: [...HEALTH_CONNECT_RECORD_TYPES],
-  });
-
   return {
     records,
     nextSyncState: {
       changesToken: changes.nextChangesToken,
     },
+    resetExistingData: options.resetExistingData,
   };
 };
 
@@ -386,7 +391,9 @@ const prepareHealthConnectSync = async (
         stage: "reading",
         message: "Health Connect history token expired. Rebuilding full sync snapshot...",
       });
-      return bootstrapHealthConnect(onProgress);
+      return bootstrapHealthConnect(onProgress, {
+        resetExistingData: true,
+      });
     }
 
     records.push(
@@ -622,6 +629,8 @@ const runSync = async (options: SyncOptions = {}): Promise<HealthSyncRunResult> 
         syncRunId,
         batchIndex,
         isFinalBatch: batchIndex === batches.length - 1,
+        resetExistingData:
+          preparedPayload.resetExistingData === true && batchIndex === 0,
         currentSyncState:
           currentSyncState && "changesToken" in currentSyncState
             ? currentSyncState
@@ -655,6 +664,8 @@ const runSync = async (options: SyncOptions = {}): Promise<HealthSyncRunResult> 
         syncRunId,
         batchIndex,
         isFinalBatch: batchIndex === batches.length - 1,
+        resetExistingData:
+          preparedPayload.resetExistingData === true && batchIndex === 0,
         currentSyncState:
           currentSyncState && "anchors" in currentSyncState
             ? currentSyncState

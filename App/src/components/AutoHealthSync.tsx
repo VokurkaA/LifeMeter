@@ -4,6 +4,10 @@ import { useIsOffline } from '@/contexts/useNetwork';
 import { useSleepStore } from '@/contexts/useSleepStore';
 import { useUserStore } from '@/contexts/useUserStore';
 import { hasHealthSyncPermissions } from '@/lib/health';
+import {
+  getHealthSyncEnabledStorageKey,
+  getHealthSyncStatusStorageKey,
+} from '@/lib/healthSyncStorage';
 import { useStorage } from '@/lib/storage';
 import { healthSyncService } from '@/services/health.sync.service';
 
@@ -25,9 +29,13 @@ export default function AutoHealthSync() {
   const { refreshSleepSessions } = useSleepStore();
   const isOffline = useIsOffline();
 
-  const [enableSync] = useStorage.boolean('enable-sync');
+  const [enableSync] = useStorage.boolean(
+    getHealthSyncEnabledStorageKey(user?.id ?? null),
+  );
   const [, setStoredSyncStatus] =
-    useStorage.object<StoredSyncStatus>('health-sync-status');
+    useStorage.object<StoredSyncStatus>(
+      getHealthSyncStatusStorageKey(user?.id ?? null),
+    );
 
   const attemptedUserIdRef = useRef<string | null>(null);
 

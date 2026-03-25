@@ -193,6 +193,7 @@ const syncBatchBaseSchema = z.object({
   syncRunId: z.string().min(1).openapi({ example: "run_2026-03-25T12:00:00Z" }),
   batchIndex: z.number().int().min(0).openapi({ example: 0 }),
   isFinalBatch: z.boolean().openapi({ example: true }),
+  resetExistingData: z.boolean().optional().openapi({ example: false }),
 });
 
 export const healthConnectSyncBatchRequestSchema = syncBatchBaseSchema.extend({

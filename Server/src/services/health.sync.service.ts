@@ -125,6 +125,10 @@ export class HealthSyncService {
         warnings: new Set<string>(),
       };
 
+      if (input.batchIndex === 0 && input.resetExistingData === true) {
+        await this.resetProviderData(client, userId, input.provider, stats);
+      }
+
       if (input.provider === "health-connect") {
         await this.processHealthConnectBatch(client, userId, input, stats);
       } else {
@@ -853,9 +857,30 @@ export class HealthSyncService {
       stats.inserted += 1;
     }
 
-    const removableOwnedRowIds = ownedTargetRowIds.filter(
-      (rowId) => !reusedOwnedRowIds.has(rowId),
-    );
+    const removableOwnedRowIds: string[] = [];
+    const retainedSharedOwnedRowIds: string[] = [];
+
+    for (const rowId of ownedTargetRowIds) {
+      if (reusedOwnedRowIds.has(rowId)) {
+        continue;
+      }
+
+      const hasNonAppleReferences =
+        await this.hasSourceItemForTargetExcludingProvider(
+          client,
+          userId,
+          "user_sleep",
+          rowId,
+          "apple-health",
+        );
+
+      if (hasNonAppleReferences) {
+        retainedSharedOwnedRowIds.push(rowId);
+        continue;
+      }
+
+      removableOwnedRowIds.push(rowId);
+    }
 
     if (removableOwnedRowIds.length > 0) {
       await client.query(
@@ -894,6 +919,15 @@ export class HealthSyncService {
         "user_sleep",
         assignment.targetRowId,
         assignment.ownsTarget,
+      );
+    }
+
+    for (const rowId of retainedSharedOwnedRowIds) {
+      await this.promoteTargetOwnerIfMissing(
+        client,
+        userId,
+        "user_sleep",
+        rowId,
       );
     }
   }
@@ -961,6 +995,12 @@ export class HealthSyncService {
       );
 
       if (stillReferenced) {
+        await this.promoteTargetOwnerIfMissing(
+          client,
+          userId,
+          target.tableName,
+          target.targetRowId,
+        );
         continue;
       }
 
@@ -987,6 +1027,83 @@ export class HealthSyncService {
   private timestampToIsoString(value: string | Date | null): string | null {
     if (!value) return null;
     return value instanceof Date ? value.toISOString() : value;
+  }
+
+  private async resetProviderData(
+    client: PoolClient,
+    userId: string,
+    provider: HealthSyncProvider,
+    stats: {
+      inserted: number;
+      updated: number;
+      matchedExisting: number;
+      skipped: number;
+      warnings: Set<string>;
+    },
+  ) {
+    const sourceRows = await this.getSourceItemsForProvider(
+      client,
+      userId,
+      provider,
+    );
+
+    if (sourceRows.length === 0) {
+      return;
+    }
+
+    const ownedTargets = Array.from(
+      new Map(
+        sourceRows
+          .filter(
+            (row): row is HealthSyncSourceItemRow & {
+              target_table: TargetTableName;
+              target_row_id: string;
+            } =>
+              row.owns_target &&
+              this.isTargetTableName(row.target_table) &&
+              Boolean(row.target_row_id),
+          )
+          .map((row) => [
+            `${row.target_table}:${row.target_row_id}`,
+            {
+              tableName: row.target_table,
+              targetRowId: row.target_row_id,
+            },
+          ]),
+      ).values(),
+    );
+
+    await this.deleteSourceItemsByIds(
+      client,
+      sourceRows.map((row) => row.id),
+    );
+
+    for (const target of ownedTargets) {
+      const stillReferenced = await this.hasAnySourceItemForTarget(
+        client,
+        userId,
+        target.tableName,
+        target.targetRowId,
+      );
+
+      if (stillReferenced) {
+        await this.promoteTargetOwnerIfMissing(
+          client,
+          userId,
+          target.tableName,
+          target.targetRowId,
+        );
+        continue;
+      }
+
+      await this.deleteTargetRow(
+        client,
+        userId,
+        target.tableName,
+        target.targetRowId,
+      );
+      stats.updated += 1;
+    }
   }
 
   private async getConnectedAppleSleepSourceRows(
@@ -1111,6 +1228,23 @@ export class HealthSyncService {
     return result.rows;
   }
 
+  private async getSourceItemsForProvider(
+    client: PoolClient,
+    userId: string,
+    provider: HealthSyncProvider,
+  ) {
+    const result = await client.query<HealthSyncSourceItemRow>(
+      `
+        SELECT *
+        FROM user_health_sync_source_item
+        WHERE user_id = $1
+          AND provider = $2
+      `,
+      [userId, provider],
+    );
+    return result.rows;
+  }
+
   private async deleteSourceItemsByIds(client: PoolClient, ids: string[]) {
     if (ids.length === 0) return;
 
@@ -1141,6 +1275,93 @@ export class HealthSyncService {
       [userId, tableName, targetRowId],
     );
     return (result.rowCount ?? 0) > 0;
+  }
+
+  private async hasOtherSourceItemsForTarget(
+    client: PoolClient,
+    userId: string,
+    tableName: TargetTableName,
+    targetRowId: string,
+    excludedSourceItemRowId: string,
+  ) {
+    const result = await client.query(
+      `
+        SELECT 1
+        FROM user_health_sync_source_item
+        WHERE user_id = $1
+          AND target_table = $2
+          AND target_row_id = $3
+          AND id <> $4
+        LIMIT 1
+      `,
+      [userId, tableName, targetRowId, excludedSourceItemRowId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  private async hasSourceItemForTargetExcludingProvider(
+    client: PoolClient,
+    userId: string,
+    tableName: TargetTableName,
+    targetRowId: string,
+    provider: HealthSyncProvider,
+  ) {
+    const result = await client.query(
+      `
+        SELECT 1
+        FROM user_health_sync_source_item
+        WHERE user_id = $1
+          AND target_table = $2
+          AND target_row_id = $3
+          AND provider <> $4
+        LIMIT 1
+      `,
+      [userId, tableName, targetRowId, provider],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  private async promoteTargetOwnerIfMissing(
+    client: PoolClient,
+    userId: string,
+    tableName: TargetTableName,
+    targetRowId: string,
+  ) {
+    const existingOwner = await client.query(
+      `
+        SELECT 1
+        FROM user_health_sync_source_item
+        WHERE user_id = $1
+          AND target_table = $2
+          AND target_row_id = $3
+          AND owns_target = TRUE
+        LIMIT 1
+      `,
+      [userId, tableName, targetRowId],
+    );
+
+    if ((existingOwner.rowCount ?? 0) > 0) {
+      return;
+    }
+
+    await client.query(
+      `
+        WITH candidate AS (
+          SELECT id
+          FROM user_health_sync_source_item
+          WHERE user_id = $1
+            AND target_table = $2
+            AND target_row_id = $3
+          ORDER BY created_at ASC, id ASC
+          LIMIT 1
+        )
+        UPDATE user_health_sync_source_item
+        SET owns_target = TRUE,
+            updated_at = NOW()
+        WHERE id = (SELECT id FROM candidate)
+      `,
+      [userId, tableName, targetRowId],
+    );
   }
 
   private async deleteTargetRow(
@@ -1203,32 +1424,62 @@ export class HealthSyncService {
 
     if (existingSourceItem?.target_row_id) {
       if (existingSourceItem.owns_target) {
-        const updatedTargetRowId = await args.updateExisting(existingSourceItem.target_row_id);
-        if (updatedTargetRowId) {
-          await this.saveSourceItem(
-            args.client,
-            args.userId,
-            args.source,
-            args.tableName,
-            updatedTargetRowId,
-            true,
+        const hasSharedTarget = await this.hasOtherSourceItemsForTarget(
+          args.client,
+          args.userId,
+          args.tableName,
+          existingSourceItem.target_row_id,
+          existingSourceItem.id,
+        );
+
+        if (!hasSharedTarget) {
+          const updatedTargetRowId = await args.updateExisting(
+            existingSourceItem.target_row_id,
           );
-          args.stats.updated += 1;
-          return;
+          if (updatedTargetRowId) {
+            await this.saveSourceItem(
+              args.client,
+              args.userId,
+              args.source,
+              args.tableName,
+              updatedTargetRowId,
+              true,
+            );
+            args.stats.updated += 1;
+            return;
+          }
         }
       }
     }
 
     const matchedExistingRowId = await args.matchExisting();
     if (matchedExistingRowId) {
+      const preservesExistingOwnership =
+        existingSourceItem?.owns_target === true &&
+        existingSourceItem.target_row_id === matchedExistingRowId;
+
       await this.saveSourceItem(
         args.client,
         args.userId,
         args.source,
         args.tableName,
         matchedExistingRowId,
-        false,
+        preservesExistingOwnership,
       );
+
+      if (
+        existingSourceItem?.owns_target &&
+        existingSourceItem.target_row_id &&
+        existingSourceItem.target_row_id !== matchedExistingRowId
+      ) {
+        await this.promoteTargetOwnerIfMissing(
+          args.client,
+          args.userId,
+          args.tableName,
+          existingSourceItem.target_row_id,
+        );
+      }
+
       args.stats.matchedExisting += 1;
       return;
     }
@@ -1242,6 +1493,20 @@ export class HealthSyncService {
       insertedRowId,
       true,
     );
+
+    if (
+      existingSourceItem?.owns_target &&
+      existingSourceItem.target_row_id &&
+      existingSourceItem.target_row_id !== insertedRowId
+    ) {
+      await this.promoteTargetOwnerIfMissing(
+        args.client,
+        args.userId,
+        args.tableName,
+        existingSourceItem.target_row_id,
+      );
+    }
+
     args.stats.inserted += 1;
   }
 

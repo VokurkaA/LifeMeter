@@ -9,6 +9,10 @@ import { Uniwind, useUniwind } from 'uniwind';
 import { formatTime, timeToDate } from "@/lib/dateTime";
 import RnDateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNotifications } from '@/lib/notifications';
+import {
+    getHealthSyncEnabledStorageKey,
+    getHealthSyncStatusStorageKey,
+} from '@/lib/healthSyncStorage';
 import { useStorage } from '@/lib/storage';
 import { UserGoal } from '@/types/user.profile.types';
 import { toast } from '@/lib/toast';
@@ -95,6 +99,7 @@ export default function Header() {
 
                                     <Description className="ml-2 mt-2 mr-auto">Connections</Description>
                                     <ConnectionsSettings
+                                        userId={user?.id ?? null}
                                         refreshProfile={refreshProfile}
                                         refreshSleepSessions={refreshSleepSessions}
                                     />
@@ -109,14 +114,20 @@ export default function Header() {
 }
 
 const ConnectionsSettings = ({
+    userId,
     refreshProfile,
     refreshSleepSessions,
 }: {
+    userId: string | null;
     refreshProfile: () => Promise<void>;
     refreshSleepSessions: () => Promise<void>;
 }) => {
-    const [enableSync, setEnableSync] = useStorage.boolean("enable-sync");
-    const [storedSyncStatus, setStoredSyncStatus] = useStorage.object<StoredSyncStatus>("health-sync-status");
+    const [enableSync, setEnableSync] = useStorage.boolean(
+        getHealthSyncEnabledStorageKey(userId),
+    );
+    const [storedSyncStatus, setStoredSyncStatus] = useStorage.object<StoredSyncStatus>(
+        getHealthSyncStatusStorageKey(userId),
+    );
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
