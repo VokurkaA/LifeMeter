@@ -1,30 +1,34 @@
 import { NextResponse } from "next/server";
-import { APK_MIME_TYPE, ApkLookupError, readApkFile } from "@/lib/apk";
+import {
+  ReleaseLookupError,
+  parseRoutePlatform,
+  readReleaseFile,
+} from "@/lib/releases";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type RouteContext = {
-  params: Promise<{ fileName: string }>;
+  params: Promise<{ platform: string; fileName: string }>;
 };
 
 export async function GET(_request: Request, context: RouteContext) {
-  const { fileName } = await context.params;
+  const { platform, fileName } = await context.params;
 
   try {
-    const apk = await readApkFile(fileName);
+    const releaseFile = await readReleaseFile(parseRoutePlatform(platform), fileName);
 
-    return new NextResponse(apk.buffer, {
+    return new NextResponse(releaseFile.buffer, {
       status: 200,
       headers: {
         "Cache-Control": "public, max-age=31536000, immutable",
-        "Content-Disposition": `attachment; filename="${apk.fileName}"`,
-        "Content-Length": String(apk.size),
-        "Content-Type": APK_MIME_TYPE,
+        "Content-Disposition": `attachment; filename="${releaseFile.fileName}"`,
+        "Content-Length": String(releaseFile.size),
+        "Content-Type": releaseFile.mimeType,
       },
     });
   } catch (error) {
-    if (error instanceof ApkLookupError) {
+    if (error instanceof ReleaseLookupError) {
       return NextResponse.json(
         { error: error.message },
         {

@@ -20,6 +20,7 @@ type ReviewMetrics = {
 
 const reviewRoutes: RouteReview[] = [
   { slug: "home", path: "/" },
+  { slug: "downloads", path: "/downloads" },
   { slug: "admin-login", path: "/admin/login" },
   { slug: "admin-dashboard", path: "/admin", requiresAuth: true },
   { slug: "admin-logs", path: "/admin/logs", requiresAuth: true },

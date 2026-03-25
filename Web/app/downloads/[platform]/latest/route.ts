@@ -1,23 +1,30 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { ApkLookupError, getLatestApkMetadata } from "@/lib/apk";
+import {
+  ReleaseLookupError,
+  getLatestRelease,
+  parseRoutePlatform,
+} from "@/lib/releases";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+type RouteContext = {
+  params: Promise<{ platform: string }>;
+};
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const { platform } = await context.params;
+
   try {
-    const { metadata } = await getLatestApkMetadata();
-    const targetUrl = new URL(
-      `/downloads/android/${encodeURIComponent(metadata.fileName)}`,
-      request.url,
-    );
+    const release = await getLatestRelease(parseRoutePlatform(platform));
+    const targetUrl = new URL(release.downloadPath, request.url);
     const response = NextResponse.redirect(targetUrl, 307);
 
     response.headers.set("Cache-Control", "no-store");
 
     return response;
   } catch (error) {
-    if (error instanceof ApkLookupError) {
+    if (error instanceof ReleaseLookupError) {
       return NextResponse.json(
         { error: error.message },
         {
