@@ -53,6 +53,8 @@ type PreparedSyncPayload<TRecord, TState extends HealthSyncState> = {
   nextSyncState: TState | null;
 };
 
+let inFlightSync: Promise<HealthSyncRunResult> | null = null;
+
 const emitProgress = (
   onProgress: SyncOptions["onProgress"],
   progress: HealthSyncProgress,
@@ -586,7 +588,7 @@ const prepareAppleHealthSync = async (
   };
 };
 
-const sync = async (options: SyncOptions = {}): Promise<HealthSyncRunResult> => {
+const runSync = async (options: SyncOptions = {}): Promise<HealthSyncRunResult> => {
   const provider = getProvider();
   await ensureHealthAccess();
 
@@ -680,6 +682,18 @@ const sync = async (options: SyncOptions = {}): Promise<HealthSyncRunResult> => 
     committedSyncState:
       responses[responses.length - 1]?.committedSyncState ?? currentSyncState,
   };
+};
+
+const sync = (options: SyncOptions = {}): Promise<HealthSyncRunResult> => {
+  if (inFlightSync) {
+    return inFlightSync;
+  }
+
+  inFlightSync = runSync(options).finally(() => {
+    inFlightSync = null;
+  });
+
+  return inFlightSync;
 };
 
 export const healthSyncService = {

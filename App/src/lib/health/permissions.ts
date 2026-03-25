@@ -14,6 +14,24 @@ try {
 
 export let permissionsRequested = false;
 
+const IOS_SYNC_READ_TYPES = [
+  "HKCategoryTypeIdentifierSleepAnalysis",
+  "HKQuantityTypeIdentifierBodyMass",
+  "HKQuantityTypeIdentifierHeight",
+  "HKQuantityTypeIdentifierHeartRate",
+  "HKCorrelationTypeIdentifierBloodPressure",
+  "HKQuantityTypeIdentifierBloodPressureSystolic",
+  "HKQuantityTypeIdentifierBloodPressureDiastolic",
+] as const;
+
+const ANDROID_SYNC_REQUIRED = [
+  { accessType: "read", recordType: "SleepSession" },
+  { accessType: "read", recordType: "Weight" },
+  { accessType: "read", recordType: "Height" },
+  { accessType: "read", recordType: "HeartRate" },
+  { accessType: "read", recordType: "BloodPressure" },
+] as const;
+
 export async function isHealthAvailable(): Promise<boolean> {
   if (Platform.OS === "ios") {
     if (!healthkit) return false;
@@ -165,4 +183,47 @@ export async function requestHealthPermissions(): Promise<Result<void>> {
   }
 
   return ok(undefined);
+}
+
+export async function hasHealthSyncPermissions(): Promise<boolean> {
+  if (Platform.OS === "ios") {
+    if (!healthkit?.getRequestStatusForAuthorization) return false;
+
+    try {
+      const status = await healthkit.getRequestStatusForAuthorization({
+        toRead: [...IOS_SYNC_READ_TYPES],
+      });
+
+      return (
+        status === healthkit.AuthorizationRequestStatus?.unnecessary ||
+        status === 2
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  if (Platform.OS === "android") {
+    const initResult = await initAndroid();
+    if (!initResult.ok) return false;
+
+    try {
+      const granted: Array<{ accessType: string; recordType: string }> =
+        await healthConnect.getGrantedPermissions();
+      const grantedSet = new Set(
+        (granted ?? []).map((p) => `${p.accessType}:${p.recordType}`),
+      );
+
+      // react-native-health-connect does not currently return
+      // ReadHealthDataHistory in getGrantedPermissions(), so launch-time checks
+      // only verify the record permissions required for incremental sync.
+      return ANDROID_SYNC_REQUIRED.every((permission) =>
+        grantedSet.has(`${permission.accessType}:${permission.recordType}`),
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
 }

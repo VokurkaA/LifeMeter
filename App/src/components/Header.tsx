@@ -124,7 +124,7 @@ const ConnectionsSettings = ({
         ? syncMessage
         : storedSyncStatus
             ? `${storedSyncStatus.status === "success" ? "Last sync" : "Last failure"}: ${new Date(storedSyncStatus.syncedAt).toLocaleString()}${storedSyncStatus.message ? ` • ${storedSyncStatus.message}` : ""}`
-            : `Manually import your weight, height, sleep, heart rate and blood pressure from ${Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.`;
+            : `Automatically sync your weight, height, sleep, heart rate and blood pressure on app launch, or run a manual sync anytime.`;
 
     const handleOpenHealthDashboard = async () => {
         const result = await openHealthDashboard();
@@ -195,7 +195,7 @@ const ConnectionsSettings = ({
                 <ListGroup.ItemContent>
                     <ListGroup.ItemTitle>Enable sync</ListGroup.ItemTitle>
                     <ListGroup.ItemDescription>
-                        Allow manual health import to the server from {Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.
+                        Automatically sync health data on app launch and allow manual import from {Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.
                     </ListGroup.ItemDescription>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix>

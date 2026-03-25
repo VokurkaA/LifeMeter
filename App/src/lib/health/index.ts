@@ -33,6 +33,7 @@ export {
   requestHealthPermissions,
   isHealthAvailable,
   openHealthDashboard,
+  hasHealthSyncPermissions,
 } from "./permissions";
 import { isHealthAvailable } from "./permissions";
 

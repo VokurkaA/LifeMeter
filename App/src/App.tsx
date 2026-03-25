@@ -24,6 +24,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import * as Notifications from "expo-notifications";
 import { NetworkProvider } from './contexts/useNetwork';
 import ToastRegistrar from '@/components/ToastRegistrar';
+import AutoHealthSync from '@/components/AutoHealthSync';
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -113,6 +114,7 @@ function RootAppContent() {
 function RootApp() {
     return (
         <NetworkProvider>
+            <AutoHealthSync />
             <RootAppContent />
         </NetworkProvider>
     );
