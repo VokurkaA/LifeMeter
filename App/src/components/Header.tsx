@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, View } from 'react-native';
-import { Avatar, Chip, Description, Dialog, ListGroup, Separator, Surface, Switch, useThemeColor, useToast } from "heroui-native";
-import { BellIcon, List, LogOutIcon, MoonIcon, SunIcon, UserIcon } from "lucide-react-native";
+import { Avatar, Chip, Description, Dialog, ListGroup, Separator, Surface, Switch, useThemeColor } from "heroui-native";
+import { BellIcon, LogOutIcon, MoonIcon, SunIcon, UserIcon, WifiSyncIcon } from "lucide-react-native";
 import { useAuth } from "@/contexts/useAuth";
 import { useUserStore } from "@/contexts/useUserStore";
 import { H2 } from "@/components/Text";
@@ -9,14 +9,22 @@ import { Uniwind, useUniwind } from 'uniwind';
 import { formatTime, timeToDate } from "@/lib/dateTime";
 import RnDateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNotifications } from '@/lib/notifications';
-import { storage, useStorage } from '@/lib/storage';
+import { useStorage } from '@/lib/storage';
 import { UserGoal } from '@/types/user.profile.types';
 import { toast } from '@/lib/toast';
-import { describeHealthError, getCalories, getHeight, getMostRecentWeight, getSleep, getSteps, getWeight, openHealthDashboard, requestHealthPermissions } from '@/lib/health/index';
-import { File, Paths } from 'expo-file-system';
+import { describeHealthError, openHealthDashboard, requestHealthPermissions } from '@/lib/health/index';
+import { healthSyncService } from '@/services/health.sync.service';
+import { useSleepStore } from '@/contexts/useSleepStore';
+
+type StoredSyncStatus = {
+    status: "success" | "error";
+    syncedAt: string;
+    message: string;
+};
 export default function Header() {
-    const { user, session, signOut } = useAuth();
-    const { userGoals } = useUserStore();
+    const { user, signOut } = useAuth();
+    const { userGoals, refreshProfile } = useUserStore();
+    const { refreshSleepSessions } = useSleepStore();
 
     const { theme } = useUniwind();
 
@@ -86,7 +94,10 @@ export default function Header() {
                                     <OfflineToggle />
 
                                     <Description className="ml-2 mt-2 mr-auto">Connections</Description>
-                                    <ConnectionsSettings />
+                                    <ConnectionsSettings
+                                        refreshProfile={refreshProfile}
+                                        refreshSleepSessions={refreshSleepSessions}
+                                    />
                                 </ScrollView>
                             </View>
                         </Dialog.Content>
@@ -97,49 +108,128 @@ export default function Header() {
     )
 }
 
-const ConnectionsSettings = () => {
+const ConnectionsSettings = ({
+    refreshProfile,
+    refreshSleepSessions,
+}: {
+    refreshProfile: () => Promise<void>;
+    refreshSleepSessions: () => Promise<void>;
+}) => {
     const [enableSync, setEnableSync] = useStorage.boolean("enable-sync");
+    const [storedSyncStatus, setStoredSyncStatus] = useStorage.object<StoredSyncStatus>("health-sync-status");
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
+    const lastSyncDescription = syncMessage
+        ? syncMessage
+        : storedSyncStatus
+            ? `${storedSyncStatus.status === "success" ? "Last sync" : "Last failure"}: ${new Date(storedSyncStatus.syncedAt).toLocaleString()}${storedSyncStatus.message ? ` • ${storedSyncStatus.message}` : ""}`
+            : `Manually import your weight, height, sleep, heart rate and blood pressure from ${Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.`;
+
+    const handleOpenHealthDashboard = async () => {
+        const result = await openHealthDashboard();
+        if (result.ok) return;
+
+        toast.show({
+            variant: "warning",
+            label: "Unable to open health app",
+            description: describeHealthError(result.error),
+        });
+    };
+
+    const handleManualSync = async () => {
+        if (!enableSync || isSyncing) return;
+
+        setIsSyncing(true);
+        setSyncMessage("Preparing health sync...");
+
+        try {
+            const result = await healthSyncService.sync({
+                onProgress: (progress) => {
+                    setSyncMessage(progress.message);
+                },
+            });
+
+            await Promise.all([refreshProfile(), refreshSleepSessions()]);
+
+            const summaryMessage =
+                result.totalUploadedRecords > 0
+                    ? `Uploaded ${result.totalUploadedRecords} records.`
+                    : "No new health records were uploaded.";
+
+            setStoredSyncStatus({
+                status: "success",
+                syncedAt: result.syncedAt,
+                message: summaryMessage,
+            });
+
+            toast.show({
+                variant: "default",
+                label: "Health sync complete",
+                description: summaryMessage,
+            });
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "Health sync failed.";
+
+            setStoredSyncStatus({
+                status: "error",
+                syncedAt: new Date().toISOString(),
+                message,
+            });
+
+            toast.show({
+                variant: "warning",
+                label: "Health sync failed",
+                description: message,
+            });
+        } finally {
+            setIsSyncing(false);
+            setSyncMessage(null);
+        }
+    };
+
     return (
         <ListGroup variant="secondary" className="w-full">
             <ListGroup.Item>
                 <ListGroup.ItemContent>
                     <ListGroup.ItemTitle>Enable sync</ListGroup.ItemTitle>
                     <ListGroup.ItemDescription>
-                        Automatically sync your data with the server when you have an internet connection.
+                        Allow manual health import to the server from {Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.
                     </ListGroup.ItemDescription>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix>
                     <Switch
                         isSelected={enableSync === true}
-                        onSelectedChange={(val) => {
+                        onSelectedChange={async (val) => {
                             setEnableSync(val)
-                            if (val) requestHealthPermissions().then(result => {
-                                console.log(JSON.stringify(result))
-                                if (!result.ok) {
-                                    setEnableSync(false);
-                                    toast.show({
-                                        variant: "warning",
-                                        label: "Permission denied",
-                                        description: describeHealthError(result.error),
-                                    });
-                                }
-                            })
+                            if (!val) return;
+
+                            const result = await requestHealthPermissions();
+                            if (result.ok) return;
+
+                            setEnableSync(false);
+                            toast.show({
+                                variant: "warning",
+                                label: "Permission denied",
+                                description: describeHealthError(result.error),
+                            });
                         }}
                     />
                 </ListGroup.ItemSuffix>
             </ListGroup.Item>
-            <ListGroup.Item onPress={() => openHealthDashboard()}>
+            <ListGroup.Item onPress={handleOpenHealthDashboard}>
                 <ListGroup.ItemContent>
                     <ListGroup.ItemTitle>{Platform.OS === 'android' ? 'Health connect' : 'Apple Health'}</ListGroup.ItemTitle>
                     <ListGroup.ItemDescription>Control what data you share</ListGroup.ItemDescription>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix />
             </ListGroup.Item>
-            <ListGroup.Item disabled={!enableSync} onPress={() => {}}>
+            <ListGroup.Item disabled={!enableSync || isSyncing} onPress={handleManualSync}>
                 <ListGroup.ItemContent>
-                    <ListGroup.ItemTitle>Syncing all available health data</ListGroup.ItemTitle>
+                    <ListGroup.ItemTitle>{isSyncing ? 'Syncing health data...' : 'Sync now'}</ListGroup.ItemTitle>
                     <ListGroup.ItemDescription>
-                        Your weight, height, sleep and  logs will be automatically synced from {Platform.OS === 'android' ? 'Health Connect' : 'Apple Health'}.
+                        {lastSyncDescription}
                     </ListGroup.ItemDescription>
                 </ListGroup.ItemContent>
                 <ListGroup.ItemSuffix />
@@ -150,10 +240,11 @@ const ConnectionsSettings = () => {
 
 const OfflineToggle = () => {
     const [offlineEnabled, setOfflineEnabled] = useStorage.boolean("offline-enabled");
-
+    const foregroundColor = useThemeColor('foreground');
     return (
         <ListGroup variant="secondary" className="w-full">
             <ListGroup.Item>
+                <ListGroup.ItemPrefix><WifiSyncIcon color={foregroundColor} size={20} /></ListGroup.ItemPrefix>
                 <ListGroup.ItemContent>
                     <ListGroup.ItemTitle>Enable offline mode</ListGroup.ItemTitle>
                     <ListGroup.ItemDescription>

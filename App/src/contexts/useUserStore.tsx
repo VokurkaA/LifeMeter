@@ -43,13 +43,17 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const [isLoading, setIsLoading] = useState(false);
   const [refreshCount, setRefreshCount] = useState(0);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     return onReconnect(() => setRefreshCount((c) => c + 1));
   }, []);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setUserProfile(undefined);
       setUserGoals(undefined);
@@ -57,13 +61,15 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setActivityLevels(undefined);
       setLengthUnits(undefined);
       setWeightUnits(undefined);
+      setIsLoading(false);
       return;
     }
 
     let active = true;
+    const shouldBlockWithoutProfile = !userProfile;
     (async () => {
       try {
-        if (!userProfile) setIsLoading(true);
+        if (shouldBlockWithoutProfile) setIsLoading(true);
         const [profile, goals, weight, levels, lUnits, wUnits] = await Promise.all([
           userProfileService.getProfile(),
           userProfileService.getGoals(),
@@ -79,15 +85,17 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setActivityLevels(levels);
           setLengthUnits(lUnits);
           setWeightUnits(wUnits);
+          setIsLoading(false);
         }
       } catch (e) {
         console.error('Failed to fetch user data', e);
-      } finally {
-        if (active) setIsLoading(false);
+        if (active && !shouldBlockWithoutProfile) {
+          setIsLoading(false);
+        }
       }
     })();
     return () => { active = false; };
-  }, [user, refreshCount]);
+  }, [authLoading, user, refreshCount]);
 
   const refreshProfile = useCallback(async () => {
     const profile = await userProfileService.getProfile();

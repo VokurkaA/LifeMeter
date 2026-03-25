@@ -38,7 +38,14 @@ export function describeHealthError(e: HealthError): string {
     case "PERMISSIONS_NOT_REQUESTED":
       return "Call requestHealthPermissions() before querying data.";
     case "PERMISSIONS_DENIED":
-      return `Permissions denied: ${e.denied.join(", ")}`;
+      return [
+        `Permissions denied: ${e.denied.join(", ")}.`,
+        e.denied.some((value) => value === "HeartRate" || value === "BloodPressure")
+          ? "If Health Connect did not show those permissions, rebuild and reinstall the Android app so the new health permissions from app.json are included in the native manifest."
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" ");
     case "PERMISSIONS_RETRACTED":
       return "Health permissions were retracted. Please re-grant them in Settings.";
     case "INVALID_DATE_RANGE":

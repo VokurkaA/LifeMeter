@@ -13,7 +13,7 @@ import {
   WeightUnit,
 } from '@/types/user.profile.types';
 
-const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000') + '/api/user/data';
+const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://lifemeter.fit') + '/api/user/data';
 
 interface ServerUserProfile {
   user_id: string;

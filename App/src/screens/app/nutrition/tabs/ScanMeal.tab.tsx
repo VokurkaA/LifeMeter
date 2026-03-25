@@ -26,19 +26,8 @@ export default function ScanMeal({ onSuccess, createUserMeal }: ScanMealProps) {
         setIsLoading(true);
         setError(undefined);
         try {
-            const foodData = await foodService.getFoodByGtin(foundGtin);
-            if (foodData.data && foodData.data.length > 0) {
-                const detail = await foodService.getFoodById(foodData.data[0].id);
-                setFoodDetail(detail);
-            } else {
-                const msg = "Food not found for this barcode.";
-                setError(msg);
-                toast.show({
-                    variant: "danger",
-                    label: 'Scan failed',
-                    description: msg,
-                });
-            }
+            const detail = await foodService.getFoodByGtin(foundGtin);
+            setFoodDetail(detail);
         } catch (error) {
             console.error("Error fetching food data:", error);
             const msg = "Failed to fetch food data. Please try again.";

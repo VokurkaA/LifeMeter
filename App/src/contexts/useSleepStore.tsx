@@ -30,15 +30,20 @@ export const SleepStoreProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [sleepSessions, setSleepSessions] = useStorage.array<SleepSession>('sleepSessions');
   const [isLoading, setIsLoading] = useState(false);
   const [refreshCount, setRefreshCount] = useState(0);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     return onReconnect(() => setRefreshCount((c) => c + 1));
   }, []);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setSleepSessions(undefined);
+      setIsLoading(false);
       return;
     }
 
@@ -55,7 +60,7 @@ export const SleepStoreProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     })();
     return () => { active = false; };
-  }, [user, refreshCount]);
+  }, [authLoading, user, refreshCount]);
 
   const startSleep = useCallback(async (startAt?: string, note?: string) => {
     try {
