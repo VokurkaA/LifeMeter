@@ -40,6 +40,7 @@ export interface HealthSyncSourceItemRow {
   source_start_at: string | Date | null;
   source_end_at: string | Date | null;
   source_last_modified_at: string | Date | null;
+  owns_target: boolean;
   created_at: string | Date;
   updated_at: string | Date;
 }

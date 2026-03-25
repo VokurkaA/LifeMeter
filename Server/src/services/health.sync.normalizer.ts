@@ -60,6 +60,7 @@ export interface AppleSleepSourceSnapshot {
   source: SyncSourceDescriptor;
   record: Extract<AppleHealthUploadRecord, { kind: "sleep" }>;
   existingTargetRowId: string | null;
+  ownsTarget: boolean;
 }
 
 export interface AppleSleepCluster {
@@ -427,7 +428,25 @@ export function appleSleepSnapshotFromSourceItem(
     },
     record,
     existingTargetRowId: row.target_row_id,
+    ownsTarget: row.owns_target,
   };
+}
+
+export function mapClientSourceTypeToSyncSourceType(
+  sourceType: "sleep" | "weight" | "height" | "heartRate" | "bloodPressure",
+): HealthSyncSourceType {
+  switch (sourceType) {
+    case "sleep":
+      return "sleep";
+    case "weight":
+      return "weight";
+    case "height":
+      return "height";
+    case "heartRate":
+      return "heart_rate";
+    case "bloodPressure":
+      return "blood_pressure";
+  }
 }
 
 export function clusterAppleSleepSamples(

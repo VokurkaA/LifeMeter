@@ -13,6 +13,7 @@ import type {
   HealthSyncBatchResponse,
   HealthSyncProgress,
   HealthSyncProvider,
+  HealthSyncRecordType,
   HealthSyncRunResult,
   HealthSyncState,
   HealthSyncStatusResponse,
@@ -389,6 +390,9 @@ const prepareHealthConnectSync = async (
     records.push(
       ...((changes.upsertionChanges ?? []) as Array<{ record: any }>)
         .flatMap((change) => mapHealthConnectRecord(change.record)),
+      ...((changes.deletionChanges ?? []) as Array<{ recordId: string }>).map(
+        (change) => mapHealthConnectDeletion(change.recordId),
+      ),
     );
 
     changesToken = changes.nextChangesToken;
@@ -481,6 +485,22 @@ const mapAppleBloodPressureSamples = (
   });
 };
 
+const mapHealthConnectDeletion = (recordId: string): HealthConnectUploadRecord => ({
+  kind: "deletion",
+  sourceItemId: recordId,
+});
+
+const mapAppleDeletedSamples = (
+  deletedSamples: Array<{ uuid: string }>,
+  sourceType: HealthSyncRecordType,
+): AppleHealthUploadRecord[] => {
+  return deletedSamples.map((sample) => ({
+    kind: "deletion",
+    sourceItemId: sample.uuid,
+    sourceType,
+  }));
+};
+
 const prepareAppleHealthSync = async (
   currentSyncState: HealthSyncState | null,
   onProgress?: SyncOptions["onProgress"],
@@ -538,6 +558,17 @@ const prepareAppleHealthSync = async (
     ...mapAppleHeightSamples(heightResult.samples ?? []),
     ...mapAppleHeartRateSamples(heartRateResult.samples ?? []),
     ...mapAppleBloodPressureSamples(bloodPressureResult.correlations ?? []),
+    ...mapAppleDeletedSamples(sleepResult.deletedSamples ?? [], "sleep"),
+    ...mapAppleDeletedSamples(weightResult.deletedSamples ?? [], "weight"),
+    ...mapAppleDeletedSamples(heightResult.deletedSamples ?? [], "height"),
+    ...mapAppleDeletedSamples(
+      heartRateResult.deletedSamples ?? [],
+      "heartRate",
+    ),
+    ...mapAppleDeletedSamples(
+      bloodPressureResult.deletedSamples ?? [],
+      "bloodPressure",
+    ),
   ];
 
   return {

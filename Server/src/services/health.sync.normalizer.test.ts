@@ -83,6 +83,7 @@ describe("health.sync.normalizer", () => {
           value: 2,
         },
         existingTargetRowId: null,
+        ownsTarget: false,
       },
       {
         source: {
@@ -104,6 +105,7 @@ describe("health.sync.normalizer", () => {
           value: 3,
         },
         existingTargetRowId: null,
+        ownsTarget: false,
       },
       {
         source: {
@@ -125,6 +127,7 @@ describe("health.sync.normalizer", () => {
           value: 1,
         },
         existingTargetRowId: null,
+        ownsTarget: false,
       },
     ]);
 

@@ -1,4 +1,10 @@
 export type HealthSyncProvider = "health-connect" | "apple-health";
+export type HealthSyncRecordType =
+  | "sleep"
+  | "weight"
+  | "height"
+  | "heartRate"
+  | "bloodPressure";
 
 export type HealthConnectSyncState = {
   changesToken: string;
@@ -69,6 +75,11 @@ export type HealthConnectUploadRecord =
       systolicMmhg: number;
       diastolicMmhg: number;
       metadata?: HealthConnectMetadata | null;
+    }
+  | {
+      kind: "deletion";
+      sourceItemId: string;
+      sourceType?: HealthSyncRecordType;
     };
 
 export type AppleHealthUploadRecord =
@@ -107,6 +118,11 @@ export type AppleHealthUploadRecord =
       endDate: string;
       systolicMmhg: number;
       diastolicMmhg: number;
+    }
+  | {
+      kind: "deletion";
+      sourceItemId: string;
+      sourceType: HealthSyncRecordType;
     };
 
 export type HealthSyncBatchRequest =

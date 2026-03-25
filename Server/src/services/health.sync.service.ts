@@ -14,6 +14,7 @@ import type {
 import {
   appleSleepSnapshotFromSourceItem,
   clusterAppleSleepSamples,
+  mapClientSourceTypeToSyncSourceType,
   normalizeAppleHealthBloodPressureRecord,
   normalizeAppleHealthHeartRateRecord,
   normalizeAppleHealthHeightRecord,
@@ -56,6 +57,12 @@ interface HealthSyncStatus {
   syncState: HealthSyncState | null;
   lastSuccessAt: string | null;
 }
+
+type AppleHealthSleepDeletionRecord = {
+  kind: "deletion";
+  sourceItemId: string;
+  sourceType: "sleep";
+};
 
 class HealthSyncConflictError extends Error {}
 
@@ -206,6 +213,18 @@ export class HealthSyncService {
             stats,
           );
           break;
+        case "deletion":
+          await this.syncDeletion(
+            client,
+            userId,
+            input.provider,
+            record.sourceItemId,
+            record.sourceType
+              ? mapClientSourceTypeToSyncSourceType(record.sourceType)
+              : undefined,
+            stats,
+          );
+          break;
       }
     }
   }
@@ -225,6 +244,10 @@ export class HealthSyncService {
     const sleepRecords = input.records.filter(
       (record): record is Extract<AppleHealthSyncBatchRequest["records"][number], { kind: "sleep" }> =>
         record.kind === "sleep",
+    );
+    const sleepDeletions = input.records.filter(
+      (record): record is AppleHealthSleepDeletionRecord =>
+        record.kind === "deletion" && record.sourceType === "sleep",
     );
 
     for (const record of input.records) {
@@ -263,11 +286,31 @@ export class HealthSyncService {
             stats,
           );
           break;
+        case "deletion":
+          if (record.sourceType === "sleep") {
+            break;
+          }
+
+          await this.syncDeletion(
+            client,
+            userId,
+            input.provider,
+            record.sourceItemId,
+            mapClientSourceTypeToSyncSourceType(record.sourceType),
+            stats,
+          );
+          break;
       }
     }
 
-    if (sleepRecords.length > 0) {
-      await this.syncAppleSleepMeasurements(client, userId, sleepRecords, stats);
+    if (sleepRecords.length > 0 || sleepDeletions.length > 0) {
+      await this.syncAppleSleepMeasurements(
+        client,
+        userId,
+        sleepRecords,
+        sleepDeletions,
+        stats,
+      );
     }
   }
 
@@ -660,6 +703,7 @@ export class HealthSyncService {
     client: PoolClient,
     userId: string,
     records: Array<Extract<AppleHealthSyncBatchRequest["records"][number], { kind: "sleep" }>>,
+    deletions: AppleHealthSleepDeletionRecord[],
     stats: {
       inserted: number;
       updated: number;
@@ -669,72 +713,130 @@ export class HealthSyncService {
     },
   ) {
     const normalized = records.map((record) => normalizeAppleHealthSleepRecord(record));
+    const affectedRanges: Array<{ start: string; end: string }> = [];
 
     for (const item of normalized) {
-      await this.saveSourceItem(client, userId, item.source, "user_sleep", null);
+      await this.saveSourceItem(
+        client,
+        userId,
+        item.source,
+        "user_sleep",
+        null,
+        false,
+      );
+      affectedRanges.push({
+        start: item.source.sourceStartAt,
+        end: item.source.sourceEndAt,
+      });
     }
 
-    const sortedRecords = [...records].sort(
-      (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-    );
+    const deletedSourceRows: HealthSyncSourceItemRow[] = [];
+    for (const deletion of deletions) {
+      const sourceRows = await this.getSourceItemsForDeletion(
+        client,
+        userId,
+        "apple-health",
+        deletion.sourceItemId,
+        "sleep",
+      );
 
-    const earliestStart = new Date(sortedRecords[0]!.startDate);
-    earliestStart.setMinutes(earliestStart.getMinutes() - 30);
-
-    const latestEnd = new Date(sortedRecords[sortedRecords.length - 1]!.endDate);
-    latestEnd.setMinutes(latestEnd.getMinutes() + 30);
-
-    const sourceRows = await this.getAppleSleepSourceRowsInRange(
-      client,
-      userId,
-      earliestStart.toISOString(),
-      latestEnd.toISOString(),
-    );
-
-    const snapshots = sourceRows.map(appleSleepSnapshotFromSourceItem);
-    const clusters = clusterAppleSleepSamples(snapshots);
-    const existingSyncedRowIds = Array.from(
-      new Set(
-        snapshots
-          .map((snapshot) => snapshot.existingTargetRowId)
-          .filter((value): value is string => Boolean(value)),
-      ),
-    );
-
-    const existingSyncedRows = await this.getSleepRowsByIds(
-      client,
-      userId,
-      existingSyncedRowIds,
-    );
-
-    const reusableSyncedRows = new Map(
-      existingSyncedRows.map((row) => [`${row.sleep_start}|${row.sleep_end}`, row.id]),
-    );
-
-    const reusedSyncedRowIds = new Set<string>();
-    const clusterAssignments = new Map<string, string>();
-
-    for (const cluster of clusters) {
-      const exactKey = `${cluster.sleepStart}|${cluster.sleepEnd}`;
-      const reusedSyncedRowId = reusableSyncedRows.get(exactKey);
-
-      if (reusedSyncedRowId) {
-        reusedSyncedRowIds.add(reusedSyncedRowId);
-        clusterAssignments.set(exactKey, reusedSyncedRowId);
+      if (sourceRows.length === 0) {
+        stats.skipped += 1;
         continue;
       }
 
-      const matchedManualRowId = await this.findMatchingSleepRow(
+      deletedSourceRows.push(...sourceRows);
+      for (const sourceRow of sourceRows) {
+        const start = this.timestampToIsoString(sourceRow.source_start_at);
+        const end = this.timestampToIsoString(sourceRow.source_end_at);
+
+        if (start && end) {
+          affectedRanges.push({ start, end });
+        }
+      }
+    }
+
+    if (deletedSourceRows.length > 0) {
+      await this.deleteSourceItemsByIds(
+        client,
+        deletedSourceRows.map((row) => row.id),
+      );
+    }
+
+    if (affectedRanges.length === 0) {
+      return;
+    }
+
+    const sourceRows = await this.getConnectedAppleSleepSourceRows(
+      client,
+      userId,
+      affectedRanges,
+    );
+    const snapshots = sourceRows.map(appleSleepSnapshotFromSourceItem);
+    const clusters = clusterAppleSleepSamples(snapshots);
+
+    const ownedTargetRowIds = Array.from(
+      new Set(
+        [
+          ...snapshots
+            .filter((snapshot) => snapshot.ownsTarget)
+            .map((snapshot) => snapshot.existingTargetRowId),
+          ...deletedSourceRows
+            .filter((row) => row.owns_target)
+            .map((row) => row.target_row_id),
+        ].filter((value): value is string => Boolean(value)),
+      ),
+    );
+
+    const existingOwnedRows = await this.getSleepRowsByIds(
+      client,
+      userId,
+      ownedTargetRowIds,
+    );
+    const ownedTargetRowIdSet = new Set(ownedTargetRowIds);
+    const reusableOwnedRows = new Map(
+      existingOwnedRows.map((row) => [`${row.sleep_start}|${row.sleep_end}`, row.id]),
+    );
+
+    const reusedOwnedRowIds = new Set<string>();
+    const clusterAssignments = new Map<
+      string,
+      { targetRowId: string; ownsTarget: boolean }
+    >();
+
+    for (const cluster of clusters) {
+      const exactKey = `${cluster.sleepStart}|${cluster.sleepEnd}`;
+      const reusedOwnedRowId = reusableOwnedRows.get(exactKey);
+
+      if (reusedOwnedRowId) {
+        reusedOwnedRowIds.add(reusedOwnedRowId);
+        clusterAssignments.set(exactKey, {
+          targetRowId: reusedOwnedRowId,
+          ownsTarget: true,
+        });
+        continue;
+      }
+
+      const matchedRowId = await this.findMatchingSleepRow(
         client,
         userId,
         cluster.sleepStart,
         cluster.sleepEnd,
       );
 
-      if (matchedManualRowId) {
-        clusterAssignments.set(exactKey, matchedManualRowId);
-        stats.matchedExisting += 1;
+      if (matchedRowId) {
+        const ownsTarget = ownedTargetRowIdSet.has(matchedRowId);
+
+        if (ownsTarget) {
+          reusedOwnedRowIds.add(matchedRowId);
+        } else {
+          stats.matchedExisting += 1;
+        }
+
+        clusterAssignments.set(exactKey, {
+          targetRowId: matchedRowId,
+          ownsTarget,
+        });
         continue;
       }
 
@@ -744,43 +846,317 @@ export class HealthSyncService {
         cluster.sleepStart,
         cluster.sleepEnd,
       );
-      clusterAssignments.set(exactKey, insertedSleepRowId);
+      clusterAssignments.set(exactKey, {
+        targetRowId: insertedSleepRowId,
+        ownsTarget: true,
+      });
       stats.inserted += 1;
     }
 
-    const removableSyncedRowIds = existingSyncedRowIds.filter(
-      (rowId) => !reusedSyncedRowIds.has(rowId),
+    const removableOwnedRowIds = ownedTargetRowIds.filter(
+      (rowId) => !reusedOwnedRowIds.has(rowId),
     );
 
-    if (removableSyncedRowIds.length > 0) {
+    if (removableOwnedRowIds.length > 0) {
       await client.query(
         `
           DELETE FROM user_sleep
           WHERE user_id = $1
             AND id = ANY($2::uuid[])
         `,
-        [userId, removableSyncedRowIds],
+        [userId, removableOwnedRowIds],
       );
-      stats.updated += removableSyncedRowIds.length;
+      stats.updated += removableOwnedRowIds.length;
     }
 
-    const sourceItemToTargetRowId = new Map<string, string>();
+    const sourceItemAssignments = new Map<
+      string,
+      { targetRowId: string; ownsTarget: boolean }
+    >();
 
     for (const cluster of clusters) {
       const exactKey = `${cluster.sleepStart}|${cluster.sleepEnd}`;
-      const targetRowId = clusterAssignments.get(exactKey);
-      if (!targetRowId) continue;
+      const assignment = clusterAssignments.get(exactKey);
+      if (!assignment) continue;
 
       for (const sourceItemId of cluster.sourceItemIds) {
-        sourceItemToTargetRowId.set(sourceItemId, targetRowId);
+        sourceItemAssignments.set(sourceItemId, assignment);
       }
     }
 
     for (const snapshot of snapshots) {
-      const targetRowId = sourceItemToTargetRowId.get(snapshot.source.sourceItemId);
-      if (!targetRowId) continue;
-      await this.saveSourceItem(client, userId, snapshot.source, "user_sleep", targetRowId);
+      const assignment = sourceItemAssignments.get(snapshot.source.sourceItemId);
+      if (!assignment) continue;
+      await this.saveSourceItem(
+        client,
+        userId,
+        snapshot.source,
+        "user_sleep",
+        assignment.targetRowId,
+        assignment.ownsTarget,
+      );
     }
+  }
+
+  private async syncDeletion(
+    client: PoolClient,
+    userId: string,
+    provider: HealthSyncProvider,
+    sourceItemId: string,
+    sourceType: HealthSyncSourceType | undefined,
+    stats: {
+      inserted: number;
+      updated: number;
+      matchedExisting: number;
+      skipped: number;
+      warnings: Set<string>;
+    },
+  ) {
+    const sourceRows = await this.getSourceItemsForDeletion(
+      client,
+      userId,
+      provider,
+      sourceItemId,
+      sourceType,
+    );
+
+    if (sourceRows.length === 0) {
+      stats.skipped += 1;
+      return;
+    }
+
+    const ownedTargets = Array.from(
+      new Map(
+        sourceRows
+          .filter(
+            (row): row is HealthSyncSourceItemRow & {
+              target_table: TargetTableName;
+              target_row_id: string;
+            } =>
+              row.owns_target &&
+              this.isTargetTableName(row.target_table) &&
+              Boolean(row.target_row_id),
+          )
+          .map((row) => [
+            `${row.target_table}:${row.target_row_id}`,
+            {
+              tableName: row.target_table,
+              targetRowId: row.target_row_id,
+            },
+          ]),
+      ).values(),
+    );
+
+    await this.deleteSourceItemsByIds(
+      client,
+      sourceRows.map((row) => row.id),
+    );
+
+    for (const target of ownedTargets) {
+      const stillReferenced = await this.hasAnySourceItemForTarget(
+        client,
+        userId,
+        target.tableName,
+        target.targetRowId,
+      );
+
+      if (stillReferenced) {
+        continue;
+      }
+
+      await this.deleteTargetRow(
+        client,
+        userId,
+        target.tableName,
+        target.targetRowId,
+      );
+      stats.updated += 1;
+    }
+  }
+
+  private isTargetTableName(value: string | null): value is TargetTableName {
+    return (
+      value === "user_sleep" ||
+      value === "user_weight_log" ||
+      value === "user_height_log" ||
+      value === "user_heart_rate_log" ||
+      value === "user_blood_pressure_log"
+    );
+  }
+
+  private timestampToIsoString(value: string | Date | null): string | null {
+    if (!value) return null;
+    return value instanceof Date ? value.toISOString() : value;
+  }
+
+  private async getConnectedAppleSleepSourceRows(
+    client: PoolClient,
+    userId: string,
+    seedRanges: Array<{ start: string; end: string }>,
+  ) {
+    const rangeStart = new Date(
+      Math.min(...seedRanges.map((range) => new Date(range.start).getTime())),
+    );
+    rangeStart.setMinutes(rangeStart.getMinutes() - 30);
+
+    const rangeEnd = new Date(
+      Math.max(...seedRanges.map((range) => new Date(range.end).getTime())),
+    );
+    rangeEnd.setMinutes(rangeEnd.getMinutes() + 30);
+
+    while (true) {
+      const sourceRows = await this.getAppleSleepSourceRowsInRange(
+        client,
+        userId,
+        rangeStart.toISOString(),
+        rangeEnd.toISOString(),
+      );
+
+      if (sourceRows.length === 0) {
+        return [];
+      }
+
+      let nextStartTime = rangeStart.getTime();
+      let nextEndTime = rangeEnd.getTime();
+
+      for (const sourceRow of sourceRows) {
+        const sourceStart = this.timestampToIsoString(sourceRow.source_start_at);
+        const sourceEnd = this.timestampToIsoString(sourceRow.source_end_at);
+
+        if (sourceStart) {
+          nextStartTime = Math.min(
+            nextStartTime,
+            new Date(sourceStart).getTime() - 30 * 60 * 1000,
+          );
+        }
+
+        if (sourceEnd) {
+          nextEndTime = Math.max(
+            nextEndTime,
+            new Date(sourceEnd).getTime() + 30 * 60 * 1000,
+          );
+        }
+      }
+
+      if (
+        nextStartTime === rangeStart.getTime() &&
+        nextEndTime === rangeEnd.getTime()
+      ) {
+        return sourceRows;
+      }
+
+      rangeStart.setTime(nextStartTime);
+      rangeEnd.setTime(nextEndTime);
+    }
+  }
+
+  private async getSourceItemsForDeletion(
+    client: PoolClient,
+    userId: string,
+    provider: HealthSyncProvider,
+    sourceItemId: string,
+    sourceType?: HealthSyncSourceType,
+  ) {
+    if (provider === "health-connect") {
+      const params: unknown[] = [
+        userId,
+        provider,
+        sourceItemId,
+        `${sourceItemId}:%`,
+      ];
+      const typeClause = sourceType
+        ? ` AND source_type = $5`
+        : "";
+
+      const query = `
+        SELECT *
+        FROM user_health_sync_source_item
+        WHERE user_id = $1
+          AND provider = $2
+          AND (
+            source_item_id = $3
+            OR (source_type = 'heart_rate' AND source_item_id LIKE $4)
+          )
+          ${typeClause}
+      `;
+
+      if (sourceType) {
+        params.push(sourceType);
+      }
+
+      const result = await client.query<HealthSyncSourceItemRow>(
+        query,
+        params,
+      );
+      return result.rows;
+    }
+
+    const params: unknown[] = [userId, provider, sourceItemId];
+    const typeClause = sourceType ? ` AND source_type = $4` : "";
+
+    const query = `
+      SELECT *
+      FROM user_health_sync_source_item
+      WHERE user_id = $1
+        AND provider = $2
+        AND source_item_id = $3
+        ${typeClause}
+    `;
+
+    if (sourceType) {
+      params.push(sourceType);
+    }
+
+    const result = await client.query<HealthSyncSourceItemRow>(query, params);
+    return result.rows;
+  }
+
+  private async deleteSourceItemsByIds(client: PoolClient, ids: string[]) {
+    if (ids.length === 0) return;
+
+    await client.query(
+      `
+        DELETE FROM user_health_sync_source_item
+        WHERE id = ANY($1::uuid[])
+      `,
+      [ids],
+    );
+  }
+
+  private async hasAnySourceItemForTarget(
+    client: PoolClient,
+    userId: string,
+    tableName: TargetTableName,
+    targetRowId: string,
+  ) {
+    const result = await client.query(
+      `
+        SELECT 1
+        FROM user_health_sync_source_item
+        WHERE user_id = $1
+          AND target_table = $2
+          AND target_row_id = $3
+        LIMIT 1
+      `,
+      [userId, tableName, targetRowId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  private async deleteTargetRow(
+    client: PoolClient,
+    userId: string,
+    tableName: TargetTableName,
+    targetRowId: string,
+  ) {
+    await client.query(
+      `
+        DELETE FROM ${tableName}
+        WHERE user_id = $1
+          AND id = $2
+      `,
+      [userId, targetRowId],
+    );
   }
 
   private async syncOneToOneMeasurement<T>(args: {
@@ -826,17 +1202,20 @@ export class HealthSyncService {
     }
 
     if (existingSourceItem?.target_row_id) {
-      const updatedTargetRowId = await args.updateExisting(existingSourceItem.target_row_id);
-      if (updatedTargetRowId) {
-        await this.saveSourceItem(
-          args.client,
-          args.userId,
-          args.source,
-          args.tableName,
-          updatedTargetRowId,
-        );
-        args.stats.updated += 1;
-        return;
+      if (existingSourceItem.owns_target) {
+        const updatedTargetRowId = await args.updateExisting(existingSourceItem.target_row_id);
+        if (updatedTargetRowId) {
+          await this.saveSourceItem(
+            args.client,
+            args.userId,
+            args.source,
+            args.tableName,
+            updatedTargetRowId,
+            true,
+          );
+          args.stats.updated += 1;
+          return;
+        }
       }
     }
 
@@ -848,6 +1227,7 @@ export class HealthSyncService {
         args.source,
         args.tableName,
         matchedExistingRowId,
+        false,
       );
       args.stats.matchedExisting += 1;
       return;
@@ -860,6 +1240,7 @@ export class HealthSyncService {
       args.source,
       args.tableName,
       insertedRowId,
+      true,
     );
     args.stats.inserted += 1;
   }
@@ -1069,6 +1450,7 @@ export class HealthSyncService {
     source: SyncSourceDescriptor,
     targetTable: TargetTableName,
     targetRowId: string | null,
+    ownsTarget: boolean,
   ) {
     const query = `
       INSERT INTO user_health_sync_source_item (
@@ -1083,6 +1465,7 @@ export class HealthSyncService {
         source_start_at,
         source_end_at,
         source_last_modified_at,
+        owns_target,
         updated_at
       )
       VALUES (
@@ -1097,6 +1480,7 @@ export class HealthSyncService {
         $9,
         $10,
         $11,
+        $12,
         NOW()
       )
       ON CONFLICT (user_id, provider, source_type, source_item_id)
@@ -1108,6 +1492,7 @@ export class HealthSyncService {
         source_start_at = EXCLUDED.source_start_at,
         source_end_at = EXCLUDED.source_end_at,
         source_last_modified_at = EXCLUDED.source_last_modified_at,
+        owns_target = EXCLUDED.owns_target,
         updated_at = NOW()
     `;
 
@@ -1123,6 +1508,7 @@ export class HealthSyncService {
       source.sourceStartAt,
       source.sourceEndAt,
       source.sourceLastModifiedAt,
+      ownsTarget,
     ]);
   }
 

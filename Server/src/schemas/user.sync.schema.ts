@@ -4,6 +4,10 @@ export const syncProviderSchema = z
   .enum(["health-connect", "apple-health"])
   .openapi({ example: "health-connect" });
 
+export const syncRecordTypeSchema = z
+  .enum(["sleep", "weight", "height", "heartRate", "bloodPressure"])
+  .openapi({ example: "sleep" });
+
 export const healthConnectSyncStateSchema = z
   .object({
     changesToken: z.string().min(1).openapi({ example: "hc_token" }),
@@ -114,12 +118,19 @@ const healthConnectBloodPressureRecordSchema = z.object({
   metadata: healthConnectMetadataSchema.nullable().optional(),
 });
 
+const healthConnectDeletionRecordSchema = z.object({
+  kind: z.literal("deletion"),
+  sourceItemId: z.string().min(1),
+  sourceType: syncRecordTypeSchema.optional(),
+});
+
 export const healthConnectRecordSchema = z.discriminatedUnion("kind", [
   healthConnectSleepRecordSchema,
   healthConnectWeightRecordSchema,
   healthConnectHeightRecordSchema,
   healthConnectHeartRateRecordSchema,
   healthConnectBloodPressureRecordSchema,
+  healthConnectDeletionRecordSchema,
 ]);
 
 const appleHealthSleepRecordSchema = z.object({
@@ -163,12 +174,19 @@ const appleHealthBloodPressureRecordSchema = z.object({
   diastolicMmhg: z.number().positive(),
 });
 
+const appleHealthDeletionRecordSchema = z.object({
+  kind: z.literal("deletion"),
+  sourceItemId: z.string().min(1),
+  sourceType: syncRecordTypeSchema,
+});
+
 export const appleHealthRecordSchema = z.discriminatedUnion("kind", [
   appleHealthSleepRecordSchema,
   appleHealthWeightRecordSchema,
   appleHealthHeightRecordSchema,
   appleHealthHeartRateRecordSchema,
   appleHealthBloodPressureRecordSchema,
+  appleHealthDeletionRecordSchema,
 ]);
 
 const syncBatchBaseSchema = z.object({

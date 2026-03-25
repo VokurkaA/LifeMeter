@@ -89,7 +89,7 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       } catch (e) {
         console.error('Failed to fetch user data', e);
-        if (active && !shouldBlockWithoutProfile) {
+        if (active) {
           setIsLoading(false);
         }
       }
