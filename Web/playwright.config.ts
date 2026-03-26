@@ -20,26 +20,43 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "desktop",
+      name: "desktop-light",
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 1080 },
+        colorScheme: "light",
       },
     },
     {
-      name: "mobile",
+      name: "desktop-dark",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 1080 },
+        colorScheme: "dark",
+      },
+    },
+    {
+      name: "mobile-light",
       use: {
         ...devices["Pixel 7"],
+        colorScheme: "light",
+      },
+    },
+    {
+      name: "mobile-dark",
+      use: {
+        ...devices["Pixel 7"],
+        colorScheme: "dark",
       },
     },
   ],
   webServer: useManagedWebServer
     ? {
-        command: `npm run dev -- --hostname ${host} --port ${port}`,
+        command: `npm run build && npm run start -- --hostname ${host} --port ${port}`,
         url: baseURL,
         cwd: ".",
         reuseExistingServer: true,
-        timeout: 120_000,
+        timeout: 240_000,
       }
     : undefined,
 });

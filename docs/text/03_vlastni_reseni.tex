@@ -2,9 +2,9 @@
 
 \section{Architektura systému}
 
-Systém LifeMeter se skládá ze dvou hlavních součástí: mobilního klienta a~serverové
-části nasazené v~cloudovém prostředí. Mobilní klient komunikuje se serverem za použití
-REST API přes protokol HTTPS. Celkové uspořádání systému je znázorněno
+Systém LifeMeter se skládá ze tří hlavních součástí: mobilního klienta, webové
+vrstvy a~serverové části nasazené v~cloudovém prostředí. Mobilní i~webový klient
+komunikují se serverem za použití REST API přes protokol HTTPS. Celkové uspořádání systému je znázorněno
 na obrázku~\ref{fig:system-overview}.
 
 \begin{figure}[htbp]
@@ -30,6 +30,24 @@ MMKV~\cite{mmkv2024}: data jsou primárně čtena z~cache v~paměti zařízení 
 se serverem při obnovení síťového připojení, v~souladu s~principem \textit{offline-first}~\cite{offlinefirst2015}.
 Přihlašovací údaje jsou ukládány šifrovaně prostřednictvím \texttt{expo-secure-store}.
 
+\subsection{Webová vrstva}
+
+{\sloppy
+Webová část systému je implementována v~adresáři \texttt{Web/} pomocí
+frameworku Next.js a~slouží dvěma odlišným účelům. Veřejné routy
+\texttt{/} a~\texttt{/downloads} fungují jako landing page a~download
+centrum verzovaných mobilních buildů; jsou generovány staticky
+s~krátkou periodou revalidace, aby bylo možné rychle obsloužit běžné
+návštěvy a~současně promítnout nově publikované buildy. Druhou část
+tvoří administrátorská konzole pouze pro čtení pod cestou \texttt{/admin},
+která po ověření role \texttt{admin} zobrazuje systémový přehled,
+logy a~detail uživatelů. Route handlery
+\texttt{/downloads/[platform]/latest} a~
+\texttt{/downloads/[platform]/[fileName]} zpřístupňují aktuální i~
+archivní instalační soubory přímo z~adresářů připojených do webového
+kontejneru.
+}
+
 \subsection{Serverová vrstva}
 
 Serverová část je implementována v~prostředí Bun s~využitím webového frameworku
@@ -41,9 +59,11 @@ stavových \texttt{HttpOnly} cookies, v~souladu s~doporučeními OWASP~\cite{owa
 
 Routy jsou organizovány doménově: \texttt{/api/auth} zpracovává přihlášení a~registraci,
 \texttt{/api/food} poskytuje přístup k~databázi potravin, \texttt{/api/user/*} sdružuje
-endpointy pro spánek, jídla, tréninky a~uživatelský profil a~\texttt{/api/workout}
-vystavuje referenční data (cviky, styly sérií). Chráněné routy vyžadují middleware
-\texttt{requireAuth()}, administrátorské pak \texttt{requireAdmin()}.
+endpointy pro spánek, jídla, tréninky, uživatelský profil a~synchronizaci
+zdravotních dat, \texttt{/api/workout} vystavuje referenční data (cviky, styly sérií),
+\texttt{/api/logs} systémové logy a~\texttt{/api/admin} administrátorské přehledy nad
+uživatelskými daty. Chráněné routy vyžadují middleware \texttt{requireAuth()},
+administrátorské pak \texttt{requireAdmin()}.
 
 \subsection{Datová vrstva}
 
@@ -55,9 +75,9 @@ prostřednictvím connection poolu knihovny \texttt{pg}.
 
 \section{Datový model}
 
-Databázové schéma aplikace LifeMeter je rozdělena do pěti doménových skupin:
+Databázové schéma aplikace LifeMeter je rozděleno do šesti doménových skupin:
 autentizace a~správa relací (spravováno knihovnou Better Auth), výživa, spánek,
-tréninky a~uživatelský profil. Schéma je implementováno v~PostgreSQL~17 a~je
+tréninky, uživatelský profil a~synchronizace zdravotních dat. Schéma je implementováno v~PostgreSQL~17 a~je
 verzováno prostřednictvím migračních SQL souborů. Entity-relationship diagram
 celého schématu je uveden na obrázku~\ref{fig:er-diagram}.
 
@@ -94,6 +114,27 @@ Struktura profilu a~cílů je uložena v~tabulkách \texttt{user\_profile} a~\te
 
 Dále jsou evidovány tabulky \texttt{user\_weight\_log} (hmotnost, viz tabulka~\ref{app:tab:user_weight_log}), \texttt{user\_}\allowbreak\texttt{height\_}\allowbreak\texttt{log} (výška v~cm s~časovým razítkem), \texttt{user\_}\allowbreak\texttt{blood\_}\allowbreak\texttt{pressure\_}\allowbreak\texttt{log} (systolický a~diastolický tlak v~mmHg) a~\texttt{user\_}\allowbreak\texttt{heart\_}\allowbreak\texttt{rate\_}\allowbreak\texttt{log} (tepová frekvence v~bpm). Všechny protokolové tabulky sdílejí společný vzor: primární klíč \texttt{UUID}, cizí klíč \texttt{user\_id} s~\texttt{CASCADE DELETE} a~časové razítko \texttt{measured\_at} indexované sestupně pro efektivní výpis posledních hodnot. Kompletní definice těchto tabulek jsou k~dispozici v~příloze~B.
 }
+
+\subsection{Synchronizace zdravotních dat}
+
+Doména synchronizace zdravotních dat je reprezentována trojicí tabulek.
+Tabulka \texttt{user\_}\allowbreak\texttt{health\_}\allowbreak\texttt{sync\_}\allowbreak\texttt{state}
+ukládá stav synchronizace pro jednotlivé providery (Health Connect
+a~Apple Health). Tabulka
+\texttt{user\_}\allowbreak\texttt{health\_}\allowbreak\texttt{sync\_}\allowbreak\texttt{pending\_}\allowbreak\texttt{run}
+slouží k~rozpracovaným dávkovým běhům. Tabulka
+\texttt{user\_}\allowbreak\texttt{health\_}\allowbreak\texttt{sync\_}\allowbreak\texttt{source\_}\allowbreak\texttt{item}
+mapuje zdrojové záznamy z~externích platforem na cílové řádky v~doménových
+tabulkách (\texttt{user\_}\allowbreak\texttt{sleep},
+\texttt{user\_}\allowbreak\texttt{weight\_}\allowbreak\texttt{log},
+\texttt{user\_}\allowbreak\texttt{height\_}\allowbreak\texttt{log},
+\texttt{user\_}\allowbreak\texttt{heart\_}\allowbreak\texttt{rate\_}\allowbreak\texttt{log},
+\texttt{user\_}\allowbreak\texttt{blood\_}\allowbreak\texttt{pressure\_}\allowbreak\texttt{log}).
+Tato vrstva umožňuje idempotentní
+dávkovou synchronizaci, detekci smazaných záznamů a~bezpečné obnovení
+vícebatchových běhů po přerušení. Detailní definice této trojice tabulek
+jsou uvedeny v~příloze~B (tabulky~\ref{app:tab:user_health_sync_state}
+až~\ref{app:tab:user_health_sync_source_item}).
 
 \section{Popis řešení}
 
@@ -172,16 +213,15 @@ uveden v~sekci~\ref{sec:offline-fronta}.
 
 \subsubsection{Lokální oznámení}
 
-{\sloppy
 Plánování oznámení je centralizováno do hooku \texttt{useNotifications()}
-(\texttt{src/lib/}\allowbreak\texttt{notifications.ts}). Funkce \texttt{scheduleNotification()}
+v~souboru \texttt{src/lib/}\allowbreak\texttt{notifications.ts}. Funkce
+\texttt{scheduleNotification()}
 přijímá identifikátor, titulek, text, čas a~příznak opakování. Opakující
 se oznámení (připomenutí spánku, vstávání, cvičení) jsou naplánována
 s~triggerem typu \texttt{DAILY} zadáváním hodiny a~minuty; jednorázová
 s~triggerem \texttt{TIME\_INTERVAL}. Stav naplánovaných oznámení je
 synchronizován s~MMKV, aby byl dostupný i~bez živého systémového volání.
 Při globálním vypnutí oznámení jsou zrušena všechna naplánovaná upozornění.
-}
 
 \subsection{Serverová část}
 
@@ -204,7 +244,7 @@ role uživatele.
 
 \subsubsection{Struktura endpointů}
 
-Routy jsou organizovány do čtyř doménových skupin pod základní cestou
+Routy jsou organizovány do šesti doménových skupin pod základní cestou
 \texttt{/api}. Skupina \texttt{/api/auth/*} je delegována přímo
 na handler knihovny Better Auth a~nevyžaduje autentizaci. Skupina
 \texttt{/api/workout/*} vystavuje veřejně dostupná referenční data
@@ -214,20 +254,27 @@ vyhledávání (parametr \texttt{name} využívající \texttt{pg\_trgm}\allowbr
 parametr \texttt{gtin} pro vyhledávání dle čárového kódu). Skupina
 \texttt{/api/user/*} sdružuje chráněné endpointy pro spánek
 (\texttt{/sleep}), výživu (\texttt{/food}), tréninky
-(\texttt{/workout}, \texttt{/workout/template}) a~uživatelský profil
-(\texttt{/data}). Schémata požadavků a~odpovědí jsou validována
-knihovnou Zod a~dokumentována prostřednictvím integrace
-\texttt{@hono/zod-openapi} přístupné na \texttt{/api/ui}
-ve vývojovém prostředí.
+(\texttt{/workout}, \texttt{/workout/template}), uživatelský profil
+(\texttt{/data}) a~synchronizaci zdravotních dat (\texttt{/sync}).
+Zbývající skupiny \texttt{/api/logs} a~\texttt{/api/admin/*} obsluhují
+administrátorské logy a~dohled nad uživatelskými daty pouze pro čtení.
+Schémata požadavků a~odpovědí jsou validována knihovnou Zod a~dokumentována
+prostřednictvím integrace \texttt{@hono/zod-openapi}; výsledná OpenAPI
+dokumentace je přístupná na \texttt{/api/doc} a~\texttt{/api/ui}.
 
 \subsubsection{Nasazení a~reverzní proxy}
 
-Serverová část je provozována na instanci Oracle Cloud Infrastructure
-s~architekturou ARM. Kontejnerizační soubor \texttt{docker-\allowbreak compose.yml}
-definuje dvě služby: \texttt{db} (PostgreSQL~17 s~pojmenovaným svazkem
-\texttt{pgdata} pro perzistenci dat) a~\texttt{api} (sestavení ze zdrojového
-kódu adresáře \texttt{Server/}, mapování portu~3000 a~sdílený svazek
-pro výstup logovacích souborů). Docker Compose~\cite{docker2024} běží přímo
+Serverová a~webová část jsou provozovány na instanci Oracle Cloud
+Infrastructure s~architekturou ARM. Kontejnerizační soubor
+\texttt{docker-\allowbreak compose.yml} definuje tři služby:
+\texttt{db} (PostgreSQL~17 s~pojmenovaným svazkem \texttt{pgdata} pro
+perzistenci dat), \texttt{api} (sestavení ze zdrojového kódu adresáře
+\texttt{Server/}, mapování portu~3000 a~sdílený svazek pro výstup
+logovacích souborů) a~\texttt{web} (Next.js frontend z~adresáře
+\texttt{Web/}, publikovaný interně na portu~3001). Webový kontejner
+má navíc mounty pouze pro čtení adresářů \texttt{releases/apk} a~
+\texttt{releases/ios}, odkud obsluhuje aktuální i~archivní instalační
+soubory pro download centrum. Docker Compose~\cite{docker2024} běží přímo
 na VM; reverzní proxy Caddy je nainstalována odděleně jako systémová služba
 a~spravuje ukončení TLS pro domény \texttt{lifemeter.fit}
 a~\texttt{www.lifemeter.fit}.
@@ -235,28 +282,39 @@ a~\texttt{www.lifemeter.fit}.
 Caddy je nakonfigurována se dvěma pravidly omezení frekvence požadavků
 (\textit{rate limiting}) rozlišujícími dvě časová okna: maximálně
 10~požadavků za sekundu a~100~požadavků za minutu, obojí klíčované
-IP adresou klienta (\texttt{key \{remote\_host\}}). Veškeré požadavky
-nesměřující na cestu \texttt{/api} nebo její podstromy jsou okamžitě
-odmítnuty direktivou \texttt{abort}, čímž je server vystaven výhradně
-definovanému API. Vyhovující požadavky jsou předávány na interní port~3000
-aplikačního kontejneru direktivou \texttt{reverse\_proxy localhost:3000}.
+IP adresou klienta (\texttt{key \{remote\_host\}}). Požadavky na cestu
+\texttt{/api} a~její podstromy jsou předávány na interní port~3000
+aplikačního kontejneru, zatímco veškeré ostatní požadavky jsou směrovány
+na webový frontend na portu~3001. Tím jsou veřejné stránky, download
+centrum i~admin konzole obslouženy přes stejnou doménu jako samotné API.
 
 \subsection{CI/CD pipeline}
 
 {\sloppy
-Průběžné nasazení serverové části je zajištěno workflow GitHub Actions
-(\texttt{.github/workflows/deploy.yml}). Workflow se spouští automaticky
-při každém přímém commitu nebo sloučení pull requestu do větve
-\texttt{main}, pokud změna zasahuje do adresáře \texttt{Server/}.
-Jediný krok \textit{Deploy to Oracle VM} využívá akce
+Průběžné nasazení serverové a~webové části je zajištěno workflow GitHub
+Actions (\texttt{.github/workflows/deploy.yml}). Workflow se spouští
+automaticky při každém přímém commitu nebo sloučení pull requestu do
+větve \texttt{main}, pokud změna zasahuje do adresářů \texttt{Server/}
+nebo \texttt{Web/}, případně do \texttt{docker-\allowbreak compose.yml}. Jediný krok
+\textit{Deploy to Oracle VM} využívá akce
 \texttt{appleboy/}\allowbreak\texttt{ssh-action}, která se připojí na produkční server
 prostřednictvím SSH klíče uloženého v~tajných proměnných repozitáře
 (\texttt{SSH\_HOST}, \allowbreak \texttt{SSH\_USER}, \allowbreak \texttt{SSH\_KEY}).
 Na serveru jsou poté provedeny příkazy \texttt{git pull origin main},
-\texttt{docker compose down} a~\texttt{docker compose up -d --build},
-čímž dochází k~sestavení aktualizované Docker image a~opětovnému spuštění
-služeb s~minimálním výpadkem. Databáze zůstává v~provozu díky pojmenovanému
-svazku \texttt{pgdata}, který není součástí životního cyklu kontejnerů.
+\texttt{docker compose build --pull} (s~fallbackem na build bez cache při
+selhání) a~\texttt{docker compose up -d --remove-orphans}, čímž dochází
+k~nasazení aktualizované serverové i~webové vrstvy s~minimálním výpadkem.
+Databáze zůstává v~provozu díky pojmenovanému svazku \texttt{pgdata}, který
+není součástí životního cyklu kontejnerů.
+
+Mobilní klient je publikován samostatným workflow
+\texttt{.github/workflows/app-\allowbreak apk.yml}. Při změně adresáře
+\texttt{App/} se v~GitHub Actions provede \texttt{npm ci},
+\texttt{expo prebuild} pro Android, sestavení release APK pomocí
+Gradle a~následné nahrání výsledného artefaktu na Oracle VM do adresáře
+\texttt{releases/apk}. Současně jsou aktualizována metadata
+\texttt{latest.json}, která využívá webová stránka \texttt{/downloads}
+pro zobrazení nejnovějšího sestavení a~jeho verzovaného archivu.
 }
 
 \section{Návrh aplikace}
@@ -333,11 +391,9 @@ zapouzdřuje data a~operace jedné funkční domény
 a~zpřístupňuje operace pro jejich vytváření, editaci a~mazání
 včetně detekce probíhající spánkové relace (\texttt{ongoingSleepSession}).
 
-{\sloppy
 \texttt{NutritionStoreContext} uchovává jídelní záznamy ve struktuře
-\texttt{\{userMeal,}\allowbreak\ \texttt{userFoods\}[]} a~poskytuje operace CRUD nad
-jídly a~jídelními deníky.
-}
+jako dvojici objektu \texttt{userMeal} a~pole \texttt{userFoods}; nad oběma
+částmi poskytuje operace CRUD pro jídla a~jídelní deníky.
 
 \texttt{WorkoutStoreContext} spravuje zaznamenané tréninky, šablony
 tréninků a~referenční číselníky (cviky, styly a~typy sérií). Jeho

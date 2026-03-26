@@ -5,15 +5,12 @@ import { BarChart } from "@/components/graphs/Chart";
 import { ChartDataPoint } from "@/components/graphs/useChartData";
 import { useAuth } from "@/contexts/useAuth";
 import { getSteps, StepSample } from "@/lib/health/index";
-import { getHealthSyncEnabledStorageKey } from "@/lib/healthSyncStorage";
-import { useStorage } from "@/lib/storage";
+import { useHealthSyncEnabled } from "@/lib/healthSyncStorage";
 import { useUserStore } from "@/contexts/useUserStore";
 
 export const StepsHomeChart = () => {
   const { user } = useAuth();
-  const [enableSync] = useStorage.boolean(
-    getHealthSyncEnabledStorageKey(user?.id ?? null),
-  );
+  const [enableSync] = useHealthSyncEnabled(user?.id ?? null);
   const { userGoals } = useUserStore();
   const [steps, setSteps] = useState<StepSample[]>([]);
   const [isLoading, setIsLoading] = useState(false);

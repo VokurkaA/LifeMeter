@@ -5,7 +5,6 @@ import type {
 } from "@/schemas/user.sync.schema";
 import { pool } from "@/config/db.config";
 import type {
-  HealthSyncPendingRunRow,
   HealthSyncProvider,
   HealthSyncSourceItemRow,
   HealthSyncSourceType,
@@ -34,14 +33,12 @@ import {
   type NormalizedWeightLog,
   type SyncSourceDescriptor,
 } from "@/services/health.sync.normalizer";
+import {
+  healthSyncStore,
+  type HealthSyncStatus,
+  type TargetTableName,
+} from "@/services/health.sync.store";
 import type { PoolClient } from "pg";
-
-type TargetTableName =
-  | "user_sleep"
-  | "user_weight_log"
-  | "user_height_log"
-  | "user_heart_rate_log"
-  | "user_blood_pressure_log";
 
 interface HealthSyncBatchResult {
   inserted: number;
@@ -50,12 +47,6 @@ interface HealthSyncBatchResult {
   skipped: number;
   warnings: string[];
   committedSyncState: HealthSyncState | null;
-}
-
-interface HealthSyncStatus {
-  provider: HealthSyncProvider;
-  syncState: HealthSyncState | null;
-  lastSuccessAt: string | null;
 }
 
 type AppleHealthSleepDeletionRecord = {
@@ -98,9 +89,9 @@ export class HealthSyncService {
 
     try {
       await client.query("BEGIN");
-      await this.lockProvider(client, userId, input.provider);
+      await healthSyncStore.lockProvider(client, userId, input.provider);
 
-      const currentStatus = await this.getSyncStateForClient(
+      const currentStatus = await healthSyncStore.getSyncStateForClient(
         client,
         userId,
         input.provider,
@@ -115,7 +106,15 @@ export class HealthSyncService {
         );
       }
 
-      await this.assertPendingRunCanProceed(client, userId, input);
+      const pendingRun = await this.assertPendingRunCanProceed(
+        client,
+        userId,
+        input,
+      );
+      const isResetRun =
+        input.batchIndex === 0
+          ? input.resetExistingData === true
+          : pendingRun !== null && healthSyncStore.isResetPendingRun(pendingRun);
 
       const stats = {
         inserted: 0,
@@ -125,23 +124,57 @@ export class HealthSyncService {
         warnings: new Set<string>(),
       };
 
-      if (input.batchIndex === 0 && input.resetExistingData === true) {
+      if (input.batchIndex === 0 && isResetRun && !input.isFinalBatch) {
+        await healthSyncStore.savePendingRun(client, userId, input, {
+          isResetRun,
+        });
+      }
+
+      if (input.batchIndex === 0 && isResetRun && input.isFinalBatch) {
         await this.resetProviderData(client, userId, input.provider, stats);
       }
 
       if (input.provider === "health-connect") {
-        await this.processHealthConnectBatch(client, userId, input, stats);
+        await this.processHealthConnectBatch(
+          client,
+          userId,
+          input,
+          stats,
+          isResetRun,
+        );
       } else {
-        await this.processAppleHealthBatch(client, userId, input, stats);
+        await this.processAppleHealthBatch(
+          client,
+          userId,
+          input,
+          stats,
+          isResetRun,
+        );
       }
 
       let committedSyncState = currentStatus.syncState;
       if (input.isFinalBatch) {
+        if (isResetRun && pendingRun) {
+          await this.pruneProviderDataUpdatedBefore(
+            client,
+            userId,
+            input.provider,
+            pendingRun.created_at,
+            stats,
+          );
+        }
         committedSyncState = input.nextSyncState;
-        await this.saveSyncState(client, userId, input.provider, input.nextSyncState);
-        await this.clearPendingRun(client, userId, input.provider);
+        await healthSyncStore.saveSyncState(
+          client,
+          userId,
+          input.provider,
+          input.nextSyncState,
+        );
+        await healthSyncStore.clearPendingRun(client, userId, input.provider);
       } else {
-        await this.savePendingRun(client, userId, input);
+        await healthSyncStore.savePendingRun(client, userId, input, {
+          isResetRun,
+        });
       }
 
       await client.query("COMMIT");
@@ -177,6 +210,7 @@ export class HealthSyncService {
       skipped: number;
       warnings: Set<string>;
     },
+    touchExistingOnChecksumMatch: boolean,
   ) {
     for (const record of input.records) {
       switch (record.kind) {
@@ -186,6 +220,7 @@ export class HealthSyncService {
             userId,
             normalizeHealthConnectSleepRecord(record),
             stats,
+            touchExistingOnChecksumMatch,
           );
           break;
         case "weight":
@@ -194,6 +229,7 @@ export class HealthSyncService {
             userId,
             normalizeHealthConnectWeightRecord(record),
             stats,
+            touchExistingOnChecksumMatch,
           );
           break;
         case "height":
@@ -202,11 +238,18 @@ export class HealthSyncService {
             userId,
             normalizeHealthConnectHeightRecord(record),
             stats,
+            touchExistingOnChecksumMatch,
           );
           break;
         case "heartRate":
           for (const sample of normalizeHealthConnectHeartRateRecord(record)) {
-            await this.syncHeartRateMeasurement(client, userId, sample, stats);
+            await this.syncHeartRateMeasurement(
+              client,
+              userId,
+              sample,
+              stats,
+              touchExistingOnChecksumMatch,
+            );
           }
           break;
         case "bloodPressure":
@@ -215,6 +258,7 @@ export class HealthSyncService {
             userId,
             normalizeHealthConnectBloodPressureRecord(record),
             stats,
+            touchExistingOnChecksumMatch,
           );
           break;
         case "deletion":
@@ -244,6 +288,7 @@ export class HealthSyncService {
       skipped: number;
       warnings: Set<string>;
     },
+    touchExistingOnChecksumMatch: boolean,
   ) {
     const sleepRecords = input.records.filter(
       (record): record is Extract<AppleHealthSyncBatchRequest["records"][number], { kind: "sleep" }> =>
@@ -264,6 +309,7 @@ export class HealthSyncService {
             userId,
             normalizeAppleHealthWeightRecord(record),
             stats,
+            touchExistingOnChecksumMatch,
           );
           break;
         case "height":
@@ -272,6 +318,7 @@ export class HealthSyncService {
             userId,
             normalizeAppleHealthHeightRecord(record),
             stats,
+            touchExistingOnChecksumMatch,
           );
           break;
         case "heartRate":
@@ -280,6 +327,7 @@ export class HealthSyncService {
             userId,
             normalizeAppleHealthHeartRateRecord(record),
             stats,
+            touchExistingOnChecksumMatch,
           );
           break;
         case "bloodPressure":
@@ -288,6 +336,7 @@ export class HealthSyncService {
             userId,
             normalizeAppleHealthBloodPressureRecord(record),
             stats,
+            touchExistingOnChecksumMatch,
           );
           break;
         case "deletion":
@@ -329,6 +378,7 @@ export class HealthSyncService {
       skipped: number;
       warnings: Set<string>;
     },
+    touchExistingOnChecksumMatch = false,
   ) {
     const tableName = "user_sleep" satisfies TargetTableName;
 
@@ -338,8 +388,9 @@ export class HealthSyncService {
       source: measurement.source,
       tableName,
       stats,
+      touchExistingOnChecksumMatch,
       targetExists: (targetRowId) =>
-        this.targetRowExists(client, userId, tableName, targetRowId),
+        healthSyncStore.targetRowExists(client, userId, tableName, targetRowId),
       updateExisting: async (targetRowId) => {
         const query = `
           UPDATE user_sleep
@@ -400,6 +451,7 @@ export class HealthSyncService {
       skipped: number;
       warnings: Set<string>;
     },
+    touchExistingOnChecksumMatch = false,
   ) {
     const tableName = "user_weight_log" satisfies TargetTableName;
 
@@ -409,8 +461,9 @@ export class HealthSyncService {
       source: measurement.source,
       tableName,
       stats,
+      touchExistingOnChecksumMatch,
       targetExists: (targetRowId) =>
-        this.targetRowExists(client, userId, tableName, targetRowId),
+        healthSyncStore.targetRowExists(client, userId, tableName, targetRowId),
       updateExisting: async (targetRowId) => {
         const query = `
           UPDATE user_weight_log
@@ -491,6 +544,7 @@ export class HealthSyncService {
       skipped: number;
       warnings: Set<string>;
     },
+    touchExistingOnChecksumMatch = false,
   ) {
     const tableName = "user_height_log" satisfies TargetTableName;
 
@@ -500,8 +554,9 @@ export class HealthSyncService {
       source: measurement.source,
       tableName,
       stats,
+      touchExistingOnChecksumMatch,
       targetExists: (targetRowId) =>
-        this.targetRowExists(client, userId, tableName, targetRowId),
+        healthSyncStore.targetRowExists(client, userId, tableName, targetRowId),
       updateExisting: async (targetRowId) => {
         const query = `
           UPDATE user_height_log
@@ -562,6 +617,7 @@ export class HealthSyncService {
       skipped: number;
       warnings: Set<string>;
     },
+    touchExistingOnChecksumMatch = false,
   ) {
     const tableName = "user_heart_rate_log" satisfies TargetTableName;
 
@@ -571,8 +627,9 @@ export class HealthSyncService {
       source: measurement.source,
       tableName,
       stats,
+      touchExistingOnChecksumMatch,
       targetExists: (targetRowId) =>
-        this.targetRowExists(client, userId, tableName, targetRowId),
+        healthSyncStore.targetRowExists(client, userId, tableName, targetRowId),
       updateExisting: async (targetRowId) => {
         const query = `
           UPDATE user_heart_rate_log
@@ -633,6 +690,7 @@ export class HealthSyncService {
       skipped: number;
       warnings: Set<string>;
     },
+    touchExistingOnChecksumMatch = false,
   ) {
     const tableName = "user_blood_pressure_log" satisfies TargetTableName;
 
@@ -642,8 +700,9 @@ export class HealthSyncService {
       source: measurement.source,
       tableName,
       stats,
+      touchExistingOnChecksumMatch,
       targetExists: (targetRowId) =>
-        this.targetRowExists(client, userId, tableName, targetRowId),
+        healthSyncStore.targetRowExists(client, userId, tableName, targetRowId),
       updateExisting: async (targetRowId) => {
         const query = `
           UPDATE user_blood_pressure_log
@@ -717,16 +776,51 @@ export class HealthSyncService {
     },
   ) {
     const normalized = records.map((record) => normalizeAppleHealthSleepRecord(record));
+    const existingSourceRows = await healthSyncStore.getSourceItemsBySourceItemIds(
+      client,
+      userId,
+      "apple-health",
+      "sleep",
+      normalized.map((item) => item.source.sourceItemId),
+    );
+    const existingSourceRowsBySourceItemId = new Map(
+      existingSourceRows.map((row) => [row.source_item_id, row]),
+    );
     const affectedRanges: Array<{ start: string; end: string }> = [];
 
     for (const item of normalized) {
-      await this.saveSourceItem(
+      const existingSourceRow =
+        existingSourceRowsBySourceItemId.get(item.source.sourceItemId) ?? null;
+      const previousStart = this.timestampToIsoString(
+        existingSourceRow?.source_start_at ?? null,
+      );
+      const previousEnd = this.timestampToIsoString(
+        existingSourceRow?.source_end_at ?? null,
+      );
+
+      if (previousStart && previousEnd) {
+        affectedRanges.push({
+          start: previousStart,
+          end: previousEnd,
+        });
+      }
+
+      const preservedTargetRowId =
+        existingSourceRow?.target_table === "user_sleep"
+          ? existingSourceRow.target_row_id
+          : null;
+      const preservedOwnsTarget =
+        existingSourceRow?.target_table === "user_sleep"
+          ? existingSourceRow.owns_target
+          : false;
+
+      await healthSyncStore.saveSourceItem(
         client,
         userId,
         item.source,
         "user_sleep",
-        null,
-        false,
+        preservedTargetRowId,
+        preservedOwnsTarget,
       );
       affectedRanges.push({
         start: item.source.sourceStartAt,
@@ -736,7 +830,7 @@ export class HealthSyncService {
 
     const deletedSourceRows: HealthSyncSourceItemRow[] = [];
     for (const deletion of deletions) {
-      const sourceRows = await this.getSourceItemsForDeletion(
+      const sourceRows = await healthSyncStore.getSourceItemsForDeletion(
         client,
         userId,
         "apple-health",
@@ -761,7 +855,7 @@ export class HealthSyncService {
     }
 
     if (deletedSourceRows.length > 0) {
-      await this.deleteSourceItemsByIds(
+      await healthSyncStore.deleteSourceItemsByIds(
         client,
         deletedSourceRows.map((row) => row.id),
       );
@@ -792,7 +886,7 @@ export class HealthSyncService {
       ),
     );
 
-    const existingOwnedRows = await this.getSleepRowsByIds(
+    const existingOwnedRows = await healthSyncStore.getSleepRowsByIds(
       client,
       userId,
       ownedTargetRowIds,
@@ -821,7 +915,7 @@ export class HealthSyncService {
         continue;
       }
 
-      const matchedRowId = await this.findMatchingSleepRow(
+      const matchedRowId = await healthSyncStore.findMatchingSleepRow(
         client,
         userId,
         cluster.sleepStart,
@@ -844,7 +938,7 @@ export class HealthSyncService {
         continue;
       }
 
-      const insertedSleepRowId = await this.insertSleepRow(
+      const insertedSleepRowId = await healthSyncStore.insertSleepRow(
         client,
         userId,
         cluster.sleepStart,
@@ -866,7 +960,7 @@ export class HealthSyncService {
       }
 
       const hasNonAppleReferences =
-        await this.hasSourceItemForTargetExcludingProvider(
+        await healthSyncStore.hasSourceItemForTargetExcludingProvider(
           client,
           userId,
           "user_sleep",
@@ -912,7 +1006,7 @@ export class HealthSyncService {
     for (const snapshot of snapshots) {
       const assignment = sourceItemAssignments.get(snapshot.source.sourceItemId);
       if (!assignment) continue;
-      await this.saveSourceItem(
+      await healthSyncStore.saveSourceItem(
         client,
         userId,
         snapshot.source,
@@ -923,7 +1017,7 @@ export class HealthSyncService {
     }
 
     for (const rowId of retainedSharedOwnedRowIds) {
-      await this.promoteTargetOwnerIfMissing(
+      await healthSyncStore.promoteTargetOwnerIfMissing(
         client,
         userId,
         "user_sleep",
@@ -946,7 +1040,7 @@ export class HealthSyncService {
       warnings: Set<string>;
     },
   ) {
-    const sourceRows = await this.getSourceItemsForDeletion(
+    const sourceRows = await healthSyncStore.getSourceItemsForDeletion(
       client,
       userId,
       provider,
@@ -981,13 +1075,13 @@ export class HealthSyncService {
       ).values(),
     );
 
-    await this.deleteSourceItemsByIds(
+    await healthSyncStore.deleteSourceItemsByIds(
       client,
       sourceRows.map((row) => row.id),
     );
 
     for (const target of ownedTargets) {
-      const stillReferenced = await this.hasAnySourceItemForTarget(
+      const stillReferenced = await healthSyncStore.hasAnySourceItemForTarget(
         client,
         userId,
         target.tableName,
@@ -995,7 +1089,7 @@ export class HealthSyncService {
       );
 
       if (stillReferenced) {
-        await this.promoteTargetOwnerIfMissing(
+        await healthSyncStore.promoteTargetOwnerIfMissing(
           client,
           userId,
           target.tableName,
@@ -1004,7 +1098,7 @@ export class HealthSyncService {
         continue;
       }
 
-      await this.deleteTargetRow(
+      await healthSyncStore.deleteTargetRow(
         client,
         userId,
         target.tableName,
@@ -1041,7 +1135,7 @@ export class HealthSyncService {
       warnings: Set<string>;
     },
   ) {
-    const sourceRows = await this.getSourceItemsForProvider(
+    const sourceRows = await healthSyncStore.getSourceItemsForProvider(
       client,
       userId,
       provider,
@@ -1051,6 +1145,58 @@ export class HealthSyncService {
       return;
     }
 
+    await this.removeSourceItemsAndOwnedTargets(
+      client,
+      userId,
+      sourceRows,
+      stats,
+    );
+  }
+
+  private async pruneProviderDataUpdatedBefore(
+    client: PoolClient,
+    userId: string,
+    provider: HealthSyncProvider,
+    updatedBefore: string | Date,
+    stats: {
+      inserted: number;
+      updated: number;
+      matchedExisting: number;
+      skipped: number;
+      warnings: Set<string>;
+    },
+  ) {
+    const sourceRows = await healthSyncStore.getSourceItemsForProviderUpdatedBefore(
+      client,
+      userId,
+      provider,
+      updatedBefore,
+    );
+
+    if (sourceRows.length === 0) {
+      return;
+    }
+
+    await this.removeSourceItemsAndOwnedTargets(
+      client,
+      userId,
+      sourceRows,
+      stats,
+    );
+  }
+
+  private async removeSourceItemsAndOwnedTargets(
+    client: PoolClient,
+    userId: string,
+    sourceRows: HealthSyncSourceItemRow[],
+    stats: {
+      inserted: number;
+      updated: number;
+      matchedExisting: number;
+      skipped: number;
+      warnings: Set<string>;
+    },
+  ) {
     const ownedTargets = Array.from(
       new Map(
         sourceRows
@@ -1073,13 +1219,13 @@ export class HealthSyncService {
       ).values(),
     );
 
-    await this.deleteSourceItemsByIds(
+    await healthSyncStore.deleteSourceItemsByIds(
       client,
       sourceRows.map((row) => row.id),
     );
 
     for (const target of ownedTargets) {
-      const stillReferenced = await this.hasAnySourceItemForTarget(
+      const stillReferenced = await healthSyncStore.hasAnySourceItemForTarget(
         client,
         userId,
         target.tableName,
@@ -1087,7 +1233,7 @@ export class HealthSyncService {
       );
 
       if (stillReferenced) {
-        await this.promoteTargetOwnerIfMissing(
+        await healthSyncStore.promoteTargetOwnerIfMissing(
           client,
           userId,
           target.tableName,
@@ -1096,7 +1242,7 @@ export class HealthSyncService {
         continue;
       }
 
-      await this.deleteTargetRow(
+      await healthSyncStore.deleteTargetRow(
         client,
         userId,
         target.tableName,
@@ -1122,7 +1268,7 @@ export class HealthSyncService {
     rangeEnd.setMinutes(rangeEnd.getMinutes() + 30);
 
     while (true) {
-      const sourceRows = await this.getAppleSleepSourceRowsInRange(
+      const sourceRows = await healthSyncStore.getAppleSleepSourceRowsInRange(
         client,
         userId,
         rangeStart.toISOString(),
@@ -1167,219 +1313,6 @@ export class HealthSyncService {
     }
   }
 
-  private async getSourceItemsForDeletion(
-    client: PoolClient,
-    userId: string,
-    provider: HealthSyncProvider,
-    sourceItemId: string,
-    sourceType?: HealthSyncSourceType,
-  ) {
-    if (provider === "health-connect") {
-      const params: unknown[] = [
-        userId,
-        provider,
-        sourceItemId,
-        `${sourceItemId}:%`,
-      ];
-      const typeClause = sourceType
-        ? ` AND source_type = $5`
-        : "";
-
-      const query = `
-        SELECT *
-        FROM user_health_sync_source_item
-        WHERE user_id = $1
-          AND provider = $2
-          AND (
-            source_item_id = $3
-            OR (source_type = 'heart_rate' AND source_item_id LIKE $4)
-          )
-          ${typeClause}
-      `;
-
-      if (sourceType) {
-        params.push(sourceType);
-      }
-
-      const result = await client.query<HealthSyncSourceItemRow>(
-        query,
-        params,
-      );
-      return result.rows;
-    }
-
-    const params: unknown[] = [userId, provider, sourceItemId];
-    const typeClause = sourceType ? ` AND source_type = $4` : "";
-
-    const query = `
-      SELECT *
-      FROM user_health_sync_source_item
-      WHERE user_id = $1
-        AND provider = $2
-        AND source_item_id = $3
-        ${typeClause}
-    `;
-
-    if (sourceType) {
-      params.push(sourceType);
-    }
-
-    const result = await client.query<HealthSyncSourceItemRow>(query, params);
-    return result.rows;
-  }
-
-  private async getSourceItemsForProvider(
-    client: PoolClient,
-    userId: string,
-    provider: HealthSyncProvider,
-  ) {
-    const result = await client.query<HealthSyncSourceItemRow>(
-      `
-        SELECT *
-        FROM user_health_sync_source_item
-        WHERE user_id = $1
-          AND provider = $2
-      `,
-      [userId, provider],
-    );
-    return result.rows;
-  }
-
-  private async deleteSourceItemsByIds(client: PoolClient, ids: string[]) {
-    if (ids.length === 0) return;
-
-    await client.query(
-      `
-        DELETE FROM user_health_sync_source_item
-        WHERE id = ANY($1::uuid[])
-      `,
-      [ids],
-    );
-  }
-
-  private async hasAnySourceItemForTarget(
-    client: PoolClient,
-    userId: string,
-    tableName: TargetTableName,
-    targetRowId: string,
-  ) {
-    const result = await client.query(
-      `
-        SELECT 1
-        FROM user_health_sync_source_item
-        WHERE user_id = $1
-          AND target_table = $2
-          AND target_row_id = $3
-        LIMIT 1
-      `,
-      [userId, tableName, targetRowId],
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  private async hasOtherSourceItemsForTarget(
-    client: PoolClient,
-    userId: string,
-    tableName: TargetTableName,
-    targetRowId: string,
-    excludedSourceItemRowId: string,
-  ) {
-    const result = await client.query(
-      `
-        SELECT 1
-        FROM user_health_sync_source_item
-        WHERE user_id = $1
-          AND target_table = $2
-          AND target_row_id = $3
-          AND id <> $4
-        LIMIT 1
-      `,
-      [userId, tableName, targetRowId, excludedSourceItemRowId],
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  private async hasSourceItemForTargetExcludingProvider(
-    client: PoolClient,
-    userId: string,
-    tableName: TargetTableName,
-    targetRowId: string,
-    provider: HealthSyncProvider,
-  ) {
-    const result = await client.query(
-      `
-        SELECT 1
-        FROM user_health_sync_source_item
-        WHERE user_id = $1
-          AND target_table = $2
-          AND target_row_id = $3
-          AND provider <> $4
-        LIMIT 1
-      `,
-      [userId, tableName, targetRowId, provider],
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  private async promoteTargetOwnerIfMissing(
-    client: PoolClient,
-    userId: string,
-    tableName: TargetTableName,
-    targetRowId: string,
-  ) {
-    const existingOwner = await client.query(
-      `
-        SELECT 1
-        FROM user_health_sync_source_item
-        WHERE user_id = $1
-          AND target_table = $2
-          AND target_row_id = $3
-          AND owns_target = TRUE
-        LIMIT 1
-      `,
-      [userId, tableName, targetRowId],
-    );
-
-    if ((existingOwner.rowCount ?? 0) > 0) {
-      return;
-    }
-
-    await client.query(
-      `
-        WITH candidate AS (
-          SELECT id
-          FROM user_health_sync_source_item
-          WHERE user_id = $1
-            AND target_table = $2
-            AND target_row_id = $3
-          ORDER BY created_at ASC, id ASC
-          LIMIT 1
-        )
-        UPDATE user_health_sync_source_item
-        SET owns_target = TRUE,
-            updated_at = NOW()
-        WHERE id = (SELECT id FROM candidate)
-      `,
-      [userId, tableName, targetRowId],
-    );
-  }
-
-  private async deleteTargetRow(
-    client: PoolClient,
-    userId: string,
-    tableName: TargetTableName,
-    targetRowId: string,
-  ) {
-    await client.query(
-      `
-        DELETE FROM ${tableName}
-        WHERE user_id = $1
-          AND id = $2
-      `,
-      [userId, targetRowId],
-    );
-  }
-
   private async syncOneToOneMeasurement<T>(args: {
     client: PoolClient;
     userId: string;
@@ -1392,12 +1325,13 @@ export class HealthSyncService {
       skipped: number;
       warnings: Set<string>;
     };
+    touchExistingOnChecksumMatch?: boolean;
     targetExists: (targetRowId: string) => Promise<boolean>;
     updateExisting: (targetRowId: string) => Promise<string | null>;
     matchExisting: () => Promise<string | null>;
     insertNew: () => Promise<string>;
   }) {
-    const existingSourceItem = await this.getSourceItem(
+    const existingSourceItem = await healthSyncStore.getSourceItem(
       args.client,
       args.userId,
       args.source.provider,
@@ -1417,6 +1351,16 @@ export class HealthSyncService {
         (await args.targetExists(existingSourceItem.target_row_id));
 
       if (hasValidTarget) {
+        if (args.touchExistingOnChecksumMatch) {
+          await healthSyncStore.saveSourceItem(
+            args.client,
+            args.userId,
+            args.source,
+            args.tableName,
+            existingSourceItem.target_row_id,
+            existingSourceItem.owns_target,
+          );
+        }
         args.stats.skipped += 1;
         return;
       }
@@ -1424,7 +1368,7 @@ export class HealthSyncService {
 
     if (existingSourceItem?.target_row_id) {
       if (existingSourceItem.owns_target) {
-        const hasSharedTarget = await this.hasOtherSourceItemsForTarget(
+        const hasSharedTarget = await healthSyncStore.hasOtherSourceItemsForTarget(
           args.client,
           args.userId,
           args.tableName,
@@ -1437,7 +1381,7 @@ export class HealthSyncService {
             existingSourceItem.target_row_id,
           );
           if (updatedTargetRowId) {
-            await this.saveSourceItem(
+            await healthSyncStore.saveSourceItem(
               args.client,
               args.userId,
               args.source,
@@ -1458,7 +1402,7 @@ export class HealthSyncService {
         existingSourceItem?.owns_target === true &&
         existingSourceItem.target_row_id === matchedExistingRowId;
 
-      await this.saveSourceItem(
+      await healthSyncStore.saveSourceItem(
         args.client,
         args.userId,
         args.source,
@@ -1472,7 +1416,7 @@ export class HealthSyncService {
         existingSourceItem.target_row_id &&
         existingSourceItem.target_row_id !== matchedExistingRowId
       ) {
-        await this.promoteTargetOwnerIfMissing(
+        await healthSyncStore.promoteTargetOwnerIfMissing(
           args.client,
           args.userId,
           args.tableName,
@@ -1485,7 +1429,7 @@ export class HealthSyncService {
     }
 
     const insertedRowId = await args.insertNew();
-    await this.saveSourceItem(
+    await healthSyncStore.saveSourceItem(
       args.client,
       args.userId,
       args.source,
@@ -1499,7 +1443,7 @@ export class HealthSyncService {
       existingSourceItem.target_row_id &&
       existingSourceItem.target_row_id !== insertedRowId
     ) {
-      await this.promoteTargetOwnerIfMissing(
+      await healthSyncStore.promoteTargetOwnerIfMissing(
         args.client,
         args.userId,
         args.tableName,
@@ -1510,76 +1454,20 @@ export class HealthSyncService {
     args.stats.inserted += 1;
   }
 
-  private async lockProvider(
-    client: PoolClient,
-    userId: string,
-    provider: HealthSyncProvider,
-  ) {
-    await client.query(
-      "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",
-      [`${userId}:${provider}`],
-    );
-  }
-
-  private async getSyncStateForClient(
-    client: PoolClient,
-    userId: string,
-    provider: HealthSyncProvider,
-  ): Promise<HealthSyncStatus> {
-    const query = `
-      SELECT user_id, provider, sync_state, last_success_at, created_at, updated_at
-      FROM user_health_sync_state
-      WHERE user_id = $1
-        AND provider = $2
-    `;
-    const result = await client.query<HealthSyncStateRow>(query, [userId, provider]);
-    const row = result.rows[0];
-
-    return {
-      provider,
-      syncState: (row?.sync_state as HealthSyncState | null | undefined) ?? null,
-      lastSuccessAt:
-        row?.last_success_at instanceof Date
-          ? row.last_success_at.toISOString()
-          : row?.last_success_at ?? null,
-    };
-  }
-
-  private async saveSyncState(
-    client: PoolClient,
-    userId: string,
-    provider: HealthSyncProvider,
-    nextSyncState: HealthSyncState | null,
-  ) {
-    const query = `
-      INSERT INTO user_health_sync_state (
-        user_id,
-        provider,
-        sync_state,
-        last_success_at,
-        updated_at
-      )
-      VALUES ($1, $2, $3::jsonb, NOW(), NOW())
-      ON CONFLICT (user_id, provider)
-      DO UPDATE SET
-        sync_state = EXCLUDED.sync_state,
-        last_success_at = EXCLUDED.last_success_at,
-        updated_at = NOW()
-    `;
-
-    await client.query(query, [userId, provider, JSON.stringify(nextSyncState)]);
-  }
-
   private async assertPendingRunCanProceed(
     client: PoolClient,
     userId: string,
     input: HealthSyncBatchRequest,
   ) {
     if (input.batchIndex === 0) {
-      return;
+      return null;
     }
 
-    const pendingRun = await this.getPendingRun(client, userId, input.provider);
+    const pendingRun = await healthSyncStore.getPendingRun(
+      client,
+      userId,
+      input.provider,
+    );
 
     if (!pendingRun) {
       throw new HealthSyncConflictError(
@@ -1587,13 +1475,16 @@ export class HealthSyncService {
       );
     }
 
-    if (pendingRun.sync_run_id !== input.syncRunId) {
+    if (healthSyncStore.getPendingRunSyncRunId(pendingRun) !== input.syncRunId) {
       throw new HealthSyncConflictError(
         "Health sync batch belongs to a different run. Restart the sync run.",
       );
     }
 
-    if (pendingRun.expected_batch_index !== input.batchIndex) {
+    if (
+      healthSyncStore.getPendingRunExpectedBatchIndex(pendingRun) !==
+      input.batchIndex
+    ) {
       throw new HealthSyncConflictError(
         "Health sync batch arrived out of order. Restart the sync run.",
       );
@@ -1616,267 +1507,8 @@ export class HealthSyncService {
         "Health sync run payload changed mid-run. Restart the sync run.",
       );
     }
-  }
 
-  private async getPendingRun(
-    client: PoolClient,
-    userId: string,
-    provider: HealthSyncProvider,
-  ) {
-    const query = `
-      SELECT *
-      FROM user_health_sync_pending_run
-      WHERE user_id = $1
-        AND provider = $2
-    `;
-    const result = await client.query<HealthSyncPendingRunRow>(query, [
-      userId,
-      provider,
-    ]);
-    return result.rows[0] ?? null;
-  }
-
-  private async savePendingRun(
-    client: PoolClient,
-    userId: string,
-    input: HealthSyncBatchRequest,
-  ) {
-    const query = `
-      INSERT INTO user_health_sync_pending_run (
-        user_id,
-        provider,
-        sync_run_id,
-        expected_batch_index,
-        current_sync_state,
-        next_sync_state,
-        updated_at
-      )
-      VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, NOW())
-      ON CONFLICT (user_id, provider)
-      DO UPDATE SET
-        sync_run_id = EXCLUDED.sync_run_id,
-        expected_batch_index = EXCLUDED.expected_batch_index,
-        current_sync_state = EXCLUDED.current_sync_state,
-        next_sync_state = EXCLUDED.next_sync_state,
-        updated_at = NOW()
-    `;
-
-    await client.query(query, [
-      userId,
-      input.provider,
-      input.syncRunId,
-      input.batchIndex + 1,
-      JSON.stringify(input.currentSyncState),
-      JSON.stringify(input.nextSyncState),
-    ]);
-  }
-
-  private async clearPendingRun(
-    client: PoolClient,
-    userId: string,
-    provider: HealthSyncProvider,
-  ) {
-    const query = `
-      DELETE FROM user_health_sync_pending_run
-      WHERE user_id = $1
-        AND provider = $2
-    `;
-
-    await client.query(query, [userId, provider]);
-  }
-
-  private async getSourceItem(
-    client: PoolClient,
-    userId: string,
-    provider: HealthSyncProvider,
-    sourceType: HealthSyncSourceType,
-    sourceItemId: string,
-  ) {
-    const query = `
-      SELECT *
-      FROM user_health_sync_source_item
-      WHERE user_id = $1
-        AND provider = $2
-        AND source_type = $3
-        AND source_item_id = $4
-    `;
-    const result = await client.query<HealthSyncSourceItemRow>(query, [
-      userId,
-      provider,
-      sourceType,
-      sourceItemId,
-    ]);
-    return result.rows[0] ?? null;
-  }
-
-  private async saveSourceItem(
-    client: PoolClient,
-    userId: string,
-    source: SyncSourceDescriptor,
-    targetTable: TargetTableName,
-    targetRowId: string | null,
-    ownsTarget: boolean,
-  ) {
-    const query = `
-      INSERT INTO user_health_sync_source_item (
-        user_id,
-        provider,
-        source_type,
-        source_item_id,
-        target_table,
-        target_row_id,
-        raw_payload,
-        checksum,
-        source_start_at,
-        source_end_at,
-        source_last_modified_at,
-        owns_target,
-        updated_at
-      )
-      VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7::jsonb,
-        $8,
-        $9,
-        $10,
-        $11,
-        $12,
-        NOW()
-      )
-      ON CONFLICT (user_id, provider, source_type, source_item_id)
-      DO UPDATE SET
-        target_table = EXCLUDED.target_table,
-        target_row_id = EXCLUDED.target_row_id,
-        raw_payload = EXCLUDED.raw_payload,
-        checksum = EXCLUDED.checksum,
-        source_start_at = EXCLUDED.source_start_at,
-        source_end_at = EXCLUDED.source_end_at,
-        source_last_modified_at = EXCLUDED.source_last_modified_at,
-        owns_target = EXCLUDED.owns_target,
-        updated_at = NOW()
-    `;
-
-    await client.query(query, [
-      userId,
-      source.provider,
-      source.sourceType,
-      source.sourceItemId,
-      targetTable,
-      targetRowId,
-      JSON.stringify(source.rawPayload),
-      source.checksum,
-      source.sourceStartAt,
-      source.sourceEndAt,
-      source.sourceLastModifiedAt,
-      ownsTarget,
-    ]);
-  }
-
-  private async targetRowExists(
-    client: PoolClient,
-    userId: string,
-    tableName: TargetTableName,
-    targetRowId: string,
-  ) {
-    const query = `
-      SELECT 1
-      FROM ${tableName}
-      WHERE user_id = $1
-        AND id = $2
-    `;
-    const result = await client.query(query, [userId, targetRowId]);
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  private async getAppleSleepSourceRowsInRange(
-    client: PoolClient,
-    userId: string,
-    rangeStart: string,
-    rangeEnd: string,
-  ) {
-    const query = `
-      SELECT *
-      FROM user_health_sync_source_item
-      WHERE user_id = $1
-        AND provider = 'apple-health'
-        AND source_type = 'sleep'
-        AND source_end_at >= $2
-        AND source_start_at <= $3
-      ORDER BY source_start_at ASC
-    `;
-    const result = await client.query<HealthSyncSourceItemRow>(query, [
-      userId,
-      rangeStart,
-      rangeEnd,
-    ]);
-    return result.rows;
-  }
-
-  private async getSleepRowsByIds(
-    client: PoolClient,
-    userId: string,
-    ids: string[],
-  ) {
-    if (ids.length === 0) return [];
-
-    const query = `
-      SELECT id, sleep_start::text AS sleep_start, sleep_end::text AS sleep_end
-      FROM user_sleep
-      WHERE user_id = $1
-        AND id = ANY($2::uuid[])
-    `;
-    const result = await client.query<{
-      id: string;
-      sleep_start: string;
-      sleep_end: string;
-    }>(query, [userId, ids]);
-    return result.rows;
-  }
-
-  private async findMatchingSleepRow(
-    client: PoolClient,
-    userId: string,
-    sleepStart: string,
-    sleepEnd: string,
-  ) {
-    const query = `
-      SELECT id
-      FROM user_sleep
-      WHERE user_id = $1
-        AND sleep_start = $2
-        AND sleep_end = $3
-      LIMIT 1
-    `;
-    const result = await client.query<{ id: string }>(query, [
-      userId,
-      sleepStart,
-      sleepEnd,
-    ]);
-    return result.rows[0]?.id ?? null;
-  }
-
-  private async insertSleepRow(
-    client: PoolClient,
-    userId: string,
-    sleepStart: string,
-    sleepEnd: string,
-  ) {
-    const query = `
-      INSERT INTO user_sleep (user_id, sleep_start, sleep_end, note)
-      VALUES ($1, $2, $3, NULL)
-      RETURNING id
-    `;
-    const result = await client.query<{ id: string }>(query, [
-      userId,
-      sleepStart,
-      sleepEnd,
-    ]);
-    return result.rows[0].id;
+    return pendingRun;
   }
 }
 

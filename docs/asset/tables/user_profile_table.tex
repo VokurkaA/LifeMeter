@@ -1,20 +1,20 @@
 % ==========================================
 % Tabulka: user_profile
 % ==========================================
-\begin{table}[ht!] 
-\centering
-\begin{tabularx}{\textwidth}{|l|l|L|}
-\hline
-\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
-user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
-date\_of\_birth & DATE & Datum narození uživatele \\ \hline
-sex & CHARACTER(1) & Pohlaví uživatele (M/F) \\ \hline
-current\_activity\_factor & NUMERIC & Aktuálně nastavený koeficient aktivity \\ \hline
-current\_bmr\_calories & INTEGER & Aktuální hodnota bazálního metabolismu v kaloriích \\ \hline
-default\_weight\_unit\_id & INTEGER & Preferovaná jednotka hmotnosti \\ \hline
-default\_length\_unit\_id & INTEGER & Preferovaná jednotka délky \\ \hline
-finished\_onboarding & BOOLEAN & Příznak dokončení úvodního nastavení (onboarding) \\ \hline
-\end{tabularx}
-\caption{Tabulka \texttt{user\_profile}}
-\label{tab:user_profile}
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec}          & \textbf{Datový typ} & \textbf{Popis}                                     \\ \hline
+        user\_id                  & TEXT                & Unikátní identifikátor uživatele                   \\ \hline
+        date\_of\_birth           & DATE                & Datum narození uživatele                           \\ \hline
+        sex                       & CHARACTER(1)        & Pohlaví uživatele (M/F)                            \\ \hline
+        current\_activity\_factor & NUMERIC             & Aktuálně nastavený koeficient aktivity             \\ \hline
+        current\_bmr\_calories    & INTEGER             & Aktuální hodnota bazálního metabolismu v kaloriích \\ \hline
+        default\_weight\_unit\_id & INTEGER             & Preferovaná jednotka hmotnosti                     \\ \hline
+        default\_length\_unit\_id & INTEGER             & Preferovaná jednotka délky                         \\ \hline
+        finished\_onboarding      & BOOLEAN             & Příznak dokončení úvodního nastavení (onboarding)  \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{user\_profile}}
+    \label{tab:user_profile}
 \end{table}

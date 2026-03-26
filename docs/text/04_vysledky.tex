@@ -10,9 +10,11 @@
 \addcontentsline{toc}{chapter}{Výsledky}
 
 Výsledkem projektu je funkční mobilní aplikace LifeMeter
-dostupná na operačních systémech Android (verze 10 a vyšší), 
-doplněná o~serverový backend nasazený na adrese
-\texttt{lifemeter.fit}.
+dostupná na operačních systémech Android (verze 10 a vyšší),
+doplněná o~serverový backend a~webovou vrstvu nasazené na doméně
+\texttt{lifemeter.fit}. Webová část poskytuje veřejnou prezentaci,
+verzované centrum stahování mobilních buildů a~administrátorskou
+konzoli pouze pro čtení.
 
 % ------------------------------------------------------------------
 \section{Splnění požadavků zadání}
@@ -108,6 +110,13 @@ profilu a~cílů, konfiguraci oznámení, přepínač offline režimu,
 propojení s~platformou zdravotních dat a~přepínač světlého
 a~tmavého motivu.
 
+Mimo samotnou mobilní aplikaci byla implementována také \textbf{veřejná
+webová vrstva}, která prezentuje produkt, zpřístupňuje aktuální i~
+archivní mobilní buildy a~sjednocuje distribuční odkazy. Na stejné
+doméně běží rovněž \textbf{administrátorská konzole pouze pro čtení},
+určená pro kontrolu systémového přehledu, logů a~detailů uživatelských
+účtů.
+
 % ------------------------------------------------------------------
 \section{Technické parametry}
 % ------------------------------------------------------------------
@@ -127,11 +136,15 @@ a~tmavého motivu.
       & 10 (4 hlavní záložky, onboarding, aktivní trénink,
         sestavení šablony, seznam spánku, přihlášení, registrace) \\
     \hline
+    Počet webových rout
+      & 8 (landing page, download centrum, admin login,
+        forbidden, dashboard, logy, uživatelé, detail uživatele) \\
+    \hline
     Počet REST API endpointů
-      & 38 \\
+      & 52 explicitně definovaných + \texttt{/api/auth/*} \\
     \hline
     Počet databázových tabulek
-      & 13 \\
+      & 37 dokumentovaných tabulek (33 aplikačních + 4 autentizační Better Auth) \\
     \hline
     Počet potravin v databázi
       & přes 1~000~000 (zdroj USDA FoodData Central, CC0~1.0) \\
@@ -144,10 +157,12 @@ a~tmavého motivu.
     \hline
     Prostředí nasazení
       & Oracle Cloud Infrastructure (ARM),
+        Docker Compose (\texttt{db}, \texttt{api}, \texttt{web}),
         Caddy reverzní proxy, TLS \\
     \hline
     Průběžné nasazení
-      & GitHub Actions (spouštěno při commitu do větve \texttt{main}) \\
+      & GitHub Actions (\texttt{deploy.yml} pro stack,
+        \texttt{app-apk.yml} pro vydání APK) \\
     \hline
     Zdravotní integrace
       & Health Connect (Android), Apple HealthKit (iOS) \\

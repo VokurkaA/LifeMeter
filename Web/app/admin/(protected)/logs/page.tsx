@@ -18,7 +18,7 @@ import {
   getAdminApiErrorMessage,
   getAdminLogs,
   getPublicApiBaseUrl,
-  getSessionFromApi,
+  tryGetSessionFromApi,
 } from "@/lib/api";
 import { formatDate, formatNumber } from "@/lib/format";
 
@@ -41,10 +41,10 @@ export default async function AdminLogsPage({ searchParams }: LogsPageProps) {
   if (params.dateStart) filterQuery.set("dateStart", params.dateStart);
   if (params.dateEnd) filterQuery.set("dateEnd", params.dateEnd);
 
-  const session = await getSessionFromApi();
+  const session = await tryGetSessionFromApi();
 
   if (!session) {
-    return null;
+    redirect("/admin/login");
   }
 
   if (params.page) {

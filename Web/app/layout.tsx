@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "LifeMeter",
   description:

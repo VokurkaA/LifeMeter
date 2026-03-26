@@ -1,6 +1,6 @@
 # LifeMeter Server
 
-Hono + Bun based API server providing authentication (Better Auth) and resources for food metadata, user meals, sleep tracking, workout logging, and user profile/goals.
+Hono + Bun based API server providing authentication (Better Auth) and resources for food metadata, user meals, sleep tracking, workout logging, health sync, user profile/goals, and admin tooling.
 
 ## Tech Stack
 - **Runtime:** Bun
@@ -53,17 +53,20 @@ Better Auth handles session management via email+password. Every incoming reques
 
 **Protected routes** apply `requireAuth()` at the router level:
 - All `/api/food/*` routes
-- All `/api/user/*` routes (including nested sleep, meals, workouts, profile)
+- All `/api/user/*` routes (including nested sleep, meals, workouts, profile, and sync)
 - `/api/logs` (requires `admin` role)
+- `/api/admin/*` (requires `admin` role)
 
 **Public routes** (no session required):
 - `/api/auth/*` — proxied directly to the better-auth handler
 - `/api/workout/*` — reference data (exercises, weight options, set styles/types)
-- `GET /api/` and `GET /api/routes`
+- `GET /api/` — health check
+- `GET /api/doc` — OpenAPI document
+- `GET /api/ui` — Swagger UI
 
 **Response codes:**
 - Unauthenticated: `401 { "error": "Unauthorized" }`
-- Authenticated but insufficient role: `403 { "error": "Forbidden" }` (enforced by `requireAdmin()` middleware — checks `user.role` includes `"admin"`)
+- Authenticated but insufficient role: `403 { "error": "Forbidden" }` (enforced by `requireAdmin()` middleware on `/api/logs` and `/api/admin/*`)
 
 ## Pagination
 Some list endpoints support pagination via `?page=` query. The page size is fixed at **100** records (`pagination.config.ts`). Response includes a `pagination` object: `{ page, prevPage, nextPage, totalPages, totalRecords }`.
@@ -81,7 +84,8 @@ Base path: `/api`
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/` | no | Health status |
-| GET | `/api/routes` | no | Lists structured endpoint map |
+| GET | `/api/doc` | no | OpenAPI JSON document |
+| GET | `/api/ui` | no | Swagger UI for the API |
 
 ### Auth (Better Auth passthrough)
 | Method | Path | Auth | Description |
@@ -161,11 +165,30 @@ Base path: `/api`
 | GET | `/api/user/data/log/weight/latest` | yes | Get latest weight log |
 | POST | `/api/user/data/log/height` | yes | Log a height measurement |
 
+### User Health Sync
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/user/sync?provider=health-connect` | yes | Get committed Health Connect sync state |
+| GET | `/api/user/sync?provider=apple-health` | yes | Get committed Apple Health sync state |
+| POST | `/api/user/sync` | yes | Upload one health sync batch and normalize it into user data |
+
 ### Logs (Admin Only)
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/logs` | admin | Paginated list of system logs (supports filters) |
 | WS | `/api/logs` | admin | Real-time log stream via WebSocket |
+
+### Admin (Admin Only)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/admin/overview` | admin | Top-level admin metrics |
+| GET | `/api/admin/users` | admin | Paginated user list with optional search |
+| GET | `/api/admin/users/:id` | admin | Single user summary |
+| GET | `/api/admin/users/:id/profile` | admin | User profile and goals bundle |
+| GET | `/api/admin/users/:id/meals` | admin | Recent user meals |
+| GET | `/api/admin/users/:id/sleep` | admin | Recent user sleep entries |
+| GET | `/api/admin/users/:id/workouts` | admin | Recent user workouts |
+| GET | `/api/admin/users/:id/workout-templates` | admin | Recent user workout templates |
 
 ## Data Shapes
 
@@ -321,5 +344,5 @@ Zod schemas in the `schemas/` directory enforce payload structure:
 - `schemas/user.food.schema.ts` — meal creation and updates
 - `schemas/user.workout.schema.ts` — workout and template creation/updates
 - `schemas/user.profile.schema.ts` — profile, goals, and measurement logs
-
-pull test
+- `schemas/user.sync.schema.ts` — health sync state and batch payloads
+- `schemas/admin.schema.ts` — admin overview, users, and nested admin resources

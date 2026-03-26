@@ -5,8 +5,8 @@ import { useSleepStore } from '@/contexts/useSleepStore';
 import { useUserStore } from '@/contexts/useUserStore';
 import { hasHealthSyncPermissions } from '@/lib/health';
 import {
-  getHealthSyncEnabledStorageKey,
   getHealthSyncStatusStorageKey,
+  useHealthSyncEnabled,
 } from '@/lib/healthSyncStorage';
 import { useStorage } from '@/lib/storage';
 import { healthSyncService } from '@/services/health.sync.service';
@@ -29,9 +29,7 @@ export default function AutoHealthSync() {
   const { refreshSleepSessions } = useSleepStore();
   const isOffline = useIsOffline();
 
-  const [enableSync] = useStorage.boolean(
-    getHealthSyncEnabledStorageKey(user?.id ?? null),
-  );
+  const [enableSync] = useHealthSyncEnabled(user?.id ?? null);
   const [, setStoredSyncStatus] =
     useStorage.object<StoredSyncStatus>(
       getHealthSyncStatusStorageKey(user?.id ?? null),

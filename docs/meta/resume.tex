@@ -1,21 +1,25 @@
 \section*{Resumé}
-Tato práce představuje aplikaci \enquote{\docTitle}, určenou pro sledování a analýzu životních metrik uživatele za účelem osobního rozvoje a zlepšení zdraví. Aplikace umožňuje uživatelům centralizované zaznamenávání a monitorování stravy, kvality spánku a fyzické aktivity.
+Tato práce představuje aplikaci \enquote{\docTitle}, určenou pro sledování a analýzu životních metrik uživatele za účelem osobního rozvoje a zlepšení zdraví. Aplikace umožňuje uživatelům centralizované zaznamenávání a monitorování stravy, kvality spánku a fyzické aktivity. Součástí výsledného systému je vedle mobilního klienta také doprovodná webová vrstva sloužící jako veřejná prezentace, centrum verzovaného stahování mobilních buildů a administrátorská konzole pouze pro čtení.
 
-Backendová část systému je postavena na technologiích Bun, Hono a relační databázi PostgreSQL. Pro komunikaci mezi mobilní aplikací a serverem je implementováno REST API, které zajišťuje autentizaci, synchronizaci dat a správu uživatelských profilů.
+Backendová část systému je postavena na technologiích Bun, Hono a relační databázi PostgreSQL. Pro komunikaci mezi klientskými aplikacemi a serverem je implementováno REST API, které zajišťuje autentizaci, synchronizaci zdravotních dat, správu uživatelských profilů a administrativní přehled nad systémem.
 
 Mobilní klientská aplikace je vyvinuta pomocí technologií React Native a Expo. Zvolený přístup zaručuje kompatibilitu a zároveň umožňuje přístup k nativním rozhraním pro synchronizaci zdravotních dat, konkrétně HealthKit pro operační systém iOS a Health Connect pro platformu Android.
 
+Webová část je implementována pomocí frameworku Next.js a knihovny React. Veřejné stránky poskytují informace o produktu a verzované stažení aktuálních i archivních buildů, zatímco administrátorské routy zpřístupňují přehled uživatelů a logů nad produkčním prostředím.
+
 \bigskip
 \noindent\textbf{Klíčová slova:}
-\textit{mobilní aplikace, zdravotní metriky, React Native, Expo, REST API, Bun, Hono, PostgreSQL}
+\textit{mobilní aplikace, zdravotní metriky, React Native, Expo, Next.js, REST API, Bun, Hono, PostgreSQL}
 
 \section*{Summary}
-This thesis presents the \enquote{\docTitle} application, designed for tracking and analyzing a user's lifestyle metrics to support personal development and health improvement. The application allows users to centrally log and monitor their diet, sleep quality, and physical activity.
+This thesis presents the \enquote{\docTitle} application, designed for tracking and analyzing a user's lifestyle metrics to support personal development and health improvement. The application allows users to centrally log and monitor their diet, sleep quality, and physical activity. In addition to the mobile client, the resulting system also includes a companion web layer that serves as a public presentation site, a versioned mobile download center, and a read-only administration console.
 
-The backend of the system is built on Bun, Hono, and a PostgreSQL relational database. A REST API is implemented for communication between the mobile application and the server, providing authentication, data synchronization, and user profile management.
+The backend of the system is built on Bun, Hono, and a PostgreSQL relational database. A REST API is implemented for communication between the clients and the server, providing authentication, health data synchronization, user profile management, and operational administration features.
 
 The mobile client application is developed using React Native and Expo. The chosen approach ensures cross-platform compatibility while enabling access to native APIs for health data synchronization, specifically HealthKit for the iOS operating system and Health Connect for Android.
 
+The web layer is implemented with Next.js and React. Public routes present the product and expose versioned current and archived builds, while the administration routes provide a production overview of users and logs.
+
 \bigskip
 \noindent\textbf{Keywords:}
-\textit{mobile application, health metrics, React Native, Expo, REST API, Bun, Hono, PostgreSQL}
+\textit{mobile application, health metrics, React Native, Expo, Next.js, REST API, Bun, Hono, PostgreSQL}

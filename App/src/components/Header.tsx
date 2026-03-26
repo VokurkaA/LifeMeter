@@ -10,8 +10,8 @@ import { formatTime, timeToDate } from "@/lib/dateTime";
 import RnDateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNotifications } from '@/lib/notifications';
 import {
-    getHealthSyncEnabledStorageKey,
     getHealthSyncStatusStorageKey,
+    useHealthSyncEnabled,
 } from '@/lib/healthSyncStorage';
 import { useStorage } from '@/lib/storage';
 import { UserGoal } from '@/types/user.profile.types';
@@ -122,9 +122,7 @@ const ConnectionsSettings = ({
     refreshProfile: () => Promise<void>;
     refreshSleepSessions: () => Promise<void>;
 }) => {
-    const [enableSync, setEnableSync] = useStorage.boolean(
-        getHealthSyncEnabledStorageKey(userId),
-    );
+    const [enableSync, setEnableSync] = useHealthSyncEnabled(userId);
     const [storedSyncStatus, setStoredSyncStatus] = useStorage.object<StoredSyncStatus>(
         getHealthSyncStatusStorageKey(userId),
     );

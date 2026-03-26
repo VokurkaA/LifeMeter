@@ -1,1 +1,114 @@
 \section{Instalační návod}
+
+\subsection{Požadavky}
+
+Pro lokální spuštění projektu jsou potřeba následující nástroje:
+
+\begin{itemize}
+  \item Docker a~Docker Compose pro spuštění celé serverové a~webové vrstvy.
+  \item Node.js 20 a~npm pro vývoj webové a~mobilní části.
+  \item Bun pro přímé spuštění API serveru bez Dockeru.
+  \item JDK~17 a~Android Studio (resp.\ Xcode na macOS) pro lokální sestavení mobilní aplikace.
+\end{itemize}
+
+\subsection{Spuštění celé webové a~serverové vrstvy přes Docker Compose}
+
+Nejrychlejší lokální varianta je spuštění databáze, API serveru a~webového
+frontendu společně pomocí Docker Compose.
+
+\begin{enumerate}
+  \item Vytvořte soubor \texttt{Server/.env} s~minimálně těmito proměnnými:
+\end{enumerate}
+
+\begin{verbatim}
+PORT=3000
+BETTER_AUTH_SECRET=change-me
+POSTGRES_USER=lifemeter
+POSTGRES_PASSWORD=lifemeter
+POSTGRES_DB=lifemeter
+\end{verbatim}
+
+\begin{enumerate}
+  \setcounter{enumi}{1}
+  \item V~kořenovém adresáři repozitáře spusťte:
+\end{enumerate}
+
+\begin{verbatim}
+docker compose up --build
+\end{verbatim}
+
+\begin{enumerate}
+  \setcounter{enumi}{2}
+  \item Po startu jsou k~dispozici tyto služby:
+    \begin{itemize}
+      \item API server: \texttt{http://localhost:3000/api}
+      \item Webová prezentace a~download centrum: \texttt{http://localhost:3001}
+      \item PostgreSQL: \texttt{localhost:5432}
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Spuštění API serveru bez Dockeru}
+
+\begin{verbatim}
+cd Server
+bun install
+PORT=3000 BETTER_AUTH_SECRET=change-me \
+POSTGRES_USER=lifemeter POSTGRES_PASSWORD=lifemeter POSTGRES_DB=lifemeter \
+bun run dev
+\end{verbatim}
+
+Swagger UI je následně dostupné na adrese \texttt{http://localhost:3000/api/ui}.
+
+\subsection{Spuštění webové vrstvy bez Dockeru}
+
+Při vývoji bez Dockeru je vhodné provozovat API server na portu~3000 a~Next.js
+frontend na portu~3001.
+
+\begin{enumerate}
+  \item Vytvořte soubor \texttt{Web/.env.local} s~následujícím obsahem:
+\end{enumerate}
+
+\begin{verbatim}
+API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3000
+APK_STORAGE_DIR=../releases/apk
+IOS_STORAGE_DIR=../releases/ios
+\end{verbatim}
+
+\begin{enumerate}
+  \setcounter{enumi}{1}
+  \item Spusťte frontend:
+\end{enumerate}
+
+\begin{verbatim}
+cd Web
+npm ci
+npm run dev -- --hostname 127.0.0.1 --port 3001
+\end{verbatim}
+
+\begin{enumerate}
+  \setcounter{enumi}{2}
+  \item Veřejné routy jsou pak dostupné na \texttt{http://localhost:3001/}
+  a~\texttt{http://localhost:3001/downloads}, administrátorská část na
+  \texttt{/admin}.
+\end{enumerate}
+
+\subsection{Spuštění mobilní aplikace}
+
+\begin{verbatim}
+cd App
+npm ci
+npm run android
+\end{verbatim}
+
+Na macOS lze obdobně použít \texttt{npm run ios}. Pro vývoj s~již
+vygenerovaným dev klientem je možné využít také:
+
+\begin{verbatim}
+npm run start
+\end{verbatim}
+
+Publikační workflow \texttt{app-apk.yml} při změně adresáře \texttt{App/}
+automaticky vytváří release APK, nahrává jej na produkční server do
+adresáře \texttt{releases/apk} a~aktualizuje metadata využívaná webovou
+stránkou \texttt{/downloads}.

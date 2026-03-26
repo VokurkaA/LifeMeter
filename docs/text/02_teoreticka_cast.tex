@@ -113,10 +113,22 @@ Nativní vývoj by poskytl maximální přístup k~systémovým API za cenu nutn
 udržovat dvě zcela oddělené kódové základny.
 
 Expo bylo zvoleno jako současný standard React Native vývoje. Managed workflow
-zjednodušuje konfiguraci nativních závislostí, nástroj EAS Build zajišťuje
-automatizované sestavení v~rámci CI/CD pipeline na GitHub Actions a~Expo SDK
-poskytuje stabilní přístup k~nativním modulům -- včetně integrace s~rozhraními
-Health Connect~\cite{healthconnect2024} a~HealthKit~\cite{healthkit2024}.
+zjednodušuje konfiguraci nativních závislostí a~nástroje
+\texttt{expo prebuild} a~\texttt{expo run:*} umožňují generovat nativní
+projekty jak lokálně, tak v~CI/CD pipeline na GitHub Actions. Expo SDK
+navíc poskytuje stabilní přístup k~nativním modulům -- včetně integrace
+s~rozhraními Health Connect~\cite{healthconnect2024} a~HealthKit~\cite{healthkit2024}.
+
+\subsection{Next.js pro webovou vrstvu}
+
+Doplňková webová vrstva systému byla implementována pomocí frameworku
+Next.js nad knihovnou React. Framework byl zvolen kvůli podpoře
+hybridního renderingu: veřejné landing page a~stránka stahování mohou
+být generovány staticky s~pravidelnou revalidací, zatímco administrátorské
+routy zůstávají dynamické a~pracují se stavovou autentizací založenou
+na cookies. Vestavěné route handlery současně umožňují obsluhovat
+stabilní URL pro nejnovější i~archivní mobilní buildy bez potřeby
+samostatné distribuční služby.
 
 \subsection{Bun a Hono}
 
@@ -156,10 +168,10 @@ na serveru, v~souladu s~doporučeními OWASP~\cite{owasp2024mobile}.
 
 \subsection{Docker a Oracle Cloud}
 
-Celý backendový systém je kontejnerizován pomocí nástroje Docker
+Celá serverová a~webová vrstva je kontejnerizována pomocí nástroje Docker
 Compose~\cite{docker2024} a~nasazen na instanci Oracle Cloud Infrastructure.
 Docker Compose umožňuje deklarativní definici vícekomponentního prostředí
-(API server, databáze, reverzní proxy) v~jediném konfiguračním souboru,
+(API server, webový frontend a~databáze) v~jediném konfiguračním souboru,
 čímž zajišťuje reprodukovatelnost nasazení a~jednoduchou správu závislostí
 mezi službami.
 

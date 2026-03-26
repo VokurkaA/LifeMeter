@@ -8,11 +8,6 @@ import {
   TimerReset,
   Waves,
 } from "lucide-react";
-import heroImage from "../../App/src/assets/running_group.webp";
-import workoutImage from "../../App/src/assets/workout.webp";
-import nutritionImage from "../../App/src/assets/food.webp";
-import sleepImage from "../../App/src/assets/sleep.webp";
-import logoImage from "../../App/src/assets/logo.png";
 import {
   Card,
   CardDescription,
@@ -21,8 +16,16 @@ import {
   Link,
   Surface,
 } from "@/components/ui/heroui";
+import { SiteHeader } from "@/components/landing/site-header";
 import { PlatformReleaseCard } from "@/components/releases/platform-release-card";
+import { SiteFooter } from "@/components/landing/site-footer";
 import { formatDateTime } from "@/lib/format";
+import {
+  heroImage,
+  nutritionImage,
+  sleepImage,
+  workoutImage,
+} from "@/lib/marketing-assets";
 import { getPlatformReleaseState } from "@/lib/releases";
 
 const heroSupportCards = [
@@ -146,6 +149,15 @@ const proofItems = [
   },
 ];
 
+const homeFooterLinks = [
+  { href: "#why", label: "Why it works" },
+  { href: "#systems", label: "What is inside" },
+  { href: "#download", label: "Download" },
+  { href: "/admin/login", label: "Admin console" },
+];
+
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "LifeMeter | One daily view for training, meals, sleep, and progress",
   description:
@@ -199,32 +211,7 @@ export default async function HomePage() {
 
   return (
     <div className="landing-shell">
-      <header className="landing-frame relative flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:py-8">
-        <Link className="flex items-center gap-3" href="/">
-          <Image alt="LifeMeter" className="landing-logo h-11 w-11" priority src={logoImage} />
-          <div>
-            <p className="landing-text-strong text-lg font-semibold tracking-[0.08em]">LifeMeter</p>
-            <p className="landing-text-dim text-xs uppercase tracking-[0.3em]">
-              Daily health companion
-            </p>
-          </div>
-        </Link>
-
-        <nav
-          aria-label="Primary"
-          className="landing-text-muted flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-start sm:gap-6"
-        >
-          <Link className="landing-inline-link" href="#why">
-            Why it works
-          </Link>
-          <Link className="landing-inline-link" href="#download">
-            Download
-          </Link>
-          <Link className="landing-inline-link" href="/admin/login">
-            Admin
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader eyebrow="Daily health companion" />
 
       <main className="relative space-y-18 pb-8 pt-8 sm:space-y-24 sm:pb-12 sm:pt-12 md:space-y-28 md:pb-14 md:pt-14 lg:space-y-32 lg:pt-16">
         <section className="landing-frame landing-section">
@@ -653,40 +640,7 @@ export default async function HomePage() {
         </section>
       </main>
 
-      <footer className="landing-divider landing-frame relative mt-16 border-t py-10 md:mt-24 lg:py-14">
-        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Image alt="LifeMeter" className="landing-logo h-10 w-10" src={logoImage} />
-              <div>
-                <p className="landing-text-strong text-base font-semibold tracking-[0.08em]">LifeMeter</p>
-                <p className="landing-text-ghost text-xs uppercase tracking-[0.28em]">
-                  Training, meals, sleep, progress
-                </p>
-              </div>
-            </div>
-            <p className="landing-text-faint max-w-xl text-sm leading-7">
-              A focused mobile health companion for people who want one daily signal instead of a
-              stack of disconnected tools.
-            </p>
-          </div>
-
-          <div className="landing-text-soft flex flex-wrap gap-3 text-sm md:justify-end">
-            <Link className="landing-nav-link" href="#why">
-              Why it works
-            </Link>
-            <Link className="landing-nav-link" href="#systems">
-              What is inside
-            </Link>
-            <Link className="landing-nav-link" href="#download">
-              Download
-            </Link>
-            <Link className="landing-nav-link" href="/admin/login">
-              Admin console
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter links={homeFooterLinks} />
     </div>
   );
 }

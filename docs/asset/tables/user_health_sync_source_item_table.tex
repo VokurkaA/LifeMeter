@@ -1,0 +1,28 @@
+% ==========================================
+% Tabulka: user_health_sync_source_item
+% ==========================================
+\begin{table}[ht!]
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec}           & \textbf{Datový typ}      & \textbf{Popis}                                            \\ \hline
+        id                         & UUID                     & Unikátní identifikátor mapovaného zdrojového záznamu      \\ \hline
+        user\_id                   & TEXT                     & Unikátní identifikátor uživatele                          \\ \hline
+        provider                   & TEXT                     & Identifikátor zdravotního providera synchronizace         \\ \hline
+        source\_type               & TEXT                     & Typ synchronizované entity z externí platformy            \\ \hline
+        source\_item\_id           & TEXT                     & Identifikátor zdrojového záznamu u providera              \\ \hline
+        target\_table              & TEXT                     & Název cílové aplikační tabulky                            \\ \hline
+        target\_row\_id            & UUID                     & Identifikátor cílového řádku v aplikační tabulce          \\ \hline
+        raw\_payload               & JSONB                    & Původní payload převzatý od providera                     \\ \hline
+        checksum                   & TEXT                     & Kontrolní součet normalizovaného zdrojového záznamu       \\ \hline
+        source\_start\_at          & TIMESTAMP WITH TIME ZONE & Začátek intervalu zdrojového záznamu                      \\ \hline
+        source\_end\_at            & TIMESTAMP WITH TIME ZONE & Konec intervalu zdrojového záznamu                        \\ \hline
+        source\_last\_modified\_at & TIMESTAMP WITH TIME ZONE & Čas poslední změny zdrojového záznamu u providera         \\ \hline
+        owns\_target               & BOOLEAN                  & Příznak, zda je cílový řádek vlastněn právě tímto zdrojem \\ \hline
+        created\_at                & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření záznamu                             \\ \hline
+        updated\_at                & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace záznamu                  \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{user\_health\_sync\_source\_item}}
+    \label{tab:user_health_sync_source_item}
+\end{table}

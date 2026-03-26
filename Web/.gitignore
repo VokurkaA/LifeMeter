@@ -11,3 +11,4 @@ test-results
 .env.test.local
 .env.production.local
 !.env.example
+tsconfig.tsbuildinfo

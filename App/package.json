@@ -6,7 +6,7 @@
     "start": "expo start --dev-client",
     "android": "expo prebuild --clean && expo run:android",
     "ios": "echo y | expo prebuild --clean && expo run:ios",
-    "web": "expo start --web"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@expo/metro-config": "~54.0.12",

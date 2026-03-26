@@ -1,20 +1,20 @@
 % ==========================================
 % Tabulka: user_weight_log
 % ==========================================
-\begin{table}[ht!] 
-\centering
-\begin{tabularx}{\textwidth}{|l|l|L|}
-\hline
-\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
-id & UUID & Unikátní identifikátor záznamu \\ \hline
-user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
-measured\_at & TIMESTAMP WITH TIME ZONE & Datum a čas měření hmotnosti \\ \hline
-weight\_grams & NUMERIC & Tělesná hmotnost v gramech \\ \hline
-body\_fat\_percentage & NUMERIC & Procento tělesného tuku \\ \hline
-lean\_tissue\_percentage & NUMERIC & Procento beztukové tkáně \\ \hline
-water\_percentage & NUMERIC & Procento vody v těle \\ \hline
-bone\_mass\_percentage & NUMERIC & Procento kostní hmoty \\ \hline
-\end{tabularx}
-\caption{Tabulka \texttt{user\_weight\_log}}
-\label{tab:user_weight_log}
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec}         & \textbf{Datový typ}      & \textbf{Popis}                   \\ \hline
+        id                       & UUID                     & Unikátní identifikátor záznamu   \\ \hline
+        user\_id                 & TEXT                     & Unikátní identifikátor uživatele \\ \hline
+        measured\_at             & TIMESTAMP WITH TIME ZONE & Datum a čas měření hmotnosti     \\ \hline
+        weight\_grams            & NUMERIC                  & Tělesná hmotnost v gramech       \\ \hline
+        body\_fat\_percentage    & NUMERIC                  & Procento tělesného tuku          \\ \hline
+        lean\_tissue\_percentage & NUMERIC                  & Procento beztukové tkáně         \\ \hline
+        water\_percentage        & NUMERIC                  & Procento vody v těle             \\ \hline
+        bone\_mass\_percentage   & NUMERIC                  & Procento kostní hmoty            \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{user\_weight\_log}}
+    \label{tab:user_weight_log}
 \end{table}

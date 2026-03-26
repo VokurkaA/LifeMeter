@@ -9,13 +9,15 @@ je aplikace funkční rovněž na iOS díky sdílené kódové základně v~jazy
 TypeScript. Integrace se systémovými zdravotními platformami byla realizována
 souběžně pro obě prostředí -- prostřednictvím rozhraní Health Connect na
 Androidu a~Apple HealthKit na iOS. Serverová část, jejíž existence ze zadání
-přímo nevyplývala, byla vyvinuta jako plnohodnotné REST API s~38 endpointy,
-dokumentací ve standardu OpenAPI a~průběžným nasazením prostřednictvím
-GitHub Actions.
+přímo nevyplývala, byla vyvinuta jako plnohodnotný systém zahrnující REST API
+s~52 explicitně definovanými endpointy, veřejnou webovou vrstvu, dokumentaci
+ve standardu OpenAPI a~průběžné nasazení prostřednictvím GitHub Actions.
 
 Aplikace je provozována na produkční cloudové infrastruktuře Oracle Cloud
-na adrese \texttt{lifemeter.fit} a~je dostupná ke stažení ve formě souboru
-APK. Uživateli nabízí jednotné prostředí pro oblasti, které stávající řešení
+na adrese \texttt{lifemeter.fit} a~je dostupná ke stažení prostřednictvím
+webového download centra ve formě verzovaných APK buildů. Stejná webová
+vrstva současně poskytuje veřejnou prezentaci produktu a~administrátorskou
+konzoli pouze pro čtení. Uživateli nabízí jednotné prostředí pro oblasti, které stávající řešení
 na trhu pokrývají odděleně a~zpravidla za poplatek -- evidenci silových
 tréninků s~výkonnostními grafy, sledování výživy s~databází přes milion
 potravin ověřených zdrojem USDA FoodData Central, záznamy spánku s~importem
@@ -24,7 +26,7 @@ všechny sledované metriky. Offline režim zajišťuje plnou funkčnost i~bez
 aktivního síťového připojení.
 
 Projekt přinesl praktickou zkušenost s~celým vývojovým cyklem
-full-stack mobilní aplikace -- od návrhu datového modelu a~architektonických
+full-stack mobilního a~webového systému -- od návrhu datového modelu a~architektonických
 rozhodnutí přes implementaci a~automatizované nasazení až po produkční provoz.
 Zvolená architektura s~důsledným oddělením klientské, serverové a~datové vrstvy
 vytváří základ, který umožňuje aplikaci dále rozvíjet v~směrech nastíněných
