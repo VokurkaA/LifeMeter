@@ -19,6 +19,7 @@ import { toast } from '@/lib/toast';
 import { describeHealthError, openHealthDashboard, requestHealthPermissions } from '@/lib/health/index';
 import { healthSyncService } from '@/services/health.sync.service';
 import { useSleepStore } from '@/contexts/useSleepStore';
+import { navigate } from '@/navigation/navigate';
 
 type StoredSyncStatus = {
     status: "success" | "error";
@@ -29,6 +30,7 @@ export default function Header() {
     const { user, signOut } = useAuth();
     const { userGoals, refreshProfile } = useUserStore();
     const { refreshSleepSessions } = useSleepStore();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const { theme } = useUniwind();
 
@@ -41,7 +43,7 @@ export default function Header() {
                 <View className='flex flex-row items-center gap-4'>
                     <H2>LifeMeter</H2>
                 </View>
-                <Dialog>
+                <Dialog isOpen={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <Dialog.Trigger>
                         <Avatar animation="disable-all" size="sm" alt={user?.name ?? "User avatar"}>
                             {user?.image && (<Avatar.Image source={{ uri: user.image }} />)}
@@ -72,6 +74,19 @@ export default function Header() {
 
                                     <Description className="ml-2 mr-auto">General</Description>
                                     <ListGroup variant="secondary" className="w-full">
+                                        <ListGroup.Item onPress={() => {
+                                            setIsDialogOpen(false);
+                                            navigate('UserSettings');
+                                        }}>
+                                            <ListGroup.ItemPrefix>
+                                                <UserIcon color={foregroundColor} size={20} />
+                                            </ListGroup.ItemPrefix>
+                                            <ListGroup.ItemContent>
+                                                <ListGroup.ItemTitle>Profile & goals</ListGroup.ItemTitle>
+                                                <ListGroup.ItemDescription>Edit your onboarding preferences</ListGroup.ItemDescription>
+                                            </ListGroup.ItemContent>
+                                        </ListGroup.Item>
+                                        <Separator />
                                         <ListGroup.Item onPress={() => Uniwind.setTheme(theme === 'light' ? 'dark' : 'light')}>
                                             <ListGroup.ItemPrefix>
                                                 {theme === 'light' ? <MoonIcon size={20} color={foregroundColor} /> : <SunIcon size={20} color={foregroundColor} />}

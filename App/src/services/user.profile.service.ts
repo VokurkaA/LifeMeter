@@ -49,6 +49,13 @@ interface ServerWeightLog {
   bone_mass_percentage: number | null;
 }
 
+interface ServerHeightLog {
+  id: string;
+  user_id: string;
+  measured_at: string;
+  height_cm: number;
+}
+
 const mapProfileToClient = (server: ServerUserProfile): UserProfile => ({
   userId: server.user_id,
   dateOfBirth: server.date_of_birth,
@@ -83,7 +90,7 @@ const mapWeightLogToClient = (server: ServerWeightLog): UserWeightLog => ({
   boneMassPercentage: server.bone_mass_percentage,
 });
 
-const mapHeightLogToClient = (server: any): UserHeightLog => ({
+const mapHeightLogToClient = (server: ServerHeightLog): UserHeightLog => ({
   id: server.id,
   userId: server.user_id,
   measuredAt: server.measured_at,
@@ -203,13 +210,21 @@ export const userProfileService = {
     return mapWeightLogToClient(response);
   },
 
+  getLatestHeight: async (): Promise<UserHeightLog | undefined> => {
+    const response = await request<ServerHeightLog | null>(`${BASE_URL}/log/height/latest`, {
+      method: 'GET',
+    });
+    if (!response) return undefined;
+    return mapHeightLogToClient(response);
+  },
+
   logHeight: async (data: LogHeightInput): Promise<UserHeightLog> => {
     const payload = {
       measured_at: data.measuredAt,
       height_cm: data.heightCm,
     };
 
-    const response = await request<any>(`${BASE_URL}/log/height`, {
+    const response = await request<ServerHeightLog>(`${BASE_URL}/log/height`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

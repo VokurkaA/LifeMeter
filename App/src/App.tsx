@@ -20,6 +20,7 @@ import { navigationRef } from '@/navigation/navigate';
 import AppTabs from '@/navigation/Tabs';
 import ActiveWorkoutScreen from '@/screens/app/training/ActiveWorkout.screen';
 import TemplateBuilderScreen from '@/screens/app/training/TemplateBuilder.screen';
+import UserSettingsScreen from '@/screens/app/settings/UserSettings.screen';
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import * as Notifications from "expo-notifications";
 import { NetworkProvider } from './contexts/useNetwork';
@@ -105,6 +106,7 @@ function RootAppContent() {
                     <AppStack.Screen name="Tabs" component={AppTabs} />
                     <AppStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
                     <AppStack.Screen name="TemplateBuilder" component={TemplateBuilderScreen} />
+                    <AppStack.Screen name="UserSettings" component={UserSettingsScreen} />
                 </AppStack.Navigator>
             </NavigationContainer>
         </View>

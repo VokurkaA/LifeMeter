@@ -12,20 +12,33 @@ interface LifestyleInfoProps {
     onSubmit: (data: LifestyleData) => void;
     setNextEnabled: (enabled: boolean) => void;
     registerOnNext: (onNext: null | (() => void)) => void;
-    initialData?: LifestyleData;
+    initialData?: Partial<LifestyleData>;
+    onDraftChange?: (data: Partial<LifestyleData>) => void;
 }
 
-export default function LifestyleInfo({onSubmit, setNextEnabled, registerOnNext, initialData}: LifestyleInfoProps) {
+export default function LifestyleInfo({
+    onSubmit,
+    setNextEnabled,
+    registerOnNext,
+    initialData,
+    onDraftChange,
+}: LifestyleInfoProps) {
     const {activityLevels} = useUserStore();
-    const [activityLevelId, setActivityLevelId] = useState<number>(initialData?.activityLevel.id || 1);
+    const [activityLevelId, setActivityLevelId] = useState<number>(initialData?.activityLevel?.id || 1);
 
     useEffect(() => {
-        setNextEnabled(true);
+        const selectedLevel = activityLevels[activityLevelId - 1];
+        onDraftChange?.(selectedLevel ? {activityLevel: selectedLevel} : {});
+
+        setNextEnabled(Boolean(selectedLevel));
+        if (!selectedLevel) {
+            registerOnNext(null);
+            return;
+        }
         registerOnNext(() => {
-            const selectedLevel = activityLevels[activityLevelId - 1];
             onSubmit({activityLevel: selectedLevel});
         });
-    }, [activityLevelId, onSubmit, registerOnNext, activityLevels]);
+    }, [activityLevelId, onDraftChange, onSubmit, registerOnNext, activityLevels]);
     return (<View className="mt-4">
         <Label>{activityLevels[activityLevelId - 1]?.name}</Label>
         <Slider

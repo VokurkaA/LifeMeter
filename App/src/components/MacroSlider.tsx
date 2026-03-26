@@ -10,6 +10,7 @@ interface MacroSliderProps {
     setFatPercentage: (val: number) => void;
     carbsPercentage: number;
     setCarbsPercentage: (val: number) => void;
+    isDisabled?: boolean;
 }
 
 interface MacroSliderItemProps {
@@ -18,6 +19,7 @@ interface MacroSliderItemProps {
     onChange: (val: number) => void;
     divisor: number;
     tdee: number;
+    isDisabled?: boolean;
 }
 
 function MacroSliderItem({
@@ -26,6 +28,7 @@ function MacroSliderItem({
     onChange,
     divisor,
     tdee,
+    isDisabled,
 }: MacroSliderItemProps) {
     const getGrams = (percent: number, divisor: number) => {
         if (!tdee) return "0.0";
@@ -49,6 +52,7 @@ function MacroSliderItem({
                 minValue={0}
                 maxValue={100}
                 step={1}
+                isDisabled={isDisabled}
                 className="w-full"
             >
                 <Slider.Track>
@@ -67,7 +71,8 @@ export default function MacroSlider({
     fatPercentage,
     setFatPercentage,
     carbsPercentage,
-    setCarbsPercentage
+    setCarbsPercentage,
+    isDisabled = false,
 }: MacroSliderProps) {
 
     const distributeChange = (newVal: number, oldVal: number, otherVal1: number, otherVal2: number): [number, number] => {
@@ -125,6 +130,7 @@ export default function MacroSlider({
                 onChange={onProteinChange}
                 divisor={4}
                 tdee={tdee}
+                isDisabled={isDisabled}
             />
             <MacroSliderItem
                 label="Fats"
@@ -132,6 +138,7 @@ export default function MacroSlider({
                 onChange={onFatChange}
                 divisor={9}
                 tdee={tdee}
+                isDisabled={isDisabled}
             />
             <MacroSliderItem
                 label="Carbohydrates"
@@ -139,6 +146,7 @@ export default function MacroSlider({
                 onChange={onCarbsChange}
                 divisor={4}
                 tdee={tdee}
+                isDisabled={isDisabled}
             />
         </View>
     );

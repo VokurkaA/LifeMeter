@@ -220,6 +220,22 @@ const logHeightRoute = createRoute({
   },
 });
 
+const getLatestHeightRoute = createRoute({
+  method: "get",
+  path: "/log/height/latest",
+  summary: "Get latest height log",
+  responses: {
+    200: { 
+      description: "Latest height log",
+      content: {
+        "application/json": { schema: logHeightSchema }
+      }
+    },
+    500: { description: "Internal server error" }
+  },
+});
+
+
 userProfileRouter.openapi(getActivityLevelsRoute, async (c) => {
   const levels = await userProfileService.getActivityLevels();
   return c.json(levels, 200);
@@ -280,4 +296,10 @@ userProfileRouter.openapi(logHeightRoute, async (c) => {
   const data = c.req.valid("json");
   const log = await userProfileService.logHeight(user.id, data);
   return c.json(log, 201);
+});
+
+userProfileRouter.openapi(getLatestHeightRoute, async (c) => {
+  const user = c.get("user");
+  const log = await userProfileService.getLatestHeight(user.id);
+  return c.json(log, 200);
 });

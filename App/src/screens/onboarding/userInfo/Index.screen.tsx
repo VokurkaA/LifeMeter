@@ -9,11 +9,21 @@ import LifestyleInfo, {LifestyleData} from "./lifestyleInfo";
 import Objectives, {ObjectiveData} from "./objectives";
 import {useExitConfirmBackHandler} from "@/navigation/back-handler";
 import { useUserStore } from "@/contexts/useUserStore";
+import {
+    convertHeightToCm,
+    convertWeightToGrams,
+    normalizeSexToProfile,
+    toDateOnlyString,
+    toTimeString,
+} from "@/lib/calorieTargets";
 
 export default function Onboarding() {
     const {updateProfile, updateGoals, logWeight, logHeight, lengthUnits, weightUnits}= useUserStore();
     const [nextEnabled, setNextEnabled] = useState(false);
     const [onNext, setOnNext] = useState<null | (() => void)>(null);
+    const registerOnNext = useCallback((nextHandler: null | (() => void)) => {
+        setOnNext(() => nextHandler);
+    }, []);
 
     const [step, setStep] = useState(0);
     const totalSteps = 4;
@@ -37,13 +47,13 @@ export default function Onboarding() {
         initialData={basicInfo}
         onSubmit={setBasicInfo}
         setNextEnabled={setNextEnabled}
-        registerOnNext={setOnNext}
+        registerOnNext={registerOnNext}
     />, <BodyInfo
         key="body"
         initialData={bodyInfo}
         onSubmit={setBodyInfo}
         setNextEnabled={setNextEnabled}
-        registerOnNext={setOnNext}
+        registerOnNext={registerOnNext}
         defaultHeightUnit={basicInfo?.lengthUnit}
         defaultWeightUnit={basicInfo?.weightUnit}
     />, <LifestyleInfo
@@ -51,50 +61,26 @@ export default function Onboarding() {
         initialData={lifestyleInfo}
         onSubmit={setLifestyleInfo}
         setNextEnabled={setNextEnabled}
-        registerOnNext={setOnNext}
+        registerOnNext={registerOnNext}
     />, <Objectives
         key="obj"
         onSubmit={setObjectives}
         setNextEnabled={setNextEnabled}
-        registerOnNext={setOnNext}
+        registerOnNext={registerOnNext}
         initialData={objectives}
         basicInfoData={basicInfo!}
         bodyInfoData={bodyInfo!}
         lifeStyleData={lifestyleInfo!}
     />];
 
-    const weightToGrams = (weightUnit: BasicInfoData["weightUnit"] | undefined, weight: number | undefined) => {
-        if (!weightUnit || !weight) return undefined;
-        if (weightUnit === 'kg') return weight * 1000;
-        const unit = weightUnits.find(u => u.name === weightUnit);
-        return unit ? unit.gramConversionFactor * weight : undefined;
-    }  
-
-    const heightToCm = (heightUnit: BasicInfoData["lengthUnit"] | undefined, height: number | undefined) => {
-        if (!heightUnit || !height) return undefined;
-        if (heightUnit === 'cm') return height;
-        const unit = lengthUnits.find(u => u.name === heightUnit);
-        return unit ? unit.meterConversionFactor * height * 100 : undefined;
-    }
-
-    const toDateString = (date?: Date) => {
-        if (!date) return undefined;
-        return date.toISOString().split('T')[0];
-    };
-
-    const toTimeString = (date?: Date) => {
-        if (!date) return undefined;
-        return date.toTimeString().slice(0, 5);
-    };
-
     const handleNext = useCallback(() => {
         if (onNext) onNext();
         if (step === totalSteps - 1) {
             updateProfile({
-                dateOfBirth: toDateString(basicInfo?.birthDate),
-                sex: basicInfo?.sex === 'male' ? 'M' : 'F',
+                dateOfBirth: toDateOnlyString(basicInfo?.birthDate),
+                sex: normalizeSexToProfile(basicInfo?.sex),
                 currentActivityFactor: (Number(lifestyleInfo?.activityLevel.minFactor) + Number(lifestyleInfo?.activityLevel.maxFactor)) / 2,
-                currentBmrCalories: objectives?.calculatedBmr,
+                currentBmrCalories: objectives?.dailyCalorieTarget,
                 defaultWeightUnitId: weightUnits.find((u) => u.name === basicInfo?.weightUnit)?.id,
                 defaultLengthUnitId: lengthUnits.find((u) => u.name === basicInfo?.lengthUnit)?.id,
                 finishedOnboarding: true,
@@ -107,13 +93,13 @@ export default function Onboarding() {
                 dailyProteinGoalGrams: objectives?.dailyProteinGoalGrams,
                 dailyFatGoalGrams: objectives?.dailyFatGoalGrams,
                 dailyCarbsGoalGrams: objectives?.dailyCarbsGoalGrams,
-                targetWeightGrams: weightToGrams(objectives?.goalWeightUnit, objectives?.goalWeight),
-                targetWeightDate: toDateString(objectives?.targetDate),
+                targetWeightGrams: convertWeightToGrams(objectives?.goalWeight, objectives?.goalWeightUnit),
+                targetWeightDate: toDateOnlyString(objectives?.targetDate),
             });
 
             logWeight({
                 measuredAt: new Date().toISOString(),
-                weightGrams: weightToGrams(basicInfo?.weightUnit, bodyInfo?.weight)!,
+                weightGrams: convertWeightToGrams(bodyInfo?.weight, basicInfo?.weightUnit)!,
                 bodyFatPercentage: bodyInfo?.bodyFatPercentage ?? null,
                 leanTissuePercentage: bodyInfo?.leanTissuePercentage ?? null,
                 waterPercentage: bodyInfo?.waterPercentage ?? null,
@@ -122,7 +108,7 @@ export default function Onboarding() {
 
             logHeight({
                 measuredAt: new Date().toISOString(),
-                heightCm: heightToCm(basicInfo?.lengthUnit, bodyInfo?.height)!,
+                heightCm: convertHeightToCm(bodyInfo?.height, basicInfo?.lengthUnit)!,
             });
         }
         setStep((s) => {
