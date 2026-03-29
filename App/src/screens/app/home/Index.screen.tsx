@@ -1,5 +1,4 @@
 import MainLayout from "@/layouts/Main.layout";
-import { useAuth } from "@/contexts/useAuth";
 import { View } from "react-native";
 import { Text } from "@/components/Text";
 import { NutritionHomeChart } from "@/screens/app/home/components/NutritionHomeChart";
@@ -8,25 +7,38 @@ import { StepsHomeChart } from "@/screens/app/home/components/StepsHomeChart";
 import { WeightHomeChart } from "@/screens/app/home/components/WeightHomeChart";
 import TrainingCharts from "@/screens/app/training/components/index/TrainingCharts";
 import { navigate } from "@/navigation/navigate";
+import { DailyOverview } from "./components/DailyOverview";
+import { ActiveWorkoutCard } from "./components/ActiveWorkoutCard";
+import { QuickActions } from "./components/QuickActions";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 export default function Home() {
-  const { user } = useAuth();
-  const firstName = user?.name?.split(" ")[0] || "there";
-
   return (
     <MainLayout>
-      <View className="mb-2">
-        <Text className="text-3xl font-bold">Hello, {firstName}!</Text>
-        <Text className="text-muted-foreground text-lg">Here's your overview for the last 7 days.</Text>
-      </View>
+        <ActiveWorkoutCard />
+        <View className="gap-3">
+          <DailyOverview />
+        </View>
 
-      <View className="gap-6">
-        <StepsHomeChart />
-        <NutritionHomeChart onPress={() => navigate("Nutrition")} />
-        <SleepHomeChart onPress={() => navigate("Sleep")} />
-        <TrainingCharts onPress={() => navigate("Training")} />
-        <WeightHomeChart />
-      </View>
+        <QuickActions />
+
+        <View className="gap-6">
+          <Animated.View entering={FadeInDown.duration(600).delay(700)}>
+            <StepsHomeChart />
+          </Animated.View>
+          <Animated.View entering={FadeInDown.duration(600).delay(800)}>
+            <NutritionHomeChart onPress={() => navigate("Nutrition")} />
+          </Animated.View>
+          <Animated.View entering={FadeInDown.duration(600).delay(900)}>
+            <SleepHomeChart onPress={() => navigate("Sleep")} />
+          </Animated.View>
+          <Animated.View entering={FadeInDown.duration(600).delay(1000)}>
+            <TrainingCharts onPress={() => navigate("Training")} />
+          </Animated.View>
+          <Animated.View entering={FadeInDown.duration(600).delay(1100)}>
+            <WeightHomeChart />
+          </Animated.View>
+        </View>
     </MainLayout>
   );
 }

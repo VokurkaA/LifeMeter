@@ -67,8 +67,12 @@ export const NutritionStoreProvider: React.FC<{ children: React.ReactNode }> = (
   const createUserMeal = useCallback(
     async (data: CreateMealInput) => {
       const created = await foodService.addUserMeal(data);
+      const summary = {
+        userMeal: created.userMeal,
+        userFoods: created.userFoods.filter(uf => !!uf?.userFood).map((uf) => uf.userFood),
+      };
       setUserMeals([
-        { userMeal: created.meal, userFoods: created.food },
+        summary,
         ...(normalizedUserMeals ?? []),
       ]);
     },
@@ -80,9 +84,9 @@ export const NutritionStoreProvider: React.FC<{ children: React.ReactNode }> = (
       const updated = await foodService.editUserMeal(id, data);
       const summary = {
         userMeal: updated.userMeal,
-        userFoods: updated.userFoods.map((uf) => uf.userFood),
+        userFoods: updated.userFoods.filter(uf => !!uf?.userFood).map((uf) => uf.userFood),
       };
-      setUserMeals((normalizedUserMeals ?? []).map((m) => (m.userMeal.id === id ? summary : m)));
+      setUserMeals((normalizedUserMeals ?? []).map((m) => (m?.userMeal?.id === id ? summary : m)));
     },
     [normalizedUserMeals, setUserMeals],
   );
@@ -90,7 +94,7 @@ export const NutritionStoreProvider: React.FC<{ children: React.ReactNode }> = (
   const deleteUserMeal = useCallback(
     async (id: string) => {
       await foodService.deleteUserMeal(id);
-      setUserMeals((normalizedUserMeals ?? []).filter((m) => m.userMeal.id !== id));
+      setUserMeals((normalizedUserMeals ?? []).filter((m) => m?.userMeal?.id !== id));
     },
     [normalizedUserMeals, setUserMeals],
   );

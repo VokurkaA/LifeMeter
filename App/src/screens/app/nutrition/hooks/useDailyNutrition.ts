@@ -37,6 +37,7 @@ export function useDailyNutrition() {
         const todayKey = toLocalDateKey(new Date());
 
         return userMeals.filter((m) => {
+            if (!m.userMeal) return false;
             const mealKey = eatenAtToDateKey(m.userMeal.eaten_at);
             return mealKey === todayKey;
         });
@@ -54,6 +55,7 @@ export function useDailyNutrition() {
 
         todaysMeals.forEach((m) => {
             m.userFoods.forEach((f) => {
+                if (!f) return;
                 const detail = foodDetails[f.food_id];
                 if (!detail) return;
 
@@ -91,7 +93,9 @@ export function useDailyNutrition() {
             try {
                 const foodIds = new Set<number>();
                 todaysMeals.forEach((m) => {
-                    m.userFoods.forEach((f) => foodIds.add(f.food_id));
+                    m.userFoods.forEach((f) => {
+                        if (f) foodIds.add(f.food_id);
+                    });
                 });
 
                 const newDetailsById: Record<number, FoodDetail> = { ...foodDetails };

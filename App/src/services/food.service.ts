@@ -57,7 +57,7 @@ class FoodService {
     return request(url, { method: 'GET' });
   }
 
-  async addUserMeal(data: CreateMealInput): Promise<{ meal: UserMeal; food: UserFood[] }> {
+  async addUserMeal(data: CreateMealInput): Promise<FullUserMeal> {
     const url = this.baseUrl + "/user/food";
     return request(url, { method: 'POST', body: JSON.stringify(data) });
   }
