@@ -20,22 +20,34 @@ export const NutritionStoreProvider: React.FC<{ children: React.ReactNode }> = (
   const [userMeals, setUserMeals] = useStorage.array<{ userMeal: UserMeal; userFoods: UserFood[] }>('userMeals');
   const [isLoading, setIsLoading] = useState(false);
   const [refreshCount, setRefreshCount] = useState(0);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const normalizedUserMeals = Array.isArray(userMeals) ? userMeals : undefined;
 
   useEffect(() => {
     return onReconnect(() => setRefreshCount((c) => c + 1));
   }, []);
 
   useEffect(() => {
+    if (userMeals !== undefined && !Array.isArray(userMeals)) {
+      setUserMeals(undefined);
+    }
+  }, [userMeals, setUserMeals]);
+
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setUserMeals(undefined);
+      setIsLoading(false);
       return;
     }
 
     let active = true;
     (async () => {
       try {
-        if (!userMeals) setIsLoading(true);
+        if (!normalizedUserMeals) setIsLoading(true);
         const meals = await foodService.getAllUserMeals();
         if (active) setUserMeals(meals);
       } catch (e) {
@@ -45,7 +57,7 @@ export const NutritionStoreProvider: React.FC<{ children: React.ReactNode }> = (
       }
     })();
     return () => { active = false; };
-  }, [user, refreshCount]);
+  }, [authLoading, user, refreshCount, normalizedUserMeals, setUserMeals]);
 
   const refreshUserMeals = useCallback(async () => {
     const meals = await foodService.getAllUserMeals();
@@ -55,9 +67,16 @@ export const NutritionStoreProvider: React.FC<{ children: React.ReactNode }> = (
   const createUserMeal = useCallback(
     async (data: CreateMealInput) => {
       const created = await foodService.addUserMeal(data);
-      setUserMeals([{ userMeal: created.meal, userFoods: created.food }, ...(userMeals ?? [])]);
+      const summary = {
+        userMeal: created.userMeal,
+        userFoods: created.userFoods.filter(uf => !!uf?.userFood).map((uf) => uf.userFood),
+      };
+      setUserMeals([
+        summary,
+        ...(normalizedUserMeals ?? []),
+      ]);
     },
-    [userMeals],
+    [normalizedUserMeals, setUserMeals],
   );
 
   const editUserMeal = useCallback(
@@ -65,29 +84,29 @@ export const NutritionStoreProvider: React.FC<{ children: React.ReactNode }> = (
       const updated = await foodService.editUserMeal(id, data);
       const summary = {
         userMeal: updated.userMeal,
-        userFoods: updated.userFoods.map((uf) => uf.userFood),
+        userFoods: updated.userFoods.filter(uf => !!uf?.userFood).map((uf) => uf.userFood),
       };
-      setUserMeals((userMeals ?? []).map((m) => (m.userMeal.id === id ? summary : m)));
+      setUserMeals((normalizedUserMeals ?? []).map((m) => (m?.userMeal?.id === id ? summary : m)));
     },
-    [userMeals],
+    [normalizedUserMeals, setUserMeals],
   );
 
   const deleteUserMeal = useCallback(
     async (id: string) => {
       await foodService.deleteUserMeal(id);
-      setUserMeals((userMeals ?? []).filter((m) => m.userMeal.id !== id));
+      setUserMeals((normalizedUserMeals ?? []).filter((m) => m?.userMeal?.id !== id));
     },
-    [userMeals],
+    [normalizedUserMeals, setUserMeals],
   );
 
   const value = useMemo(() => ({
-    userMeals: userMeals ?? [],
+    userMeals: normalizedUserMeals ?? [],
     refreshUserMeals,
     createUserMeal,
     editUserMeal,
     deleteUserMeal,
     isLoading,
-  }), [userMeals, refreshUserMeals, createUserMeal, editUserMeal, deleteUserMeal, isLoading]);
+  }), [normalizedUserMeals, refreshUserMeals, createUserMeal, editUserMeal, deleteUserMeal, isLoading]);
 
   return <NutritionStoreContext.Provider value={value}>{children}</NutritionStoreContext.Provider>;
 };

@@ -30,6 +30,7 @@ services:
       API_URL: http://api:3000
       NEXT_PUBLIC_API_URL: https://lifemeter.fit
       APK_STORAGE_DIR: /app/releases/apk
+      IOS_STORAGE_DIR: /app/releases/ios
       HOSTNAME: 0.0.0.0
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
@@ -38,5 +39,6 @@ services:
       - "3001:3000"
     volumes:
       - ./releases/apk:/app/releases/apk:ro
+      - ./releases/ios:/app/releases/ios:ro
 volumes:
   pgdata:

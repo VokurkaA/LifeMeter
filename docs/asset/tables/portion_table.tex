@@ -1,19 +1,19 @@
 % ==========================================
 % Tabulka: portion
 % ==========================================
-\begin{table}[ht!] 
-\centering
-\begin{tabularx}{\textwidth}{|l|l|L|}
-\hline
-\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
-id & INTEGER & Unikátní identifikátor záznamu \\ \hline
-food\_id & INTEGER & Identifikátor potraviny \\ \hline
-gram\_weight & NUMERIC & Hmotnost porce v gramech \\ \hline
-portion\_amount & NUMERIC & Množství jednotek v porci \\ \hline
-portion\_unit & CHARACTER VARYING(16) & Označení jednotky porce \\ \hline
-description & TEXT & Popis porce \\ \hline
-modifier & TEXT & Upřesňující informace k porci \\ \hline
-\end{tabularx}
-\caption{Tabulka \texttt{portion}}
-\label{tab:portion}
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec} & \textbf{Datový typ}   & \textbf{Popis}                 \\ \hline
+        id               & INTEGER               & Unikátní identifikátor záznamu \\ \hline
+        food\_id         & INTEGER               & Identifikátor potraviny        \\ \hline
+        gram\_weight     & NUMERIC               & Hmotnost porce v gramech       \\ \hline
+        portion\_amount  & NUMERIC               & Množství jednotek v porci      \\ \hline
+        portion\_unit    & CHARACTER VARYING(16) & Označení jednotky porce        \\ \hline
+        description      & TEXT                  & Popis porce                    \\ \hline
+        modifier         & TEXT                  & Upřesňující informace k porci  \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{portion}}
+    \label{tab:portion}
 \end{table}

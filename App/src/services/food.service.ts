@@ -2,25 +2,37 @@ import {request} from '@/lib/net';
 import type {CreateMealInput, Food, FoodDetail, FullUserMeal, UpdateMealInput, UserFood, UserMeal} from "@/types/food.types";
 import type {PaginationResult} from "@/types/types";
 
+type PaginatedRowsResponse<T> = {
+  rows: T[];
+  total: number;
+  pagination: PaginationResult;
+};
+
 class FoodService {
-  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api';
+  private baseUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://lifemeter.fit') + '/api';
   private foodCache = new Map<number, FoodDetail>();
 
   async getAllFood(page?: number): Promise<{ data: Food[], pagination: PaginationResult }> {
     const url = this.baseUrl + "/food" + (page ? `?page=${encodeURIComponent(String(page))}` : '');
-    return request(url, { method: 'GET' });
+    return request<PaginatedRowsResponse<Food>>(url, { method: 'GET' }).then((response) => ({
+      data: response.rows,
+      pagination: response.pagination,
+    }));
   }
 
   async getFoodByName(searchText: string, page?: number): Promise<{ data: Food[], pagination: PaginationResult }> {
     const params = new URLSearchParams({ name: searchText });
     if (page) params.set('page', String(page));
     const url = `${this.baseUrl}/food/search?${params.toString()}`;
-    return request(url, { method: 'GET' });
+    return request<PaginatedRowsResponse<Food>>(url, { method: 'GET' }).then((response) => ({
+      data: response.rows,
+      pagination: response.pagination,
+    }));
   }
 
-  async getFoodByGtin(gtin: string): Promise<{ data: Food[], pagination: PaginationResult }> {
+  async getFoodByGtin(gtin: string): Promise<FoodDetail> {
     const url = `${this.baseUrl}/food/search?gtin=${encodeURIComponent(gtin)}`;
-    return request(url, { method: 'GET' });
+    return request<FoodDetail>(url, { method: 'GET' });
   }
 
   async getFoodById(id: number): Promise<FoodDetail> {
@@ -35,7 +47,9 @@ class FoodService {
 
   async getAllUserMeals(): Promise<{ userMeal: UserMeal; userFoods: UserFood[] }[]> {
     const url = this.baseUrl + "/user/food";
-    return request(url, { method: 'GET' });
+    return request<PaginatedRowsResponse<{ userMeal: UserMeal; userFoods: UserFood[] }>>(url, {
+      method: 'GET',
+    }).then((response) => response.rows);
   }
 
   async getUserMealById(id: string): Promise<FullUserMeal> {
@@ -43,7 +57,7 @@ class FoodService {
     return request(url, { method: 'GET' });
   }
 
-  async addUserMeal(data: CreateMealInput): Promise<{ meal: UserMeal; food: UserFood[] }> {
+  async addUserMeal(data: CreateMealInput): Promise<FullUserMeal> {
     const url = this.baseUrl + "/user/food";
     return request(url, { method: 'POST', body: JSON.stringify(data) });
   }

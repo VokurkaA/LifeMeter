@@ -319,6 +319,14 @@ export const getSessionFromApi = cache(async function getSessionFromApi() {
   return null;
 });
 
+export async function tryGetSessionFromApi() {
+  try {
+    return await getSessionFromApi();
+  } catch {
+    return null;
+  }
+}
+
 async function adminFetch<T>(path: string) {
   const config = resolveApiConfig(SERVER_API_URL);
 

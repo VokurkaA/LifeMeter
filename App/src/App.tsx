@@ -20,10 +20,12 @@ import { navigationRef } from '@/navigation/navigate';
 import AppTabs from '@/navigation/Tabs';
 import ActiveWorkoutScreen from '@/screens/app/training/ActiveWorkout.screen';
 import TemplateBuilderScreen from '@/screens/app/training/TemplateBuilder.screen';
+import UserSettingsScreen from '@/screens/app/settings/UserSettings.screen';
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import * as Notifications from "expo-notifications";
 import { NetworkProvider } from './contexts/useNetwork';
 import ToastRegistrar from '@/components/ToastRegistrar';
+import AutoHealthSync from '@/components/AutoHealthSync';
 
 const OnboardingStack = createNativeStackNavigator<OnboardingStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
@@ -60,8 +62,7 @@ const createResetListener = (rootRouteName: string) => ({ navigation }: any) => 
     },
 });
 
-
-function RootApp() {
+function RootAppContent() {
     const { user, loading } = useAuth();
     const { userProfile, isLoading } = useUserStore();
 
@@ -73,7 +74,6 @@ function RootApp() {
     const enableExitConfirm = (!user && onboardingRoute === 'Title') || (user && appRoute === 'Home');
 
     useExitConfirmBackHandler(enableExitConfirm ?? false);
-
     if (loading || (!userProfile && isLoading)) {
         return null;
     }
@@ -97,45 +97,61 @@ function RootApp() {
     }
 
     return (
+        <View className='flex-1'>
+            <NavigationContainer ref={navigationRef}>
+                <AppStack.Navigator
+                    initialRouteName="Tabs"
+                    screenOptions={screenOptions}
+                >
+                    <AppStack.Screen name="Tabs" component={AppTabs} />
+                    <AppStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
+                    <AppStack.Screen name="TemplateBuilder" component={TemplateBuilderScreen} />
+                    <AppStack.Screen name="UserSettings" component={UserSettingsScreen} />
+                </AppStack.Navigator>
+            </NavigationContainer>
+        </View>
+    );
+}
+
+function RootApp() {
+    return (
         <NetworkProvider>
-            <View className='flex-1'>
-                <NavigationContainer ref={navigationRef}>
-                    <AppStack.Navigator
-                        initialRouteName="Tabs"
-                        screenOptions={screenOptions}
-                    >
-                        <AppStack.Screen name="Tabs" component={AppTabs} />
-                        <AppStack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
-                        <AppStack.Screen name="TemplateBuilder" component={TemplateBuilderScreen} />
-                    </AppStack.Navigator>
-                </NavigationContainer>
-            </View>
+            <AutoHealthSync />
+            <RootAppContent />
         </NetworkProvider>
     );
 }
 
-export default function App() {
+function AppContent() {
     const surfaceColor = useThemeColor('surface');
     const backgroundColor = useThemeColor('background');
+    return (
+        <>
+            <ToastRegistrar />
+            <AuthProvider>
+                <StoreProvider>
+                    <SafeAreaView edges={['left', 'right', 'top']} style={{ flex: 1, backgroundColor }}>
+                        <View className="flex-1 bg-background">
+                            <RootApp />
+                        </View>
+                        <StatusBar
+                            backgroundColor={surfaceColor}
+                            translucent={false}
+                            style="auto"
+                        />
+                    </SafeAreaView>
+                </StoreProvider>
+            </AuthProvider>
+        </>
+    );
+}
+
+export default function App() {
     return (<GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardProvider>
             <SafeAreaProvider>
                 <HeroUINativeProvider>
-                    <ToastRegistrar />
-                    <AuthProvider>
-                        <StoreProvider>
-                            <SafeAreaView edges={['left', 'right', 'top']} style={{ flex: 1, backgroundColor }}>
-                                <View className="flex-1 bg-background">
-                                    <RootApp />
-                                </View>
-                                <StatusBar
-                                    backgroundColor={surfaceColor}
-                                    translucent={false}
-                                    style="auto"
-                                />
-                            </SafeAreaView>
-                        </StoreProvider>
-                    </AuthProvider>
+                    <AppContent />
                 </HeroUINativeProvider>
             </SafeAreaProvider>
         </KeyboardProvider>

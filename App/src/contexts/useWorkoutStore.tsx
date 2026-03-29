@@ -40,19 +40,24 @@ export const WorkoutStoreProvider: React.FC<{ children: React.ReactNode }> = ({ 
   
   const [isLoading, setIsLoading] = useState(false);
   const [refreshCount, setRefreshCount] = useState(0);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     return onReconnect(() => setRefreshCount((c) => c + 1));
   }, []);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setUserWorkouts(undefined);
       setUserWorkoutTemplates(undefined);
       setExercises(undefined);
       setSetStyles(undefined);
       setSetTypes(undefined);
+      setIsLoading(false);
       return;
     }
 
@@ -81,7 +86,7 @@ export const WorkoutStoreProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     })();
     return () => { active = false; };
-  }, [user, refreshCount]);
+  }, [authLoading, user, refreshCount]);
 
   const refreshUserWorkouts = useCallback(async () => {
     const workouts = await workoutService.getAllUserWorkouts();

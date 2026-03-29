@@ -22,7 +22,9 @@ interface BodyInfoProps {
     registerOnNext: (onNext: null | (() => void)) => void;
     defaultHeightUnit: "cm" | "ft" | undefined;
     defaultWeightUnit: "kg" | "lbs" | "st" | undefined;
-    initialData?: BodyInfoData;
+    initialData?: Partial<BodyInfoData>;
+    onDraftChange?: (data: Partial<BodyInfoData>) => void;
+    scrollable?: boolean;
 }
 
 function initPercentText(v?: number) {
@@ -37,6 +39,8 @@ export default function BodyInfo({
                                      defaultHeightUnit = "cm",
                                      defaultWeightUnit = "kg",
                                      initialData,
+                                     onDraftChange,
+                                     scrollable = true,
                                  }: BodyInfoProps) {
     const placeholderColor = useThemeColor("field-placeholder");
 
@@ -74,6 +78,17 @@ export default function BodyInfo({
     }, [height, weight, heightUnit, weightUnit, bodyFatPercentage, leanTissuePercentage, waterPercentage, boneMassPercentage]);
 
     useEffect(() => {
+        onDraftChange?.({
+            height,
+            heightUnit,
+            weight,
+            weightUnit,
+            bodyFatPercentage,
+            leanTissuePercentage,
+            waterPercentage,
+            boneMassPercentage,
+        });
+
         setNextEnabled(isValid);
 
         if (!isValid) {
@@ -95,14 +110,13 @@ export default function BodyInfo({
         });
 
         return () => registerOnNext(null);
-    }, [isValid, height, heightUnit, weight, weightUnit, bodyFatPercentage, leanTissuePercentage, waterPercentage, boneMassPercentage, onSubmit, setNextEnabled, registerOnNext]);
+    }, [isValid, height, heightUnit, weight, weightUnit, bodyFatPercentage, leanTissuePercentage, waterPercentage, boneMassPercentage, onDraftChange, onSubmit, setNextEnabled, registerOnNext]);
 
     const bfRef = useRef<TextInput>(null);
     const leanRef = useRef<TextInput>(null);
     const waterRef = useRef<TextInput>(null);
     const boneRef = useRef<TextInput>(null);
-    // TODO: Add keyboardAvoidingView
-    return (<ScrollView className="gap-4">
+    const content = (<>
         <HeightSelect height={height} setHeight={setHeight} heightUnit={heightUnit} setHeightUnit={setHeightUnit}/>
 
         <WeightSelect weight={weight} setWeight={setWeight} weightUnit={weightUnit} setWeightUnit={setWeightUnit}
@@ -197,5 +211,12 @@ export default function BodyInfo({
                 </TextField>
             </View>
         </View>
-    </ScrollView>);
+    </>);
+
+    // TODO: Add keyboardAvoidingView
+    if (!scrollable) {
+        return <View className="gap-4">{content}</View>;
+    }
+
+    return <ScrollView className="gap-4">{content}</ScrollView>;
 }

@@ -1,16 +1,16 @@
 % ==========================================
 % Tabulka: user_heart_rate_log
 % ==========================================
-\begin{table}[ht!] 
-\centering
-\begin{tabularx}{\textwidth}{|l|l|L|}
-\hline
-\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
-id & UUID & Unikátní identifikátor záznamu \\ \hline
-user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
-measured\_at & TIMESTAMP WITH TIME ZONE & Datum a čas měření tepové frekvence \\ \hline
-bpm & INTEGER & Počet tepů za minutu (Beats Per Minute) \\ \hline
-\end{tabularx}
-\caption{Tabulka \texttt{user\_heart\_rate\_log}}
-\label{tab:user_heart_rate_log}
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec} & \textbf{Datový typ}      & \textbf{Popis}                          \\ \hline
+        id               & UUID                     & Unikátní identifikátor záznamu          \\ \hline
+        user\_id         & TEXT                     & Unikátní identifikátor uživatele        \\ \hline
+        measured\_at     & TIMESTAMP WITH TIME ZONE & Datum a čas měření tepové frekvence     \\ \hline
+        bpm              & INTEGER                  & Počet tepů za minutu (Beats Per Minute) \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{user\_heart\_rate\_log}}
+    \label{tab:user_heart_rate_log}
 \end{table}

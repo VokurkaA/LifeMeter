@@ -1,16 +1,16 @@
 % ==========================================
 % Tabulka: user_meal
 % ==========================================
-\begin{table}[ht!] 
-\centering
-\begin{tabularx}{\textwidth}{|l|l|L|}
-\hline
-\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
-id & UUID & Unikátní identifikátor záznamu \\ \hline
-user\_id & TEXT & Unikátní identifikátor uživatele \\ \hline
-eaten\_at & TIMESTAMP WITH TIME ZONE & Datum a čas konzumace jídla \\ \hline
-name & TEXT & Název jídla (např. Snídaně, Oběd) \\ \hline
-\end{tabularx}
-\caption{Tabulka \texttt{user\_meal}}
-\label{tab:user_meal}
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec} & \textbf{Datový typ}      & \textbf{Popis}                    \\ \hline
+        id               & UUID                     & Unikátní identifikátor záznamu    \\ \hline
+        user\_id         & TEXT                     & Unikátní identifikátor uživatele  \\ \hline
+        eaten\_at        & TIMESTAMP WITH TIME ZONE & Datum a čas konzumace jídla       \\ \hline
+        name             & TEXT                     & Název jídla (např. Snídaně, Oběd) \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{user\_meal}}
+    \label{tab:user_meal}
 \end{table}

@@ -7,6 +7,7 @@ import { userFoodRouter } from "@/routes/user/user.food.route";
 import { userWorkoutRouter } from "@/routes/user/user.workout.route";
 import { userProfileRouter } from "@/routes/user/user.profile.route";
 import { userSchema } from "@/schemas/auth.schema";
+import { userSyncRouter } from "@/routes/user/user.sync.route";
 
 export const userRouter = new OpenAPIHono<{
   Variables: { user: AuthUser | null; session: AuthSession | null };
@@ -21,6 +22,8 @@ userRouter.route("/food", userFoodRouter);
 userRouter.route("/workout", userWorkoutRouter);
 
 userRouter.route("/data", userProfileRouter);
+
+userRouter.route("/sync", userSyncRouter);
 
 const ErrorSchema = z.object({
   error: z.string(),

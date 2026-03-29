@@ -11,6 +11,7 @@ import type {
   UpdateGoalInput, 
   UpdateProfileInput, 
   UserGoal, 
+  UserHeightLog,
   UserProfile, 
   UserWeightLog, 
   WeightUnit 
@@ -23,6 +24,7 @@ export interface UserStoreContextType {
   lengthUnits: LengthUnit[];
   weightUnits: WeightUnit[];
   latestWeight: UserWeightLog | undefined;
+  latestHeight: UserHeightLog | undefined;
   refreshProfile: () => Promise<void>;
   updateProfile: (data: UpdateProfileInput) => Promise<void>;
   updateGoals: (data: UpdateGoalInput) => Promise<void>;
@@ -37,37 +39,50 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [userProfile, setUserProfile] = useStorage.object<UserProfile>('userProfile');
   const [userGoals, setUserGoals] = useStorage.object<UserGoal>('userGoals');
   const [latestWeight, setLatestWeight] = useStorage.object<UserWeightLog>('latestWeight');
+  const [latestHeight, setLatestHeight] = useStorage.object<UserHeightLog>('latestHeight');
   const [activityLevels, setActivityLevels] = useStorage.array<ActivityLevel>('activityLevels');
   const [lengthUnits, setLengthUnits] = useStorage.array<LengthUnit>('lengthUnits');
   const [weightUnits, setWeightUnits] = useStorage.array<WeightUnit>('weightUnits');
 
   const [isLoading, setIsLoading] = useState(false);
   const [refreshCount, setRefreshCount] = useState(0);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     return onReconnect(() => setRefreshCount((c) => c + 1));
   }, []);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setUserProfile(undefined);
       setUserGoals(undefined);
       setLatestWeight(undefined);
+      setLatestHeight(undefined);
       setActivityLevels(undefined);
       setLengthUnits(undefined);
       setWeightUnits(undefined);
+      setIsLoading(false);
       return;
     }
 
     let active = true;
+    const shouldBlockWithoutProfile = !userProfile;
     (async () => {
       try {
-        if (!userProfile) setIsLoading(true);
-        const [profile, goals, weight, levels, lUnits, wUnits] = await Promise.all([
+        if (shouldBlockWithoutProfile) setIsLoading(true);
+        const latestHeightPromise = userProfileService.getLatestHeight().catch((error) => {
+          console.warn('Failed to fetch latest height', error);
+          return undefined;
+        });
+        const [profile, goals, weight, height, levels, lUnits, wUnits] = await Promise.all([
           userProfileService.getProfile(),
           userProfileService.getGoals(),
           userProfileService.getLatestWeight(),
+          latestHeightPromise,
           userProfileService.getActivityLevels(),
           userProfileService.getLengthUnits(),
           userProfileService.getWeightUnits(),
@@ -76,26 +91,34 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setUserProfile(profile);
           setUserGoals(goals);
           setLatestWeight(weight);
+          setLatestHeight(height);
           setActivityLevels(levels);
           setLengthUnits(lUnits);
           setWeightUnits(wUnits);
+          setIsLoading(false);
         }
       } catch (e) {
         console.error('Failed to fetch user data', e);
-      } finally {
-        if (active) setIsLoading(false);
+        if (active) {
+          setIsLoading(false);
+        }
       }
     })();
     return () => { active = false; };
-  }, [user, refreshCount]);
+  }, [authLoading, user, refreshCount]);
 
   const refreshProfile = useCallback(async () => {
+    const latestHeight = await userProfileService.getLatestHeight().catch((error) => {
+      console.warn('Failed to fetch latest height', error);
+      return undefined;
+    });
     const profile = await userProfileService.getProfile();
     const goals = await userProfileService.getGoals();
     const weight = await userProfileService.getLatestWeight();
     setUserProfile(profile);
     setUserGoals(goals);
     setLatestWeight(weight);
+    setLatestHeight(latestHeight);
   }, []);
 
   const updateProfile = useCallback(async (data: UpdateProfileInput) => {
@@ -114,7 +137,8 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const logHeight = useCallback(async (data: LogHeightInput) => {
-    await userProfileService.logHeight(data);
+    const log = await userProfileService.logHeight(data);
+    setLatestHeight(log);
   }, []);
 
   const value = useMemo(() => ({
@@ -124,13 +148,14 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     lengthUnits: lengthUnits ?? [],
     weightUnits: weightUnits ?? [],
     latestWeight: latestWeight ?? undefined,
+    latestHeight: latestHeight ?? undefined,
     refreshProfile,
     updateProfile,
     updateGoals,
     logWeight,
     logHeight,
     isLoading
-  }), [userProfile, userGoals, activityLevels, lengthUnits, weightUnits, latestWeight, refreshProfile, updateProfile, updateGoals, logWeight, logHeight, isLoading]);
+  }), [userProfile, userGoals, activityLevels, lengthUnits, weightUnits, latestWeight, latestHeight, refreshProfile, updateProfile, updateGoals, logWeight, logHeight, isLoading]);
 
   return <UserStoreContext.Provider value={value}>{children}</UserStoreContext.Provider>;
 };

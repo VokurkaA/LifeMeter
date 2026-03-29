@@ -11,14 +11,19 @@ import { View } from 'react-native';
 export default function NutritionScreen() {
     const { nutrients, micros, todaysMeals, foodDetails } = useDailyNutrition();
     const { goals } = useNutritionGoals();
-    const { createUserMeal, userMeals } = useNutritionStore();
+    const { createUserMeal, userMeals, editUserMeal, deleteUserMeal } = useNutritionStore();
 
     return (
         <MainLayout>
             <MacroOverview nutrients={nutrients} goals={goals} />
             <AddMeal createUserMeal={createUserMeal} userMeals={userMeals} />
             <MicrosOverview micros={micros} />
-            <MealOverview meals={todaysMeals} foodDetails={foodDetails} />
+            <MealOverview 
+                meals={todaysMeals} 
+                foodDetails={foodDetails} 
+                onEdit={editUserMeal}
+                onDelete={deleteUserMeal}
+            />
         </MainLayout>
     );
 }

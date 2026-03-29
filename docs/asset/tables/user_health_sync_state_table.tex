@@ -1,0 +1,19 @@
+% ==========================================
+% Tabulka: user_health_sync_state
+% ==========================================
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec}  & \textbf{Datový typ}      & \textbf{Popis}                                          \\ \hline
+        user\_id          & TEXT                     & Unikátní identifikátor uživatele                        \\ \hline
+        provider          & TEXT                     & Identifikátor zdravotního providera synchronizace       \\ \hline
+        sync\_state       & JSONB                    & Serializovaný stav poslední úspěšné synchronizace       \\ \hline
+        last\_success\_at & TIMESTAMP WITH TIME ZONE & Datum a čas posledního úspěšného běhu synchronizace     \\ \hline
+        created\_at       & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření záznamu                           \\ \hline
+        updated\_at       & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace záznamu                \\ \hline
+        owns\_target      & BOOLEAN                  & Indikátor, zda uživatel vlastní cílový účet u providera \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{user\_health\_sync\_state}}
+    \label{tab:user_health_sync_state}
+\end{table}

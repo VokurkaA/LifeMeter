@@ -17,12 +17,19 @@ interface BasicInfoProps {
     onSubmit: (data: BasicInfoData) => void;
     setNextEnabled: (enabled: boolean) => void;
     registerOnNext: (onNext: null | (() => void)) => void;
-    initialData?: BasicInfoData;
+    initialData?: Partial<BasicInfoData>;
+    onDraftChange?: (data: Partial<BasicInfoData>) => void;
 }
 
 type SelectOption = { label: string; value: string };
 
-export default function BasicInfo({ onSubmit, setNextEnabled, registerOnNext, initialData }: BasicInfoProps) {
+export default function BasicInfo({
+    onSubmit,
+    setNextEnabled,
+    registerOnNext,
+    initialData,
+    onDraftChange,
+}: BasicInfoProps) {
     const sexOptions: SelectOption[] = [{ label: 'Male', value: 'male' }, { label: 'Female', value: 'female' }];
     const unitOptions: SelectOption[] = [{
         label: 'Metric (m, kg)', value: 'metric'
@@ -63,6 +70,14 @@ export default function BasicInfo({ onSubmit, setNextEnabled, registerOnNext, in
     }, [sex, preferredUnit, lengthUnit, weightUnit, birthDate, isValidBirthDate]);
 
     useEffect(() => {
+        onDraftChange?.({
+            preferredUnit,
+            lengthUnit,
+            weightUnit,
+            sex,
+            birthDate,
+        });
+
         setNextEnabled(isValid);
 
         if (!isValid) {
@@ -77,7 +92,7 @@ export default function BasicInfo({ onSubmit, setNextEnabled, registerOnNext, in
         });
 
         return () => registerOnNext(null);
-    }, [isValid, preferredUnit, lengthUnit, weightUnit, sex, birthDate, onSubmit, setNextEnabled, registerOnNext,]);
+    }, [isValid, preferredUnit, lengthUnit, weightUnit, sex, birthDate, onDraftChange, onSubmit, setNextEnabled, registerOnNext,]);
 
     return (<View className="gap-4">
         <DateTimePicker

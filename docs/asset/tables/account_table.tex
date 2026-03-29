@@ -1,25 +1,25 @@
 % ==========================================
 % Tabulka: account
 % ==========================================
-\begin{table}[ht!] 
-\centering
-\begin{tabularx}{\textwidth}{|l|l|L|}
-\hline
-\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
-id & TEXT & Unikátní identifikátor záznamu \\ \hline
-accountId & TEXT & Identifikátor externího účtu \\ \hline
-providerId & TEXT & Identifikátor poskytovatele autentizace \\ \hline
-userId & TEXT & Unikátní identifikátor uživatele \\ \hline
-accessToken & TEXT & Přístupový token pro autentizaci \\ \hline
-refreshToken & TEXT & Obnovovací token pro autentizaci \\ \hline
-idToken & TEXT & Token identity \\ \hline
-accessTokenExpiresAt & TIMESTAMP WITH TIME ZONE & Datum a čas expirace přístupového tokenu \\ \hline
-refreshTokenExpiresAt & TIMESTAMP WITH TIME ZONE & Datum a čas expirace obnovovacího tokenu \\ \hline
-scope & TEXT & Rozsah oprávnění tokenu \\ \hline
-password & TEXT & Hash hesla uživatele \\ \hline
-createdAt & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření záznamu \\ \hline
-updatedAt & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace záznamu \\ \hline
-\end{tabularx}
-\caption{Tabulka \texttt{account}}
-\label{tab:account}
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec}      & \textbf{Datový typ}      & \textbf{Popis}                           \\ \hline
+        id                    & TEXT                     & Unikátní identifikátor záznamu           \\ \hline
+        accountId             & TEXT                     & Identifikátor externího účtu             \\ \hline
+        providerId            & TEXT                     & Identifikátor poskytovatele autentizace  \\ \hline
+        userId                & TEXT                     & Unikátní identifikátor uživatele         \\ \hline
+        accessToken           & TEXT                     & Přístupový token pro autentizaci         \\ \hline
+        refreshToken          & TEXT                     & Obnovovací token pro autentizaci         \\ \hline
+        idToken               & TEXT                     & Token identity                           \\ \hline
+        accessTokenExpiresAt  & TIMESTAMP WITH TIME ZONE & Datum a čas expirace přístupového tokenu \\ \hline
+        refreshTokenExpiresAt & TIMESTAMP WITH TIME ZONE & Datum a čas expirace obnovovacího tokenu \\ \hline
+        scope                 & TEXT                     & Rozsah oprávnění tokenu                  \\ \hline
+        password              & TEXT                     & Hash hesla uživatele                     \\ \hline
+        createdAt             & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření záznamu            \\ \hline
+        updatedAt             & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace záznamu \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{account}}
+    \label{tab:account}
 \end{table}

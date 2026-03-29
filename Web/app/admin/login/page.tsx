@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/heroui";
 import {
+  type ApiAvailability,
   checkAuthApiAvailability,
   getSessionFromApi,
   isAdminRole,
@@ -33,8 +34,27 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 export default async function AdminLoginPage() {
   const apiBaseUrl = tryGetApiBaseUrl();
   const publicApiBaseUrl = tryGetPublicApiBaseUrl();
+  let session = null;
+  let authApiAvailability: ApiAvailability | null = null;
 
-  const session = apiBaseUrl ? await getSessionFromApi() : null;
+  if (apiBaseUrl) {
+    authApiAvailability = await checkAuthApiAvailability();
+
+    if (authApiAvailability.ok) {
+      try {
+        session = await getSessionFromApi();
+      } catch (error) {
+        authApiAvailability = {
+          ok: false,
+          kind: "invalid-response",
+          message:
+            error instanceof Error
+              ? error.message
+              : "The auth API returned an unexpected response while loading the current session.",
+        };
+      }
+    }
+  }
 
   if (session && isAdminRole(session.user.role)) {
     redirect("/admin");
@@ -43,10 +63,6 @@ export default async function AdminLoginPage() {
   if (session && !isAdminRole(session.user.role)) {
     redirect("/admin/forbidden");
   }
-
-  const authApiAvailability = (apiBaseUrl && !session)
-    ? await checkAuthApiAvailability()
-    : (session ? { ok: true } : null);
 
   const canUseAuth = Boolean(apiBaseUrl && (session || authApiAvailability?.ok));
 

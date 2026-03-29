@@ -1,25 +1,25 @@
 % ==========================================
 % Tabulka: user
 % ==========================================
-\begin{table}[ht!] 
-\centering
-\begin{tabularx}{\textwidth}{|l|l|L|}
-\hline
-\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
-id & TEXT & Unikátní identifikátor záznamu \\ \hline
-name & TEXT & Celé jméno uživatele \\ \hline
-email & TEXT & E-mailová adresa uživatele \\ \hline
-emailVerified & BOOLEAN & Příznak, zda byl e-mail uživatele ověřen \\ \hline
-image & TEXT & Odkaz na profilový obrázek uživatele \\ \hline
-createdAt & TIMESTAMP WITH TIME ZONE & Datum a čas registrace uživatele \\ \hline
-updatedAt & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace profilu \\ \hline
-role & TEXT & Role uživatele v systému \\ \hline
-banned & BOOLEAN & Příznak, zda je uživatel zablokován \\ \hline
-banReason & TEXT & Důvod zablokování uživatele \\ \hline
-banExpires & TIMESTAMP WITH TIME ZONE & Datum a čas vypršení zablokování \\ \hline
-lastLoginMethod & TEXT & Poslední použitý způsob přihlášení \\ \hline
-normalizedEmail & TEXT & Normalizovaná verze e-mailové adresy \\ \hline
-\end{tabularx}
-\caption{Tabulka \texttt{user}}
-\label{tab:user}
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec} & \textbf{Datový typ}      & \textbf{Popis}                           \\ \hline
+        id               & TEXT                     & Unikátní identifikátor záznamu           \\ \hline
+        name             & TEXT                     & Celé jméno uživatele                     \\ \hline
+        email            & TEXT                     & E-mailová adresa uživatele               \\ \hline
+        emailVerified    & BOOLEAN                  & Příznak, zda byl e-mail uživatele ověřen \\ \hline
+        image            & TEXT                     & Odkaz na profilový obrázek uživatele     \\ \hline
+        createdAt        & TIMESTAMP WITH TIME ZONE & Datum a čas registrace uživatele         \\ \hline
+        updatedAt        & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace profilu \\ \hline
+        role             & TEXT                     & Role uživatele v systému                 \\ \hline
+        banned           & BOOLEAN                  & Příznak, zda je uživatel zablokován      \\ \hline
+        banReason        & TEXT                     & Důvod zablokování uživatele              \\ \hline
+        banExpires       & TIMESTAMP WITH TIME ZONE & Datum a čas vypršení zablokování         \\ \hline
+        lastLoginMethod  & TEXT                     & Poslední použitý způsob přihlášení       \\ \hline
+        normalizedEmail  & TEXT                     & Normalizovaná verze e-mailové adresy     \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{user}}
+    \label{tab:user}
 \end{table}

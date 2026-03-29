@@ -3,12 +3,14 @@ import { View } from "react-native";
 import { ChartCard } from "@/components/graphs/ChartsCard";
 import { LineChart } from "@/components/graphs/Chart";
 import { ChartDataPoint } from "@/components/graphs/useChartData";
+import { useAuth } from "@/contexts/useAuth";
 import { getWeight, WeightSample } from "@/lib/health/index";
-import { useStorage } from "@/lib/storage";
+import { useHealthSyncEnabled } from "@/lib/healthSyncStorage";
 import { useUserStore } from "@/contexts/useUserStore";
 
 export const WeightHomeChart = () => {
-  const [enableSync] = useStorage.boolean("enable-sync");
+  const { user } = useAuth();
+  const [enableSync] = useHealthSyncEnabled(user?.id ?? null);
   const { userGoals } = useUserStore();
   const [weights, setWeights] = useState<WeightSample[]>([]);
   const [isLoading, setIsLoading] = useState(false);

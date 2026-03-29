@@ -30,7 +30,7 @@ import {
 import {
   getAdminApiErrorMessage,
   getAdminUsers,
-  getSessionFromApi,
+  tryGetSessionFromApi,
 } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
 
@@ -54,10 +54,10 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
   if (params.limit) query.set("limit", params.limit);
   if (params.q) query.set("q", params.q);
 
-  const session = await getSessionFromApi();
+  const session = await tryGetSessionFromApi();
 
   if (!session) {
-    return null;
+    redirect("/admin/login");
   }
 
   let users;

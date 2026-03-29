@@ -1,4 +1,4 @@
-import { Platform, Linking, PermissionsAndroid } from "react-native";
+import { Platform, Linking } from "react-native";
 import { ok, err, type Result } from "./types";
 import { catchHealthError } from "./utils";
 
@@ -13,6 +13,24 @@ try {
 } catch {}
 
 export let permissionsRequested = false;
+
+const IOS_SYNC_READ_TYPES = [
+  "HKCategoryTypeIdentifierSleepAnalysis",
+  "HKQuantityTypeIdentifierBodyMass",
+  "HKQuantityTypeIdentifierHeight",
+  "HKQuantityTypeIdentifierHeartRate",
+  "HKCorrelationTypeIdentifierBloodPressure",
+  "HKQuantityTypeIdentifierBloodPressureSystolic",
+  "HKQuantityTypeIdentifierBloodPressureDiastolic",
+] as const;
+
+const ANDROID_SYNC_REQUIRED = [
+  { accessType: "read", recordType: "SleepSession" },
+  { accessType: "read", recordType: "Weight" },
+  { accessType: "read", recordType: "Height" },
+  { accessType: "read", recordType: "HeartRate" },
+  { accessType: "read", recordType: "BloodPressure" },
+] as const;
 
 export async function isHealthAvailable(): Promise<boolean> {
   if (Platform.OS === "ios") {
@@ -108,6 +126,10 @@ export async function requestHealthPermissions(): Promise<Result<void>> {
           "HKQuantityTypeIdentifierBodyMass",
           "HKQuantityTypeIdentifierHeight",
           "HKQuantityTypeIdentifierActiveEnergyBurned",
+          "HKQuantityTypeIdentifierHeartRate",
+          "HKCorrelationTypeIdentifierBloodPressure",
+          "HKQuantityTypeIdentifierBloodPressureSystolic",
+          "HKQuantityTypeIdentifierBloodPressureDiastolic",
         ],
       });
       permissionsRequested = true;
@@ -127,7 +149,16 @@ export async function requestHealthPermissions(): Promise<Result<void>> {
     { accessType: "read", recordType: "Weight" },
     { accessType: "read", recordType: "Height" },
     { accessType: "read", recordType: "TotalCaloriesBurned" },
+    { accessType: "read", recordType: "HeartRate" },
+    { accessType: "read", recordType: "BloodPressure" },
+    { accessType: "read", recordType: "ReadHealthDataHistory" },
   ];
+
+  // react-native-health-connect requests ReadHealthDataHistory correctly,
+  // but current versions do not include it in the granted-permissions result.
+  // Treat it as requested but not locally verifiable, otherwise we false-fail
+  // even after the user allows "Access past data" in Health Connect.
+  const nonVerifiableRecordTypes = new Set(["ReadHealthDataHistory"]);
 
   try {
     const granted: Array<{ accessType: string; recordType: string }> =
@@ -139,24 +170,60 @@ export async function requestHealthPermissions(): Promise<Result<void>> {
       (granted ?? []).map((p: any) => `${p.accessType}:${p.recordType}`),
     );
     const denied = required
-      .filter((p) => !grantedSet.has(`${p.accessType}:${p.recordType}`))
+      .filter(
+        (p) =>
+          !nonVerifiableRecordTypes.has(p.recordType) &&
+          !grantedSet.has(`${p.accessType}:${p.recordType}`),
+      )
       .map((p) => p.recordType);
 
     if (denied.length > 0) return err({ kind: "PERMISSIONS_DENIED", denied });
-
-    const historyGranted = await PermissionsAndroid.request(
-      "android.permission.health.READ_HEALTH_DATA_HISTORY" as any,
-    );
-
-    if (historyGranted !== PermissionsAndroid.RESULTS.GRANTED) {
-      return err({
-        kind: "PERMISSIONS_DENIED",
-        denied: ["HealthDataHistory"],
-      });
-    }
   } catch (e) {
     return catchHealthError(e);
   }
 
   return ok(undefined);
+}
+
+export async function hasHealthSyncPermissions(): Promise<boolean> {
+  if (Platform.OS === "ios") {
+    if (!healthkit?.getRequestStatusForAuthorization) return false;
+
+    try {
+      const status = await healthkit.getRequestStatusForAuthorization({
+        toRead: [...IOS_SYNC_READ_TYPES],
+      });
+
+      return (
+        status === healthkit.AuthorizationRequestStatus?.unnecessary ||
+        status === 2
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  if (Platform.OS === "android") {
+    const initResult = await initAndroid();
+    if (!initResult.ok) return false;
+
+    try {
+      const granted: Array<{ accessType: string; recordType: string }> =
+        await healthConnect.getGrantedPermissions();
+      const grantedSet = new Set(
+        (granted ?? []).map((p) => `${p.accessType}:${p.recordType}`),
+      );
+
+      // react-native-health-connect does not currently return
+      // ReadHealthDataHistory in getGrantedPermissions(), so launch-time checks
+      // only verify the record permissions required for incremental sync.
+      return ANDROID_SYNC_REQUIRED.every((permission) =>
+        grantedSet.has(`${permission.accessType}:${permission.recordType}`),
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
 }

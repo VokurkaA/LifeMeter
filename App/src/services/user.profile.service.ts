@@ -13,13 +13,15 @@ import {
   WeightUnit,
 } from '@/types/user.profile.types';
 
-const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000') + '/api/user/data';
+const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://lifemeter.fit') + '/api/user/data';
+
+type ServerNumeric = number | string;
 
 interface ServerUserProfile {
   user_id: string;
   date_of_birth: string | null;
   sex: 'M' | 'F' | null;
-  current_activity_factor: number;
+  current_activity_factor: ServerNumeric;
   current_bmr_calories: number | null;
   default_weight_unit_id: number | null;
   default_length_unit_id: number | null;
@@ -34,7 +36,7 @@ interface ServerUserGoal {
   daily_protein_goal_grams: number | null;
   daily_fat_goal_grams: number | null;
   daily_carbs_goal_grams: number | null;
-  target_weight_grams: number | null;
+  target_weight_grams: ServerNumeric | null;
   target_weight_date: string | null;
 }
 
@@ -42,18 +44,31 @@ interface ServerWeightLog {
   id: string;
   user_id: string;
   measured_at: string;
-  weight_grams: number;
-  body_fat_percentage: number | null;
-  lean_tissue_percentage: number | null;
-  water_percentage: number | null;
-  bone_mass_percentage: number | null;
+  weight_grams: ServerNumeric;
+  body_fat_percentage: ServerNumeric | null;
+  lean_tissue_percentage: ServerNumeric | null;
+  water_percentage: ServerNumeric | null;
+  bone_mass_percentage: ServerNumeric | null;
 }
+
+interface ServerHeightLog {
+  id: string;
+  user_id: string;
+  measured_at: string;
+  height_cm: ServerNumeric;
+}
+
+const toNumber = (value: ServerNumeric): number =>
+  typeof value === 'number' ? value : Number(value);
+
+const toNullableNumber = (value: ServerNumeric | null): number | null =>
+  value == null ? null : toNumber(value);
 
 const mapProfileToClient = (server: ServerUserProfile): UserProfile => ({
   userId: server.user_id,
   dateOfBirth: server.date_of_birth,
   sex: server.sex,
-  currentActivityFactor: server.current_activity_factor,
+  currentActivityFactor: toNumber(server.current_activity_factor),
   currentBmrCalories: server.current_bmr_calories,
   defaultWeightUnitId: server.default_weight_unit_id,
   defaultLengthUnitId: server.default_length_unit_id,
@@ -68,7 +83,7 @@ const mapGoalToClient = (server: ServerUserGoal): UserGoal => ({
   dailyProteinGoalGrams: server.daily_protein_goal_grams,
   dailyFatGoalGrams: server.daily_fat_goal_grams,
   dailyCarbsGoalGrams: server.daily_carbs_goal_grams,
-  targetWeightGrams: server.target_weight_grams,
+  targetWeightGrams: toNullableNumber(server.target_weight_grams),
   targetWeightDate: server.target_weight_date,
 });
 
@@ -76,18 +91,18 @@ const mapWeightLogToClient = (server: ServerWeightLog): UserWeightLog => ({
   id: server.id,
   userId: server.user_id,
   measuredAt: server.measured_at,
-  weightGrams: server.weight_grams,
-  bodyFatPercentage: server.body_fat_percentage,
-  leanTissuePercentage: server.lean_tissue_percentage,
-  waterPercentage: server.water_percentage,
-  boneMassPercentage: server.bone_mass_percentage,
+  weightGrams: toNumber(server.weight_grams),
+  bodyFatPercentage: toNullableNumber(server.body_fat_percentage),
+  leanTissuePercentage: toNullableNumber(server.lean_tissue_percentage),
+  waterPercentage: toNullableNumber(server.water_percentage),
+  boneMassPercentage: toNullableNumber(server.bone_mass_percentage),
 });
 
-const mapHeightLogToClient = (server: any): UserHeightLog => ({
+const mapHeightLogToClient = (server: ServerHeightLog): UserHeightLog => ({
   id: server.id,
   userId: server.user_id,
   measuredAt: server.measured_at,
-  heightCm: server.height_cm,
+  heightCm: toNumber(server.height_cm),
 });
 
 export const userProfileService = {
@@ -99,8 +114,8 @@ export const userProfileService = {
       id: item.id,
       name: item.name,
       description: item.description,
-      minFactor: item.min_factor,
-      maxFactor: item.max_factor,
+      minFactor: toNumber(item.min_factor),
+      maxFactor: toNumber(item.max_factor),
     }));
   },
 
@@ -111,7 +126,7 @@ export const userProfileService = {
     return data.map((item) => ({
       id: item.id,
       name: item.name,
-      meterConversionFactor: item.meter_conversion_factor,
+      meterConversionFactor: toNumber(item.meter_conversion_factor),
     }));
   },
 
@@ -122,7 +137,7 @@ export const userProfileService = {
     return data.map((item) => ({
       id: item.id,
       name: item.name,
-      gramConversionFactor: item.gram_conversion_factor,
+      gramConversionFactor: toNumber(item.gram_conversion_factor),
     }));
   },
 
@@ -203,13 +218,21 @@ export const userProfileService = {
     return mapWeightLogToClient(response);
   },
 
+  getLatestHeight: async (): Promise<UserHeightLog | undefined> => {
+    const response = await request<ServerHeightLog | null>(`${BASE_URL}/log/height/latest`, {
+      method: 'GET',
+    });
+    if (!response) return undefined;
+    return mapHeightLogToClient(response);
+  },
+
   logHeight: async (data: LogHeightInput): Promise<UserHeightLog> => {
     const payload = {
       measured_at: data.measuredAt,
       height_cm: data.heightCm,
     };
 
-    const response = await request<any>(`${BASE_URL}/log/height`, {
+    const response = await request<ServerHeightLog>(`${BASE_URL}/log/height`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

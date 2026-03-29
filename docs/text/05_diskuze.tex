@@ -10,9 +10,11 @@ platformě iOS díky sdílené kódové základně v~jazyce TypeScript. Integrac
 s~jinou aplikací, požadovaná v~zadání v~jednotném čísle, byla realizována
 souběžně pro obě platformy: prostřednictvím rozhraní Health Connect na
 Androidu a~Apple HealthKit na iOS. Serverová část, jejíž existence ze zadání
-přímo nevyplývala, byla vyvinuta jako plnohodnotné REST API s~38 endpointy,
-dokumentací generovanou ve standardu OpenAPI a~produkčním nasazením
-na cloudové infrastruktuře s~automatickým průběžným nasazením.
+přímo nevyplývala, byla vyvinuta jako plnohodnotný systém zahrnující REST API
+s~52 explicitně definovanými endpointy, veřejnou webovou prezentaci v~Next.js,
+administrátorskou konzoli pouze pro čtení, dokumentaci generovanou ve standardu
+OpenAPI a~produkční nasazení na cloudové infrastruktuře s~automatickým
+průběžným nasazením.
 
 % ------------------------------------------------------------------
 \section{Zdůvodnění volby technologií}
@@ -148,9 +150,10 @@ bez nutnosti otevírat aplikaci.
 Rozšíření modulu spánku o~automatické sledování prostřednictvím senzoru
 akcelerometru zařízení jako alternativu k~importu z~chytrých hodinek.
 
-Integrace s~platebními nebo předplatitelskými modely by v~případě
-komerčního nasazení umožnila financování provozních nákladů serverové
-infrastruktury, které v~současné verzi nese autor projektu.
+Integrace s dalšími aplikacemi pro sledování zdraví a dalších fyzických 
+metrik, například fitbit, cronometer, nebo garmin, by umožnila uživatelům 
+centralizovat data z různých zdrojů a získat komplexnější přehled o svém 
+zdraví a kondici.
 
 Rozšíření na platformu Wear OS nebo watchOS by umožnilo zaznamenávat
 trénink přímo z~chytrých hodinek bez nutnosti interakce s~telefonem.

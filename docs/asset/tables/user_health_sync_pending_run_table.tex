@@ -1,0 +1,20 @@
+% ==========================================
+% Tabulka: user_health_sync_pending_run
+% ==========================================
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec}       & \textbf{Datový typ}      & \textbf{Popis}                                                \\ \hline
+        user\_id               & TEXT                     & Unikátní identifikátor uživatele                              \\ \hline
+        provider               & TEXT                     & Identifikátor zdravotního providera synchronizace             \\ \hline
+        sync\_run\_id          & TEXT                     & Identifikátor rozpracovaného synchronizačního běhu            \\ \hline
+        expected\_batch\_index & INTEGER                  & Index další očekávané dávky při pokračování běhu              \\ \hline
+        current\_sync\_state   & JSONB                    & Uložený stav synchronizace před spuštěním dávkového běhu      \\ \hline
+        next\_sync\_state      & JSONB                    & Stav synchronizace připravený ke commitnutí po dokončení běhu \\ \hline
+        created\_at            & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření záznamu                                 \\ \hline
+        updated\_at            & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace záznamu                      \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{user\_health\_sync\_pending\_run}}
+    \label{tab:user_health_sync_pending_run}
+\end{table}

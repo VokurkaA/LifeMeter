@@ -10,9 +10,11 @@
 \addcontentsline{toc}{chapter}{Výsledky}
 
 Výsledkem projektu je funkční mobilní aplikace LifeMeter
-dostupná na operačních systémech Android (verze 10 a vyšší), 
-doplněná o~serverový backend nasazený na adrese
-\texttt{lifemeter.fit}.
+dostupná na operačních systémech Android (verze 10 a vyšší),
+doplněná o~serverový backend a~webovou vrstvu nasazené na doméně
+\texttt{lifemeter.fit}. Webová část poskytuje veřejnou prezentaci,
+verzované centrum stahování mobilních buildů a~administrátorskou
+konzoli pouze pro čtení.
 
 % ------------------------------------------------------------------
 \section{Splnění požadavků zadání}
@@ -108,6 +110,13 @@ profilu a~cílů, konfiguraci oznámení, přepínač offline režimu,
 propojení s~platformou zdravotních dat a~přepínač světlého
 a~tmavého motivu.
 
+Mimo samotnou mobilní aplikaci byla implementována také \textbf{veřejná
+webová vrstva}, která prezentuje produkt, zpřístupňuje aktuální i~
+archivní mobilní buildy a~sjednocuje distribuční odkazy. Na stejné
+doméně běží rovněž \textbf{administrátorská konzole pouze pro čtení},
+určená pro kontrolu systémového přehledu, logů a~detailů uživatelských
+účtů.
+
 % ------------------------------------------------------------------
 \section{Technické parametry}
 % ------------------------------------------------------------------
@@ -127,11 +136,15 @@ a~tmavého motivu.
       & 10 (4 hlavní záložky, onboarding, aktivní trénink,
         sestavení šablony, seznam spánku, přihlášení, registrace) \\
     \hline
+    Počet webových rout
+      & 8 (landing page, download centrum, admin login,
+        forbidden, dashboard, logy, uživatelé, detail uživatele) \\
+    \hline
     Počet REST API endpointů
-      & 38 \\
+      & 52 explicitně definovaných + \texttt{/api/auth/*} \\
     \hline
     Počet databázových tabulek
-      & 13 \\
+      & 37 dokumentovaných tabulek (33 aplikačních + 4 autentizační Better Auth) \\
     \hline
     Počet potravin v databázi
       & přes 1~000~000 (zdroj USDA FoodData Central, CC0~1.0) \\
@@ -144,10 +157,12 @@ a~tmavého motivu.
     \hline
     Prostředí nasazení
       & Oracle Cloud Infrastructure (ARM),
+        Docker Compose (\texttt{db}, \texttt{api}, \texttt{web}),
         Caddy reverzní proxy, TLS \\
     \hline
     Průběžné nasazení
-      & GitHub Actions (spouštěno při commitu do větve \texttt{main}) \\
+      & GitHub Actions (\texttt{deploy.yml} pro stack,
+        \texttt{app-apk.yml} pro vydání APK) \\
     \hline
     Zdravotní integrace
       & Health Connect (Android), Apple HealthKit (iOS) \\
@@ -170,16 +185,16 @@ tmavý motiv.
   \centering
   \begin{minipage}{0.46\textwidth}
     \centering
-    % \includegraphics[width=\textwidth]{asset/img/screens/onboarding.png}
-    \Screenshot{onboarding.png}
+    \includegraphics[width=\textwidth]{asset/img/screens/onboarding.png}
+    % \Screenshot{onboarding.png}
     \caption{Uvítací obrazovka onboardingu}
-    \label{fig:screen-onboarding}
+    \label{fi g:screen-onboarding}
   \end{minipage}
   \hfill
   \begin{minipage}{0.46\textwidth}
     \centering
-    % \includegraphics[width=\textwidth]{asset/img/screens/home.png}
-    \Screenshot{home.png}
+    \includegraphics[width=\textwidth]{asset/img/screens/home.png}
+    % \Screenshot{home.png}
     \caption{Domovská obrazovka -- 7denní přehled}
     \label{fig:screen-home}
   \end{minipage}
@@ -189,16 +204,16 @@ tmavý motiv.
   \centering
   \begin{minipage}{0.46\textwidth}
     \centering
-    % \includegraphics[width=\textwidth]{asset/img/screens/nutrition.png}
-    \Screenshot{nutrition.png}
+    \includegraphics[width=\textwidth]{asset/img/screens/nutrition.png}
+    % \Screenshot{nutrition.png}
     \caption{Modul výživy -- denní makra a~přehled jídel}
     \label{fig:screen-nutrition}
   \end{minipage}
   \hfill
   \begin{minipage}{0.46\textwidth}
     \centering
-    % \includegraphics[width=\textwidth]{asset/img/screens/food-search.png}
-    \Screenshot{food-search.png}
+    \includegraphics[width=\textwidth]{asset/img/screens/food-search.png}
+    % \Screenshot{food-search.png}
     \caption{Vyhledávání potravin a~skenování čárového kódu}
     \label{fig:screen-food-search}
   \end{minipage}
@@ -208,17 +223,17 @@ tmavý motiv.
   \centering
   \begin{minipage}{0.46\textwidth}
     \centering
-    % \includegraphics[width=\textwidth]{asset/img/screens/sleep.png}
-    \Screenshot{sleep.png}
+    \includegraphics[width=\textwidth]{asset/img/screens/sleep.png}
+    % \Screenshot{sleep.png}
     \caption{Modul spánku -- přehled a~záznam}
     \label{fig:screen-sleep}
   \end{minipage}
   \hfill
   \begin{minipage}{0.46\textwidth}
     \centering
-    % \includegraphics[width=\textwidth]{asset/img/screens/training.png}
-    \Screenshot{training.png}
-    \caption{Modul tréninku -- aktivní trénink se sadami}
+    \includegraphics[width=\textwidth]{asset/img/screens/training.png}
+    % \Screenshot{training.png}
+    \caption{Modul tréninku -- aktivní trénink se sériemi}
     \label{fig:screen-training}
   \end{minipage}
 \end{figure}
@@ -227,16 +242,16 @@ tmavý motiv.
   \centering
   \begin{minipage}{0.46\textwidth}
     \centering
-    % \includegraphics[width=\textwidth]{asset/img/screens/template-builder.png}
-    \Screenshot{template-builder.png}
+    \includegraphics[width=\textwidth]{asset/img/screens/template-builder.png}
+    % \Screenshot{template-builder.png}
     \caption{Sestavení tréninkové šablony}
     \label{fig:screen-template}
   \end{minipage}
   \hfill
   \begin{minipage}{0.46\textwidth}
     \centering
-    % \includegraphics[width=\textwidth]{asset/img/screens/settings.png}
-    \Screenshot{settings.png}
+    \includegraphics[width=\textwidth]{asset/img/screens/settings.png}
+    % \Screenshot{settings.png}
     \caption{Nastavení -- notifikace a~zdravotní integrace}
     \label{fig:screen-settings}
   \end{minipage}
@@ -247,7 +262,7 @@ tmavý motiv.
 % ------------------------------------------------------------------
 
 Aplikace byla průběžně testována ručně na fyzickém zařízení se systémem
-Android~14 (Samsung Galaxy S23). Testování se zaměřilo na správnost
+Android~16 (Google Pixel 8). Testování se zaměřilo na správnost
 ukládání a~zobrazování dat ve všech třech sledovaných doménách
 (výživa, spánek, trénink), funkčnost offline fronty při vypnutém
 datovém připojení, správné odeslání zařazených požadavků po jeho

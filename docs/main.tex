@@ -11,7 +11,7 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
-\usepackage{url}
+\usepackage{xurl}
 \usepackage{geometry}
 \usepackage[patch=none]{microtype}
 \emergencystretch=3em
@@ -107,9 +107,9 @@
 \include{text/06_zaver}
 
 \addcontentsline{toc}{chapter}{Literatura}
-{\sloppy\printbibliography[title=Literatura]}
+\printbibliography[title=Literatura]
 
-\addcontentsline{toc}{chapter}{\listfigurename}
+\addcontentsline{toc}{chapter}{\listfigurename} 
 \listoffigures
 
 \addcontentsline{toc}{chapter}{\listtablename}
@@ -120,20 +120,16 @@
 \addcontentsline{toc}{chapter}{Seznam příloh}
 
 \addtocontents{toc}{\protect\vspace{1ex}}
-\addtocontents{toc}{\noindent\hspace{1.5em}A: Diagramy\par}
+\addtocontents{toc}{\noindent\hspace{1.5em}A: API dokumentace\par}
 \addtocontents{toc}{\noindent\hspace{1.5em}B: Tabulky\par}
-\addtocontents{toc}{\noindent\hspace{1.5em}C: Schémata\par}
-\addtocontents{toc}{\noindent\hspace{1.5em}D: API dokumentace\par}
-\addtocontents{toc}{\noindent\hspace{1.5em}E: Instalační návod\par}
+
 
 \begin{itemize}
-  \item[\textbf{A}] Diagramy
-  % \item[\textbf{B}] Tabulky
-  \include{prilohy/tabulky}
-  \item[\textbf{C}] Schémata
-  \item[\textbf{D}] API dokumentace
-  \item[\textbf{E}] Instalační návod
+  \item[\textbf{A}] API dokumentace
+  \item[\textbf{B}] Tabulky
 \end{itemize}
 
+\includepdf[pages=-]{asset/pdf/api_docs.pdf}
+\include*{prilohy/tabulky}
 
 \end{document}

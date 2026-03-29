@@ -8,14 +8,18 @@ import DateTimePicker from "@/components/DateTimePicker";
 import { Separator, TextField, Input, Label, useThemeColor } from "heroui-native";
 import { X } from "lucide-react-native";
 import MacroSlider from "@/components/MacroSlider";
-import mifflinStJeor from "@/lib/bmr";
+import {
+    calculateDailyCalorieTarget,
+    calculateMacroGoals,
+    deriveMacroPercentages,
+} from "@/lib/calorieTargets";
 import { formatDate, formatTime } from "@/lib/dateTime";
 
 export interface ObjectiveData {
     goalWeight?: number;
     goalWeightUnit?: BasicInfoData["weightUnit"];
     targetDate?: Date | undefined;
-    calculatedBmr?: number;
+    dailyCalorieTarget?: number;
     goalSteps?: number;
     goalBedtime?: Date | undefined;
     goalWakeUpTime?: Date | undefined;
@@ -29,9 +33,11 @@ interface ObjectivesProps {
     setNextEnabled: (enabled: boolean) => void;
     registerOnNext: (onNext: null | (() => void)) => void;
     initialData?: ObjectiveData;
-    basicInfoData: BasicInfoData;
-    bodyInfoData: BodyInfoData;
-    lifeStyleData: LifestyleData;
+    basicInfoData?: Partial<BasicInfoData>;
+    bodyInfoData?: Partial<BodyInfoData>;
+    lifeStyleData?: Partial<LifestyleData>;
+    onDraftChange?: (data: Partial<ObjectiveData>) => void;
+    scrollable?: boolean;
 }
 
 export default function Objectives({
@@ -41,13 +47,17 @@ export default function Objectives({
     initialData,
     basicInfoData,
     bodyInfoData,
-    lifeStyleData
+    lifeStyleData,
+    onDraftChange,
+    scrollable = true,
 }: ObjectivesProps) {
     const mutedColor = useThemeColor("muted");
     const placeholderColor = useThemeColor("field-placeholder");
 
     const [goalWeight, setGoalWeight] = useState<ObjectiveData["goalWeight"] | undefined>(initialData?.goalWeight);
-    const [weightUnit, setWeightUnit] = useState<BasicInfoData["weightUnit"]>(basicInfoData.weightUnit);
+    const [weightUnit, setWeightUnit] = useState<BasicInfoData["weightUnit"]>(
+        initialData?.goalWeightUnit ?? basicInfoData?.weightUnit ?? "kg"
+    );
     const [targetDate, setTargetDate] = useState<ObjectiveData["targetDate"] | undefined>(initialData?.targetDate);
 
     const [goalSteps, setGoalSteps] = useState<ObjectiveData["goalSteps"] | undefined>(initialData?.goalSteps);
@@ -55,99 +65,112 @@ export default function Objectives({
     const [goalBedtime, setGoalBedtime] = useState<ObjectiveData["goalBedtime"] | undefined>(initialData?.goalBedtime);
     const [goalWakeUpTime, setGoalWakeUpTime] = useState<ObjectiveData["goalWakeUpTime"] | undefined>(initialData?.goalWakeUpTime);
 
-    const [proteinPercentage, setProteinPercentage] = useState(() => {
-        switch (lifeStyleData.activityLevel.id) {
-            case 1:
-                return 20;
-            case 2:
-                return 25;
-            case 3:
-                return 30;
-            case 4:
-                return 35;
-            case 5:
-                return 40;
-            default:
-                return 30;
-        }
+    const initialCalculation = calculateDailyCalorieTarget({
+        sex: basicInfoData?.sex,
+        birthDate: basicInfoData?.birthDate,
+        weight: bodyInfoData?.weight,
+        weightUnit: bodyInfoData?.weightUnit,
+        height: bodyInfoData?.height,
+        heightUnit: bodyInfoData?.heightUnit,
+        activityFactor: (() => {
+            const min = Number(lifeStyleData?.activityLevel?.minFactor);
+            const max = Number(lifeStyleData?.activityLevel?.maxFactor);
+            if (!Number.isFinite(min) || !Number.isFinite(max)) return undefined;
+            return (min + max) / 2;
+        })(),
+        goalWeight: initialData?.goalWeight,
+        goalWeightUnit: initialData?.goalWeightUnit ?? basicInfoData?.weightUnit,
+        targetDate: initialData?.targetDate,
     });
 
-    const [fatPercentage, setFatPercentage] = useState(25);
-    const [carbsPercentage, setCarbsPercentage] = useState(100 - proteinPercentage - 25);
+    const initialMacroPercentages = deriveMacroPercentages({
+        activityLevelId: lifeStyleData?.activityLevel?.id,
+        dailyCalorieTarget: initialData?.dailyCalorieTarget ?? initialCalculation.dailyCalorieTarget,
+        dailyProteinGoalGrams: initialData?.dailyProteinGoalGrams,
+        dailyFatGoalGrams: initialData?.dailyFatGoalGrams,
+        dailyCarbsGoalGrams: initialData?.dailyCarbsGoalGrams,
+    });
 
-    const weightKg = useMemo(() => {
-        switch (bodyInfoData.weightUnit) {
-            case 'lbs':
-                return bodyInfoData.weight * 0.453592;
-            case 'st':
-                return bodyInfoData.weight * 6.35029;
-            default:
-                return bodyInfoData.weight;
-        }
-    }, [bodyInfoData.weight, basicInfoData.weightUnit]);
-    const heightCm = useMemo(() => {
-        switch (bodyInfoData.heightUnit) {
-            case 'ft':
-                return bodyInfoData.height * 30.48;
-            default:
-                return bodyInfoData.height;
-        }
-    }, [bodyInfoData.height, basicInfoData.lengthUnit]);
-    const tdee = useMemo(() => {
-        const bmr = mifflinStJeor(basicInfoData.sex, weightKg, heightCm, new Date().getFullYear() - basicInfoData.birthDate.getFullYear());
-        const min = Number(lifeStyleData.activityLevel.minFactor);
-        const max = Number(lifeStyleData.activityLevel.maxFactor);
-        const factor = (min + max) / 2;
+    const [proteinPercentage, setProteinPercentage] = useState(initialMacroPercentages.proteinPercentage);
 
-        if (!Number.isFinite(bmr) || !Number.isFinite(factor)) return NaN;
-        return Math.round(bmr * factor);
-    }, [basicInfoData.sex, bodyInfoData.weight, bodyInfoData.height, basicInfoData.birthDate, lifeStyleData.activityLevel]);
+    const [fatPercentage, setFatPercentage] = useState(initialMacroPercentages.fatPercentage);
+    const [carbsPercentage, setCarbsPercentage] = useState(initialMacroPercentages.carbsPercentage);
 
-    const dailyCaloriesToReachGoal = useMemo(() => {
-        if (!goalWeight || !targetDate) return tdee;
+    const activityFactor = useMemo(() => {
+        const min = Number(lifeStyleData?.activityLevel?.minFactor);
+        const max = Number(lifeStyleData?.activityLevel?.maxFactor);
+        if (!Number.isFinite(min) || !Number.isFinite(max)) return undefined;
+        return (min + max) / 2;
+    }, [lifeStyleData?.activityLevel?.maxFactor, lifeStyleData?.activityLevel?.minFactor]);
 
-        let goalWeightKg = goalWeight;
-        switch (weightUnit) {
-            case 'lbs':
-                goalWeightKg = goalWeight * 0.453592;
-                break;
-            case 'st':
-                goalWeightKg = goalWeight * 6.35029;
-                break;
-        }
+    const calorieTargets = useMemo(() => calculateDailyCalorieTarget({
+        sex: basicInfoData?.sex,
+        birthDate: basicInfoData?.birthDate,
+        weight: bodyInfoData?.weight,
+        weightUnit: bodyInfoData?.weightUnit,
+        height: bodyInfoData?.height,
+        heightUnit: bodyInfoData?.heightUnit,
+        activityFactor,
+        goalWeight,
+        goalWeightUnit: weightUnit,
+        targetDate,
+    }), [
+        activityFactor,
+        basicInfoData?.birthDate,
+        basicInfoData?.sex,
+        bodyInfoData?.height,
+        bodyInfoData?.heightUnit,
+        bodyInfoData?.weight,
+        bodyInfoData?.weightUnit,
+        goalWeight,
+        targetDate,
+        weightUnit,
+    ]);
 
-        let currentWeightKg = bodyInfoData.weight;
-        switch (basicInfoData.weightUnit) {
-            case 'lbs':
-                currentWeightKg = bodyInfoData.weight * 0.453592;
-                break;
-            case 'st':
-                currentWeightKg = bodyInfoData.weight * 6.35029;
-                break;
-        }
+    const dailyCalorieTarget = calorieTargets.dailyCalorieTarget;
+    const macroGoals = useMemo(() => calculateMacroGoals(dailyCalorieTarget, {
+        proteinPercentage,
+        fatPercentage,
+        carbsPercentage,
+    }), [dailyCalorieTarget, proteinPercentage, fatPercentage, carbsPercentage]);
 
-        const today = new Date();
-        const days = Math.max(1, Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+    const isGoalPairValid =
+        (goalWeight !== undefined && targetDate !== undefined) ||
+        (goalWeight === undefined && targetDate === undefined);
+    const hasValidCalorieTarget =
+        dailyCalorieTarget !== null &&
+        Number.isFinite(dailyCalorieTarget) &&
+        dailyCalorieTarget > 0 &&
+        dailyCalorieTarget < 20000;
+    const isStepGoalValid = goalSteps === undefined || (goalSteps > 0 && goalSteps < 50000);
+    const isValid = isGoalPairValid && isStepGoalValid && hasValidCalorieTarget;
 
-        const weightChangeKg = goalWeightKg - currentWeightKg;
-        const totalCaloriesChange = weightChangeKg * 7700;
-        const dailyCalorieChange = totalCaloriesChange / days;
-
-        const age = today.getFullYear() - basicInfoData.birthDate.getFullYear();
-        const bmr = mifflinStJeor(basicInfoData.sex, currentWeightKg, basicInfoData.lengthUnit === 'ft' ? bodyInfoData.height * 30.48 : bodyInfoData.height, age);
-
-        const min = Number(lifeStyleData.activityLevel.minFactor);
-        const max = Number(lifeStyleData.activityLevel.maxFactor);
-        const activityFactor = (min + max) / 2;
-
-        const calculatedTdee = bmr * activityFactor;
-
-        return Math.round(calculatedTdee + dailyCalorieChange);
-    }, [goalWeight, targetDate, tdee, bodyInfoData.weight, basicInfoData.weightUnit, basicInfoData.sex, basicInfoData.lengthUnit, bodyInfoData.height, basicInfoData.birthDate, lifeStyleData.activityLevel]);
-
-    const isValid = (((goalWeight !== undefined && targetDate !== undefined && dailyCaloriesToReachGoal < 20000 && dailyCaloriesToReachGoal > 0) || (goalWeight === undefined && targetDate === undefined))) && ((goalSteps === undefined || (goalSteps > 0 && goalSteps < 50000)));
+    const draft = useMemo<ObjectiveData>(() => ({
+        goalWeight,
+        goalWeightUnit: weightUnit,
+        targetDate,
+        dailyCalorieTarget: dailyCalorieTarget ?? undefined,
+        goalSteps,
+        goalBedtime,
+        goalWakeUpTime,
+        dailyProteinGoalGrams: macroGoals.dailyProteinGoalGrams,
+        dailyFatGoalGrams: macroGoals.dailyFatGoalGrams,
+        dailyCarbsGoalGrams: macroGoals.dailyCarbsGoalGrams,
+    }), [
+        dailyCalorieTarget,
+        goalBedtime,
+        goalSteps,
+        goalWakeUpTime,
+        goalWeight,
+        macroGoals.dailyCarbsGoalGrams,
+        macroGoals.dailyFatGoalGrams,
+        macroGoals.dailyProteinGoalGrams,
+        targetDate,
+        weightUnit,
+    ]);
 
     useEffect(() => {
+        onDraftChange?.(draft);
         setNextEnabled(isValid);
 
         if (!isValid) {
@@ -156,26 +179,13 @@ export default function Objectives({
         }
 
         registerOnNext(() => {
-            onSubmit({
-                goalWeight,
-                targetDate,
-                calculatedBmr: dailyCaloriesToReachGoal,
-                goalSteps,
-                goalBedtime,
-                goalWakeUpTime,
-                dailyProteinGoalGrams: Math.round(dailyCaloriesToReachGoal * (proteinPercentage / 100) / 4),
-                dailyFatGoalGrams: Math.round(dailyCaloriesToReachGoal * (fatPercentage / 100) / 9),
-                dailyCarbsGoalGrams: Math.round(dailyCaloriesToReachGoal * (carbsPercentage / 100) / 4),
-            })
+            onSubmit(draft);
         });
 
         return () => registerOnNext(null);
-    }, [isValid, setNextEnabled, registerOnNext]);
+    }, [draft, isValid, onDraftChange, onSubmit, registerOnNext, setNextEnabled]);
 
-    return (<ScrollView
-        className="flex-1"
-        contentContainerClassName="flex flex-col gap-4"
-    >
+    const content = (<>
         <View>
             <WeightSelect
                 weight={goalWeight}
@@ -203,13 +213,14 @@ export default function Objectives({
         </View>
         <Separator />
         <MacroSlider
-            tdee={dailyCaloriesToReachGoal}
+            tdee={dailyCalorieTarget ?? 0}
             proteinPercentage={proteinPercentage}
             setProteinPercentage={setProteinPercentage}
             fatPercentage={fatPercentage}
             setFatPercentage={setFatPercentage}
             carbsPercentage={carbsPercentage}
             setCarbsPercentage={setCarbsPercentage}
+            isDisabled={!hasValidCalorieTarget}
         />
         <Separator />
         <View>
@@ -256,5 +267,18 @@ export default function Objectives({
                 rightIconOnPress={() => setGoalWakeUpTime(undefined)}
             />
         </View>
-    </ScrollView>)
+    </>);
+
+    if (!scrollable) {
+        return <View className="gap-4">{content}</View>;
+    }
+
+    return (
+        <ScrollView
+            className="flex-1"
+            contentContainerClassName="flex flex-col gap-4"
+        >
+            {content}
+        </ScrollView>
+    )
 }

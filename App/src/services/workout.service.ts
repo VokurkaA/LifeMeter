@@ -17,11 +17,11 @@ import type {
 
 class WorkoutService {
   private baseUrl =
-    (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/workout';
+    (process.env.EXPO_PUBLIC_API_URL ?? 'https://lifemeter.fit') + '/api/user/workout';
   private templateUrl =
-    (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/user/workout/template';
+    (process.env.EXPO_PUBLIC_API_URL ?? 'https://lifemeter.fit') + '/api/user/workout/template';
 
-  private basicUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000') + '/api/workout';
+  private basicUrl = (process.env.EXPO_PUBLIC_API_URL ?? 'https://lifemeter.fit') + '/api/workout';
 
   async getAllUserWorkouts(): Promise<FullWorkout[]> {
     return request<ServerPaginatedResponse<ServerFullWorkout>>(this.baseUrl).then((res) =>

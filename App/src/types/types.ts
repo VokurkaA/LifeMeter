@@ -14,6 +14,7 @@ import {
   UpdateGoalInput,
   UpdateProfileInput,
   UserGoal,
+  UserHeightLog,
   UserProfile,
   UserWeightLog,
   WeightUnit,
@@ -113,6 +114,7 @@ export interface StoreContextType {
   lengthUnits: LengthUnit[];
   weightUnits: WeightUnit[];
   latestWeight: UserWeightLog | undefined;
+  latestHeight: UserHeightLog | undefined;
   isLoading: boolean;
 
   refreshProfile: () => Promise<void>;
@@ -161,6 +163,7 @@ export type AppStackParamList = {
   SleepList: undefined;
   ActiveWorkout: { workoutId: string };
   TemplateBuilder: { templateId?: string };
+  UserSettings: undefined;
 };
 
 export type SleepSession = {

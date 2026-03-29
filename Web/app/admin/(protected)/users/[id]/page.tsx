@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/shell";
 import {
   Alert,
@@ -24,7 +25,7 @@ import {
   getAdminUserSleep,
   getAdminUserWorkouts,
   getAdminUserWorkoutTemplates,
-  getSessionFromApi,
+  tryGetSessionFromApi,
 } from "@/lib/api";
 import {
   formatDate,
@@ -100,10 +101,10 @@ export default async function AdminUserDetailPage({
   params,
 }: UserDetailPageProps) {
   const { id } = await params;
-  const session = await getSessionFromApi();
+  const session = await tryGetSessionFromApi();
 
   if (!session) {
-    return null;
+    redirect("/admin/login");
   }
 
   let profileBundle;

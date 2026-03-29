@@ -8,11 +8,6 @@ import {
   TimerReset,
   Waves,
 } from "lucide-react";
-import heroImage from "../../App/src/assets/running_group.webp";
-import workoutImage from "../../App/src/assets/workout.webp";
-import nutritionImage from "../../App/src/assets/food.webp";
-import sleepImage from "../../App/src/assets/sleep.webp";
-import logoImage from "../../App/src/assets/logo.png";
 import {
   Card,
   CardDescription,
@@ -21,26 +16,17 @@ import {
   Link,
   Surface,
 } from "@/components/ui/heroui";
-
-const apkUrl = "/downloads/android/latest";
-
-const heroMetrics = [
-  {
-    label: "Tracks",
-    value: "4 systems",
-    body: "Workouts, meals, sleep, and progress live in one daily view.",
-  },
-  {
-    label: "Built for",
-    value: "Normal discipline",
-    body: "Fast enough to use when time is short and motivation is average.",
-  },
-  {
-    label: "Current release",
-    value: "Android beta",
-    body: "Direct APK install for people who want the live product now.",
-  },
-];
+import { SiteHeader } from "@/components/landing/site-header";
+import { PlatformReleaseCard } from "@/components/releases/platform-release-card";
+import { SiteFooter } from "@/components/landing/site-footer";
+import { formatDateTime } from "@/lib/format";
+import {
+  heroImage,
+  nutritionImage,
+  sleepImage,
+  workoutImage,
+} from "@/lib/marketing-assets";
+import { getPlatformReleaseState } from "@/lib/releases";
 
 const heroSupportCards = [
   {
@@ -76,14 +62,12 @@ const principleCards = [
   {
     title: "The product is real",
     body:
-      "Android beta, account flows, and admin tooling already exist, so the page is pointing at a live product rather than a concept.",
+      "Versioned Android releases, account flows, and admin tooling already exist, so the page points at a live system rather than a concept.",
     icon: Shield,
   },
 ];
 
 const heroMetricTags = ["Training", "Meals", "Sleep", "Progress"];
-const primaryHeroMetric = heroMetrics[0];
-const secondaryHeroMetrics = heroMetrics.slice(1);
 const primaryHeroSupport = heroSupportCards[0];
 const secondaryHeroSupports = heroSupportCards.slice(1);
 const primaryPrinciple = principleCards[0];
@@ -144,8 +128,8 @@ const systemCards = [
 
 const proofItems = [
   {
-    title: "Android beta release",
-    body: "The page can send people straight into the current APK.",
+    title: "Versioned mobile releases",
+    body: "The web UI can point people at the latest build and keep older versions available in the archive.",
     icon: Download,
   },
   {
@@ -165,48 +149,69 @@ const proofItems = [
   },
 ];
 
-const installSteps = [
-  "Download the APK on your Android device.",
-  "Allow installation from the current source if Android asks.",
-  "Finish the install, then create an account or sign in.",
-  "Use the first week to capture a normal routine, not a perfect one.",
+const homeFooterLinks = [
+  { href: "#why", label: "Why it works" },
+  { href: "#systems", label: "What is inside" },
+  { href: "#download", label: "Download" },
+  { href: "/admin/login", label: "Admin console" },
 ];
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "LifeMeter | One daily view for training, meals, sleep, and progress",
   description:
-    "LifeMeter is the Android beta for people who want workouts, meals, sleep, and progress in one calm daily dashboard.",
+    "LifeMeter keeps workouts, meals, sleep, and progress in one calm daily dashboard, with versioned mobile downloads for current and previous releases.",
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [androidReleaseState, iosReleaseState] = await Promise.all([
+    getPlatformReleaseState("android"),
+    getPlatformReleaseState("ios"),
+  ]);
+  const heroMetrics = [
+    {
+      label: "Tracks",
+      value: "4 systems",
+      body: "Workouts, meals, sleep, and progress live in one daily view.",
+    },
+    {
+      label: "Built for",
+      value: "Normal discipline",
+      body: "Fast enough to use when time is short and motivation is average.",
+    },
+    {
+      label: "Current release",
+      value: androidReleaseState.latest ? `Android v${androidReleaseState.latest.version}` : "Versioned builds",
+      body: androidReleaseState.latest
+        ? "Latest Android install is live, and previous versions stay reachable from the downloads page."
+        : "The download center is wired for current installs and release history.",
+    },
+  ];
+  const primaryHeroMetric = heroMetrics[0];
+  const secondaryHeroMetrics = heroMetrics.slice(1);
+  const primaryHeroAction = androidReleaseState.latest
+    ? {
+        href: androidReleaseState.latestDownloadPath,
+        label: `Install Android v${androidReleaseState.latest.version}`,
+      }
+    : {
+        href: "/downloads",
+        label: "Open downloads",
+      };
+  const downloadsSupportCopy = androidReleaseState.latest
+    ? `Android ${androidReleaseState.latest.version} was published ${formatDateTime(
+        androidReleaseState.latest.builtAt,
+      )}. Older Android builds stay on the downloads page while iOS keeps its slot warm for the first release.`
+    : "The homepage stays simple, and the dedicated downloads page carries the version history once builds are published.";
+  const heroReleaseBadge = androidReleaseState.latest ? "Android release live" : "Versioned downloads ready";
+  const heroReleaseBody = androidReleaseState.latest
+    ? `Latest Android build is live, and the same release center is already wired for iOS.`
+    : "The same versioned release center is wired for Android and iOS.";
+
   return (
     <div className="landing-shell">
-      <header className="landing-frame relative flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:py-8">
-        <Link className="flex items-center gap-3" href="/">
-          <Image alt="LifeMeter" className="landing-logo h-11 w-11" priority src={logoImage} />
-          <div>
-            <p className="landing-text-strong text-lg font-semibold tracking-[0.08em]">LifeMeter</p>
-            <p className="landing-text-dim text-xs uppercase tracking-[0.3em]">
-              Daily health companion
-            </p>
-          </div>
-        </Link>
-
-        <nav
-          aria-label="Primary"
-          className="landing-text-muted flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-start sm:gap-6"
-        >
-          <Link className="landing-inline-link" href="#why">
-            Why it works
-          </Link>
-          <Link className="landing-inline-link" href="#download">
-            Download
-          </Link>
-          <Link className="landing-inline-link" href="/admin/login">
-            Admin
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader eyebrow="Daily health companion" />
 
       <main className="relative space-y-18 pb-8 pt-8 sm:space-y-24 sm:pb-12 sm:pt-12 md:space-y-28 md:pb-14 md:pt-14 lg:space-y-32 lg:pt-16">
         <section className="landing-frame landing-section">
@@ -215,11 +220,10 @@ export default function HomePage() {
               <div className="space-y-6 sm:space-y-7">
                 <div className="flex flex-wrap items-center gap-4">
                   <Chip className="landing-beta-chip" color="accent" variant="soft">
-                    Android beta ready
+                    {heroReleaseBadge}
                   </Chip>
                   <p className="landing-chip-copy">
-                    Built for people who want one honest daily signal instead of four disconnected
-                    health apps.
+                    {heroReleaseBody}
                   </p>
                 </div>
 
@@ -239,15 +243,18 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-                <Link className="landing-button-primary w-full justify-center sm:w-auto" href={apkUrl}>
-                  Install Android beta
+                <Link
+                  className="landing-button-primary w-full justify-center sm:w-auto"
+                  href={primaryHeroAction.href}
+                >
+                  {primaryHeroAction.label}
                   <Download className="h-4 w-4" />
                 </Link>
                 <Link
                   className="landing-button-secondary w-full justify-center sm:w-auto"
-                  href="#systems"
+                  href="/downloads"
                 >
-                  See what is inside
+                  Browse all releases
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -564,88 +571,76 @@ export default function HomePage() {
 
         <section className="landing-frame landing-section" id="download">
           <Surface className="landing-panel-hero p-5 sm:p-9 md:p-11 lg:p-12">
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(340px,0.98fr)] lg:items-start lg:gap-12">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)] lg:items-start lg:gap-12">
               <div className="space-y-6">
                 <div className="space-y-5">
                   <p className="landing-kicker">Download</p>
                   <h2 className="landing-display landing-text-strong max-w-2xl text-[2rem] leading-tight text-balance sm:text-3xl md:text-4xl">
-                    Install the Android beta and make the first week useful.
+                    Grab the latest build quickly, then use the archive when version choice matters.
                   </h2>
                   <p className="landing-text-soft max-w-2xl text-base leading-7 sm:text-lg sm:leading-8">
-                    The goal is simple: get the APK onto your phone, sign in, and start capturing
-                    a normal week of training, food, and sleep. That is when the daily signal gets
-                    honest.
+                    The homepage keeps the decision small. Android points straight at the current
+                    release, iOS keeps a visible slot, and the dedicated downloads page carries the
+                    version history when you need an older build.
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-                  <Link className="landing-button-primary w-full justify-center sm:w-auto" href={apkUrl}>
-                    Install Android beta
+                  <Link
+                    className="landing-button-primary w-full justify-center sm:w-auto"
+                    href={primaryHeroAction.href}
+                  >
+                    {primaryHeroAction.label}
                     <Download className="h-4 w-4" />
                   </Link>
                   <Link
                     className="landing-button-secondary w-full justify-center sm:w-auto"
-                    href="/admin/login"
+                    href="/downloads"
                   >
-                    Open admin console
+                    Browse release archive
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
 
                 <p className="landing-text-faint text-sm leading-7">
-                  Android is the only supported platform in this release. The web presence is here
-                  to get people into the product quickly, not distract them with extra marketing
-                  loops.
+                  {downloadsSupportCopy}
                 </p>
               </div>
 
-              <div className="grid gap-4">
-                {installSteps.map((step, index) => (
-                  <div className="landing-step" key={step}>
-                    <div className="landing-step-index">{index + 1}</div>
-                    <p className="landing-text-soft text-sm leading-7 sm:text-base">{step}</p>
-                  </div>
-                ))}
+              <div className="grid gap-4 xl:grid-cols-2">
+                <PlatformReleaseCard
+                  state={androidReleaseState}
+                  note="The homepage always points at the latest Android build. Previous Android versions stay visible on the downloads page."
+                  primaryAction={
+                    androidReleaseState.latest
+                      ? {
+                          href: androidReleaseState.latestDownloadPath,
+                          label: `Install Android v${androidReleaseState.latest.version}`,
+                        }
+                      : undefined
+                  }
+                  secondaryAction={{
+                    href: "/downloads",
+                    label: "View Android archive",
+                    variant: "secondary",
+                  }}
+                />
+                <PlatformReleaseCard
+                  state={iosReleaseState}
+                  note="The iOS route and versioning slot are already part of the web UI, so the first published build will drop into the same download center."
+                  secondaryAction={{
+                    href: "/downloads",
+                    label: "Check iOS status",
+                    variant: "secondary",
+                  }}
+                />
               </div>
             </div>
           </Surface>
         </section>
       </main>
 
-      <footer className="landing-divider landing-frame relative mt-16 border-t py-10 md:mt-24 lg:py-14">
-        <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Image alt="LifeMeter" className="landing-logo h-10 w-10" src={logoImage} />
-              <div>
-                <p className="landing-text-strong text-base font-semibold tracking-[0.08em]">LifeMeter</p>
-                <p className="landing-text-ghost text-xs uppercase tracking-[0.28em]">
-                  Training, meals, sleep, progress
-                </p>
-              </div>
-            </div>
-            <p className="landing-text-faint max-w-xl text-sm leading-7">
-              A focused mobile health companion for people who want one daily signal instead of a
-              stack of disconnected tools.
-            </p>
-          </div>
-
-          <div className="landing-text-soft flex flex-wrap gap-3 text-sm md:justify-end">
-            <Link className="landing-nav-link" href="#why">
-              Why it works
-            </Link>
-            <Link className="landing-nav-link" href="#systems">
-              What is inside
-            </Link>
-            <Link className="landing-nav-link" href="#download">
-              Download
-            </Link>
-            <Link className="landing-nav-link" href="/admin/login">
-              Admin console
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter links={homeFooterLinks} />
     </div>
   );
 }

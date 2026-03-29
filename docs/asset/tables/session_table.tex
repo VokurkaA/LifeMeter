@@ -1,21 +1,21 @@
 % ==========================================
 % Tabulka: session
 % ==========================================
-\begin{table}[ht!] 
-\centering
-\begin{tabularx}{\textwidth}{|l|l|L|}
-\hline
-\textbf{Sloupec} & \textbf{Datový typ} & \textbf{Popis} \\ \hline
-id & TEXT & Unikátní identifikátor relace \\ \hline
-expiresAt & TIMESTAMP WITH TIME ZONE & Datum a čas expirace relace \\ \hline
-token & TEXT & Autentizační token relace \\ \hline
-createdAt & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření relace \\ \hline
-updatedAt & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace relace \\ \hline
-ipAddress & TEXT & IP adresa uživatele \\ \hline
-userAgent & TEXT & Identifikace prohlížeče nebo zařízení \\ \hline
-userId & TEXT & Unikátní identifikátor uživatele \\ \hline
-impersonatedBy & TEXT & Identifikátor uživatele provádějícího impersonaci \\ \hline
-\end{tabularx}
-\caption{Tabulka \texttt{session}}
-\label{tab:session}
+\begin{table}[ht!]
+    \centering
+    \begin{tabularx}{\textwidth}{|l|l|L|}
+        \hline
+        \textbf{Sloupec} & \textbf{Datový typ}      & \textbf{Popis}                                    \\ \hline
+        id               & TEXT                     & Unikátní identifikátor relace                     \\ \hline
+        expiresAt        & TIMESTAMP WITH TIME ZONE & Datum a čas expirace relace                       \\ \hline
+        token            & TEXT                     & Autentizační token relace                         \\ \hline
+        createdAt        & TIMESTAMP WITH TIME ZONE & Datum a čas vytvoření relace                      \\ \hline
+        updatedAt        & TIMESTAMP WITH TIME ZONE & Datum a čas poslední aktualizace relace           \\ \hline
+        ipAddress        & TEXT                     & IP adresa uživatele                               \\ \hline
+        userAgent        & TEXT                     & Identifikace prohlížeče nebo zařízení             \\ \hline
+        userId           & TEXT                     & Unikátní identifikátor uživatele                  \\ \hline
+        impersonatedBy   & TEXT                     & Identifikátor uživatele provádějícího impersonaci \\ \hline
+    \end{tabularx}
+    \caption{Tabulka \texttt{session}}
+    \label{tab:session}
 \end{table}

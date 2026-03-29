@@ -45,11 +45,16 @@ export async function fetchWithTimeout(
   }
 }
 
-export async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const method = (init?.method ?? "GET").toUpperCase();
+export async function request<T>(
+  path: string,
+  init?: RequestInit & { skipOfflineQueue?: boolean },
+): Promise<T> {
+  const { skipOfflineQueue = false, ...requestInit } = init ?? {};
+  const method = (requestInit.method ?? "GET").toUpperCase();
   const isReadOnly = method === "GET" || method === "HEAD";
 
   if (
+    !skipOfflineQueue &&
     isOffline &&
     !isReadOnly &&
     storage.boolean.get("offline-enabled") &&
@@ -64,10 +69,12 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
     const existing = storage.array.get<QueuedRequest>(QUEUE_KEY) ?? [];
     const isDuplicate = existing.some(
-      (r) => r.path === path && JSON.stringify(r.init) === JSON.stringify(init),
+      (r) =>
+        r.path === path &&
+        JSON.stringify(r.init) === JSON.stringify(requestInit),
     );
     if (!isDuplicate) {
-      storage.array.push(QUEUE_KEY, { path, init });
+      storage.array.push(QUEUE_KEY, { path, init: requestInit });
     }
     return undefined as unknown as T;
   }
@@ -76,7 +83,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     method: "GET",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     credentials: "include",
-    ...init,
+    ...requestInit,
   });
 
   if (!response.ok) {

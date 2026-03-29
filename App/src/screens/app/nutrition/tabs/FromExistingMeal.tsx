@@ -21,7 +21,7 @@ export default function FromExistingMeal({ onSuccess, createUserMeal, userMeals 
         const nameToMeal = new Map<string, { userMeal: UserMeal; userFoods: UserFood[] }>();
         for (let i = userMeals.length - 1; i >= 0; i--) {
             const meal = userMeals[i];
-            if (!nameToMeal.has(meal.userMeal.name)) {
+            if (meal && meal.userMeal && !nameToMeal.has(meal.userMeal.name)) {
                 nameToMeal.set(meal.userMeal.name, meal);
             }
         }
@@ -103,14 +103,20 @@ const MealAccordion = React.memo(function MealAccordion({
 
         async function fetchFoods() {
             try {
-                const foodDetails = await Promise.all(userFoods.map((f) => foodService.getFoodById(f.food_id)));
+                const foodDetails = await Promise.all(userFoods.map((f) => {
+                    if (!f) return null;
+                    return foodService.getFoodById(f.food_id);
+                }));
                 if (!mounted) return;
 
-                setFoods(foodDetails);
+                const validFoods = foodDetails.filter((f): f is FoodDetail => f !== null);
+                setFoods(validFoods);
 
-                const totalCalories = foodDetails.reduce((sum, data, idx) => {
+                const totalCalories = validFoods.reduce((sum, data, idx) => {
+                    const originalFood = userFoods[idx];
+                    if (!originalFood) return sum;
                     const calPer100g = data.nutrients.find((n) => n.nutrient_nbr === 208)?.amount ?? 0;
-                    return sum + (calPer100g * userFoods[idx].total_grams) / 100;
+                    return sum + (calPer100g * originalFood.total_grams) / 100;
                 }, 0);
 
                 setCalories(totalCalories);
@@ -146,12 +152,16 @@ const MealAccordion = React.memo(function MealAccordion({
                             <SkeletonGroup.Item className="h-4 w-1/2 rounded-md" />
                         </>
                     ) : (
-                        foods.map((f, idx) => (
-                            <View key={`${f.food.id}-${idx}`} className="flex-row justify-between items-center">
-                                <Text className="flex-1 text-sm" numberOfLines={1}>{f.food.description}</Text>
-                                <Muted>{userFoods[idx].total_grams}g</Muted>
-                            </View>
-                        ))
+                        foods.map((f, idx) => {
+                            const originalFood = userFoods[idx];
+                            if (!originalFood) return null;
+                            return (
+                                <View key={`${f.food.id}-${idx}`} className="flex-row justify-between items-center">
+                                    <Text className="flex-1 text-sm" numberOfLines={1}>{f.food.description}</Text>
+                                    <Muted>{originalFood.total_grams}g</Muted>
+                                </View>
+                            );
+                        })
                     )}
                     <Button size="sm" variant="secondary" className="mt-4" onPress={onSelect}>
                         <Button.Label>Use This Meal</Button.Label>

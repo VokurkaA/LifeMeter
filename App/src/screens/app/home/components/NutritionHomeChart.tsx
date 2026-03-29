@@ -30,13 +30,16 @@ export const NutritionHomeChart = ({ onPress }: { onPress?: () => void }) => {
       });
 
       const relevantMeals = userMeals.filter((m) => {
+        if (!m.userMeal) return false;
         const mealDate = timestampToDate(m.userMeal.eaten_at);
         return mealDate && last7Days.includes(toLocalDateKey(mealDate));
       });
 
       const foodIds = new Set<number>();
       relevantMeals.forEach((m) => {
-        m.userFoods.forEach((f) => foodIds.add(f.food_id));
+        m.userFoods.forEach((f) => {
+          if (f) foodIds.add(f.food_id);
+        });
       });
 
       const idsToFetch = Array.from(foodIds).filter((id) => !foodDetails[id]);
@@ -68,9 +71,11 @@ export const NutritionHomeChart = ({ onPress }: { onPress?: () => void }) => {
       let totalCalories = 0;
 
       userMeals.forEach((m) => {
+        if (!m.userMeal) return;
         const mealDate = timestampToDate(m.userMeal.eaten_at);
         if (mealDate && toLocalDateKey(mealDate) === dateKey) {
           m.userFoods.forEach((f) => {
+            if (!f) return;
             const detail = foodDetails[f.food_id];
             if (detail) {
               const calNutrient = detail.nutrients.find((n) => n.nutrient_nbr === 208);

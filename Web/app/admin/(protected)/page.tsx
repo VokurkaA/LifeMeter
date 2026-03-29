@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/shell";
 import {
   Alert,
@@ -24,7 +25,7 @@ import {
   getAdminApiErrorMessage,
   getAdminOverview,
   getAdminUsers,
-  getSessionFromApi,
+  tryGetSessionFromApi,
 } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import type { AdminOverview, AdminUserSummary } from "@/lib/types";
@@ -146,10 +147,10 @@ function NewestUsersTable({ users }: { users: AdminUserSummary[] }) {
 }
 
 export default async function AdminOverviewPage() {
-  const session = await getSessionFromApi();
+  const session = await tryGetSessionFromApi();
 
   if (!session) {
-    return null;
+    redirect("/admin/login");
   }
 
   let overview: AdminOverview | null = null;
