@@ -1,5 +1,6 @@
 \documentclass[12pt, a4paper, oneside]{report}
 
+\usepackage{pdflscape}
 \usepackage[utf8]{inputenc}
 \usepackage[czech]{babel}
 \usepackage[T1]{fontenc}
@@ -10,7 +11,7 @@
 \usepackage{float}
 \usepackage{listings}
 \usepackage{xcolor}
-\usepackage[hidelinks]{hyperref}
+\usepackage[hidelinks]{hyperref}  
 \usepackage{xurl}
 \usepackage{geometry}
 \usepackage[patch=none]{microtype}
@@ -130,6 +131,6 @@
 \end{itemize}
 
 \includepdf[pages=-]{asset/pdf/api_docs.pdf}
-\include*{prilohy/tabulky}
+\include{prilohy/tabulky}
 
 \end{document}

@@ -17,7 +17,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   try {
     const release = await getLatestRelease(parseRoutePlatform(platform));
-    const targetUrl = new URL(release.downloadPath, request.url);
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || request.url;
+    const targetUrl = new URL(release.downloadPath, baseUrl);
     const response = NextResponse.redirect(targetUrl, 307);
 
     response.headers.set("Cache-Control", "no-store");
