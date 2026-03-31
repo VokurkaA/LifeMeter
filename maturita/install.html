@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en" class="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="hero.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind-config.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+    />
+    <style>
+      html.dark .hljs-github {
+        display: none;
+      }
+      html.light .hljs-github-dark {
+        display: none;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-light.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <title>Lifemeter - instalace</title>
+  </head>
+
+  <body
+    class="bg-background text-foreground p-8 min-h-screen flex flex-col items-center select-none"
+  >
+    <div class="w-full max-w-2xl mt-10 flex flex-col gap-4">
+      <a
+        href="index.html"
+        class="text-muted hover:text-accent transition-colors text-sm self-start"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1"
+          stroke="currentColor"
+          class="size-4 inline-block mr-1"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+          />
+        </svg>
+        zpět na hlavní stránku
+      </a>
+
+      <!-- Steps card -->
+      <div
+        class="bg-surface rounded-xl border border-border p-6 shadow-surface"
+      >
+        <h1 class="text-xl font-bold text-accent mb-5">Instalace</h1>
+
+        <ol class="flex flex-col gap-3 list-none">
+          <li class="flex gap-3 items-start">
+            <span
+              class="shrink-0 w-6 h-6 rounded-full bg-accent text-accent-foreground text-xs font-bold flex items-center justify-center mt-0.5"
+              >1</span
+            >
+            <span>
+              Stáhněte si instalační apk z
+              <a
+                class="text-accent underline underline-offset-2 hover:opacity-80 transition-opacity"
+                href="https://www.lifemeter.fit/downloads/android/latest"
+                >lifemeter.fit</a
+              >
+            </span>
+          </li>
+          <li class="flex gap-3 items-start">
+            <span
+              class="shrink-0 w-6 h-6 rounded-full bg-accent text-accent-foreground text-xs font-bold flex items-center justify-center mt-0.5"
+              >2</span
+            >
+            <span
+              >Po instalaci spusťte aplikaci na svém android zařízení či android
+              emulátoru.</span
+            >
+          </li>
+        </ol>
+      </div>
+
+      <!-- Script card -->
+      <div
+        class="bg-surface rounded-xl border border-border shadow-surface overflow-hidden"
+      >
+        <div
+          class="px-6 py-4 border-b border-border flex items-center justify-between"
+        >
+          <h2 class="font-semibold text-sm text-muted uppercase tracking-wide">
+            Python script pro vytvoření testovacího uživatele
+          </h2>
+          <button
+            onclick="copyScript()"
+            id="copy-btn"
+            class="flex items-center gap-1.5 text-xs text-muted hover:text-accent transition-colors"
+          >
+            <svg
+              id="copy-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
+              />
+            </svg>
+            <svg
+              id="check-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-4 hidden text-green-500"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m4.5 12.75 6 6 9-13.5"
+              />
+            </svg>
+            <span id="copy-label">kopírovat</span>
+          </button>
+        </div>
+        <div class="overflow-x-auto select-text">
+          <pre
+            class="text-xs leading-relaxed !m-0 !rounded-none !bg-transparent"
+          ><code class="language-python" id="script-content">import random
+import string
+import time
+from datetime import datetime, timedelta, timezone
+
+import requests
+
+# --- CONFIGURATION ---
+BASE_URL = "https://lifemeter.fit/api"
+AUTH_URL = "https://lifemeter.fit/api/auth"
+
+# Generate dynamic credentials
+rand_chars = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+USER_EMAIL = f"user{rand_chars}@email.com"
+USER_NAME = f"user{rand_chars}"
+pwd_pool = string.ascii_letters + string.digits + "!@#$%^&*"
+USER_PASSWORD = ''.join(random.choices(pwd_pool, k=12))
+
+DAYS_TO_GENERATE = 7
+
+client = requests.Session()
+client.headers.update({"Content-Type": "application/json"})
+
+
+# --- 1. AUTHENTICATION ---
+
+def create_and_authenticate_user():
+    print(f"Creating account for {USER_EMAIL}...")
+    signup_res = client.post(f"{AUTH_URL}/sign-up/email",
+                             json={"email": USER_EMAIL, "password": USER_PASSWORD, "name": USER_NAME})
+    if signup_res.status_code not in [200, 201]:
+        print(f"? Sign up failed: {signup_res.text}");
+        exit()
+
+    time.sleep(0.5)
+    signin_res = client.post(f"{AUTH_URL}/sign-in/email", json={"email": USER_EMAIL, "password": USER_PASSWORD})
+    if signin_res.status_code != 200:
+        print(f"? Login failed: {signin_res.text}");
+        exit()
+    print("? Authenticated and session captured.")
+
+
+# --- 2. SETUP PROFILE & GOALS ---
+
+def setup_user_account():
+    p_res = client.put(f"{BASE_URL}/user/data/profile",
+                       json={"date_of_birth": "1995-01-01", "sex": "M", "current_activity_factor": 1.2,
+                             "current_bmr_calories": 2000, "default_weight_unit_id": 1, "default_length_unit_id": 1,
+                             "finished_onboarding": True})
+    target_date = (datetime.now(timezone.utc) + timedelta(days=90)).strftime("%Y-%m-%d")
+    g_res = client.put(f"{BASE_URL}/user/data/goals",
+                       json={"daily_steps_goal": 10000, "daily_protein_goal_grams": 150, "target_weight_grams": 75000,
+                             "target_weight_date": target_date})
+    if p_res.status_code == 200 and g_res.status_code == 200:
+        print("? Profile and Goals initialized.")
+    else:
+        print(f"?? Profile Setup Warning: Profile: {p_res.status_code}, Goals: {g_res.status_code}")
+
+
+# --- 3. REFERENCE DATA ---
+
+def get_exercises():
+    """Return up to 6 exercises to rotate through."""
+    res = client.get(f"{BASE_URL}/workout/exercises")
+    if res.status_code == 200 and res.json():
+        exercises = res.json()
+        print(f"? Loaded {len(exercises)} exercises.")
+        return exercises[:6]
+    print("? Could not fetch exercises ? cannot continue without valid exercise IDs.");
+    exit()
+
+
+def fetch_food(query):
+    """Search for a food by name and return (food_id, portion_id) or (None, None)."""
+    res = client.get(f"{BASE_URL}/food/search", params={"name": query, "limit": 1})
+    if res.status_code == 200 and res.json().get("rows"):
+        food_id = res.json()["rows"][0]["id"]
+        detail_res = client.get(f"{BASE_URL}/food/{food_id}")
+        if detail_res.status_code != 200:
+            return None, None
+        detail = detail_res.json()
+        portion_id = detail["portions"][0]["id"] if detail.get("portions") else None
+        return food_id, portion_id
+    return None, None
+
+
+def get_foods():
+    """
+    Fetch a pool of foods to draw from when building meals.
+    Each entry: {"food_id": int, "portion_id": int|None, "grams": int}
+    """
+    candidates = [{"query": "apple", "grams": 182}, {"query": "banana", "grams": 118}, {"query": "egg", "grams": 50},
+                  {"query": "oatmeal", "grams": 240}, {"query": "chicken", "grams": 200},
+                  {"query": "rice", "grams": 185}, {"query": "broccoli", "grams": 150},
+                  {"query": "salmon", "grams": 180}, {"query": "bread", "grams": 60}, {"query": "milk", "grams": 240},
+                  {"query": "yogurt", "grams": 170}, {"query": "orange juice", "grams": 240}, ]
+    pool = []
+    for c in candidates:
+        f_id, p_id = fetch_food(c["query"])
+        if f_id:
+            pool.append({"food_id": f_id, "portion_id": p_id, "grams": c["grams"]})
+    print(f"? Food pool ready: {len(pool)} items found.")
+    return pool
+
+
+def create_template(exercises):
+    """Create a workout template using a random selection of exercises."""
+    selected = random.sample(exercises, min(3, len(exercises)))
+    sets = [{"exercise_id": ex["id"], "seq_number": i + 1, "repetitions": random.choice([8, 10, 12]),
+             "rest_time": random.choice(["00:01:00", "00:01:30", "00:02:00"]), } for i, ex in enumerate(selected)]
+    res = client.post(f"{BASE_URL}/user/workout/template",
+                      json={"name": "Seeded Routine", "label": ["Seed"], "sets": sets})
+    if res.status_code in [200, 201]:
+        data = res.json()
+        template_id = data.get("id") or data.get("workoutTemplate", {}).get("id")
+        return template_id, selected
+    print(f"? Template creation failed ({res.status_code}): {res.text}")
+    return None, []
+
+
+# --- 4. DAILY LOGGING ---
+
+def log_data(method, url, payload, label):
+    res = client.request(method, url, json=payload)
+    if res.status_code in [200, 201]:
+        print(f"  ? {label} logged")
+    else:
+        print(f"  ? {label} failed: {res.text}")
+    return res
+
+
+def fmt(dt):
+    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def log_day(date, base_weight, food_pool, exercises, temp_id):
+    print(f"\n--- Processing {date.strftime('%Y-%m-%d')} ---")
+
+    # --- Height & Weight ---
+    # Small daily fluctuation: �0.4 kg; body composition drifts slightly each day
+    weight_g = int((base_weight + random.uniform(-0.4, 0.4)) * 1000)
+    body_fat = round(random.uniform(14.0, 16.5), 1)
+    lean = round(random.uniform(61.0, 64.0), 1)
+    water = round(100.0 - body_fat - lean - 5.0, 1)
+
+    log_data("POST", f"{BASE_URL}/user/data/log/height", {"measured_at": fmt(date), "height_cm": 180.0}, "Height")
+    log_data("POST", f"{BASE_URL}/user/data/log/weight",
+             {"measured_at": fmt(date), "weight_grams": weight_g, "body_fat_percentage": body_fat,
+              "lean_tissue_percentage": lean, "water_percentage": water, "bone_mass_percentage": 5.0, }, "Weight")
+
+    # --- Sleep ---
+    # Bedtime varies �90 min around 22:00; wake time varies �90 min around 06:00
+    sleep_start = date.replace(hour=22, minute=0, second=0) + timedelta(minutes=random.randint(-30, 90))
+    sleep_end = (date + timedelta(days=1)).replace(hour=6, minute=0, second=0) + timedelta(
+        minutes=random.randint(-30, 90))
+    sleep_note = random.choice(["Slept well", "Restless night", "Woke up early", "Deep sleep", ""])
+    log_data("POST", f"{BASE_URL}/user/sleep/new",
+             {"startAt": fmt(sleep_start), "endAt": fmt(sleep_end), "note": sleep_note}, "Sleep")
+
+    # --- Meals ---
+    if food_pool:
+        meal_plan = [{"name": "Breakfast", "hour": 7, "n_items": random.randint(1, 3)},
+                     {"name": "Lunch", "hour": 12, "n_items": random.randint(2, 3)},
+                     {"name": "Dinner", "hour": 19, "n_items": random.randint(2, 3)}, ]
+        # ~60% chance of an afternoon snack
+        if random.random() < 0.6:
+            meal_plan.append({"name": "Snack", "hour": 15, "n_items": 1})
+
+        for meal in meal_plan:
+            items = random.sample(food_pool, min(meal["n_items"], len(food_pool)))
+            eaten_at = date.replace(hour=meal["hour"], minute=random.randint(0, 30), second=0)
+            log_data("POST", f"{BASE_URL}/user/food", {"name": meal["name"], "eaten_at": fmt(eaten_at), "items": [
+                {"food_id": item["food_id"], "total_grams": int(item["grams"] * random.uniform(0.8, 1.2)),
+                 "portion_id": item["portion_id"], } for item in items], }, f"Meal ({meal['name']})")
+
+    # --- Workout ---
+    # Skip ~20% of days as a rest day
+    if temp_id and exercises and random.random() > 0.2:
+        duration_min = random.randint(40, 75)
+        start_hour = random.choice([7, 8, 17, 18])
+        start_dt = date.replace(hour=start_hour, minute=random.randint(0, 30), second=0)
+        end_dt = start_dt + timedelta(minutes=duration_min)
+
+        # Each exercise gets 2?4 sets with a slight progressive overload per set
+        sets = []
+        seq = 1
+        for ex in exercises:
+            base_w = round(random.uniform(40.0, 100.0), 1)
+            for s in range(random.randint(2, 4)):
+                sets.append({"exercise_id": ex["id"], "seq_number": seq,
+                             "weight": round(base_w + s * random.uniform(0, 2.5), 1),
+                             "repetitions": random.choice([6, 8, 10, 12]), })
+                seq += 1
+
+        log_data("POST", f"{BASE_URL}/user/workout",
+                 {"workout_template_id": temp_id, "start_date": fmt(start_dt), "end_date": fmt(end_dt), "sets": sets, },
+                 f"Workout ({duration_min} min, {len(sets)} sets)")
+    elif temp_id:
+        print("  ? Rest day ? workout skipped")
+
+
+# --- EXECUTION ---
+if __name__ == "__main__":
+    create_and_authenticate_user()
+    setup_user_account()
+
+    exercises = get_exercises()
+    food_pool = get_foods()
+    t_id, selected_exercises = create_template(exercises)
+
+    if t_id:
+        print(f"? Template ID active: {t_id}")
+    else:
+        print("?? No Workout Template ID; skipping workouts.")
+
+    # Weight trends slightly downward over the period (~0.05 kg/day)
+    now = datetime.now(timezone.utc)
+    base_weight = 80.0
+    for i in range(DAYS_TO_GENERATE - 1, -1, -1):
+        day_weight = base_weight - (DAYS_TO_GENERATE - 1 - i) * 0.05
+        log_day(now - timedelta(days=i), day_weight, food_pool, selected_exercises, t_id)
+        time.sleep(4)
+
+    print(f"\n? Done! Credentials:\nEmail: {USER_EMAIL}\nPassword: {USER_PASSWORD}")
+</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      hljs.highlightAll();
+
+      function copyScript() {
+        const text = document.getElementById("script-content").textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          document.getElementById("copy-icon").classList.add("hidden");
+          document.getElementById("check-icon").classList.remove("hidden");
+          document.getElementById("copy-label").textContent = "zkopírováno";
+          setTimeout(() => {
+            document.getElementById("copy-icon").classList.remove("hidden");
+            document.getElementById("check-icon").classList.add("hidden");
+            document.getElementById("copy-label").textContent = "kopírovat";
+          }, 2000);
+        });
+      }
+    </script>
+  </body>
+</html>

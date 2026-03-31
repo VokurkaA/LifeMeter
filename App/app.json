@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./src/assets/logo.png",
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
@@ -25,8 +26,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./src/assets/logo.png"
       },
+      "usesCleartextTraffic": true,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [

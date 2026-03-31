@@ -80,7 +80,6 @@ export async function request<T>(
   }
 
   const response = await fetch(path, {
-    method: "GET",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     credentials: "include",
     ...requestInit,

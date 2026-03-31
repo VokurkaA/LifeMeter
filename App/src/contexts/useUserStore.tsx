@@ -74,27 +74,38 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     (async () => {
       try {
         if (shouldBlockWithoutProfile) setIsLoading(true);
+
+        // Fetch reference data independently to ensure onboarding works for new users
+        const [levels, lUnits, wUnits] = await Promise.all([
+          userProfileService.getActivityLevels().catch(e => { console.error('Failed to fetch activity levels', e); return []; }),
+          userProfileService.getLengthUnits().catch(e => { console.error('Failed to fetch length units', e); return []; }),
+          userProfileService.getWeightUnits().catch(e => { console.error('Failed to fetch weight units', e); return []; }),
+        ]);
+
+        if (active) {
+          setActivityLevels(levels);
+          setLengthUnits(lUnits);
+          setWeightUnits(wUnits);
+        }
+
+        // Fetch user-specific data
         const latestHeightPromise = userProfileService.getLatestHeight().catch((error) => {
           console.warn('Failed to fetch latest height', error);
           return undefined;
         });
-        const [profile, goals, weight, height, levels, lUnits, wUnits] = await Promise.all([
-          userProfileService.getProfile(),
-          userProfileService.getGoals(),
-          userProfileService.getLatestWeight(),
+
+        const [profile, goals, weight, height] = await Promise.all([
+          userProfileService.getProfile().catch(() => undefined),
+          userProfileService.getGoals().catch(() => undefined),
+          userProfileService.getLatestWeight().catch(() => undefined),
           latestHeightPromise,
-          userProfileService.getActivityLevels(),
-          userProfileService.getLengthUnits(),
-          userProfileService.getWeightUnits(),
         ]);
+
         if (active) {
           setUserProfile(profile);
           setUserGoals(goals);
           setLatestWeight(weight);
           setLatestHeight(height);
-          setActivityLevels(levels);
-          setLengthUnits(lUnits);
-          setWeightUnits(wUnits);
           setIsLoading(false);
         }
       } catch (e) {

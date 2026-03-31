@@ -63,7 +63,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             />
 
             {/* Spacer for FAB */}
-            <View className='mx-14' />
+            {/* <View className='mx-14' /> */}
 
             {/* Nutrition */}
             <TabIcon
@@ -88,7 +88,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             />
         </Surface>
 
-        <PlusActionPopover />
+        {/* <PlusActionPopover /> */}
     </View>);
 }
 

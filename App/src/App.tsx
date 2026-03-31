@@ -74,6 +74,7 @@ function RootAppContent() {
     const enableExitConfirm = (!user && onboardingRoute === 'Title') || (user && appRoute === 'Home');
 
     useExitConfirmBackHandler(enableExitConfirm ?? false);
+
     if (loading || (!userProfile && isLoading)) {
         return null;
     }

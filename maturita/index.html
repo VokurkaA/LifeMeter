@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en" class="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="hero.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind-config.js"></script>
+    <title>Lifemeter</title>
+  </head>
+
+  <body
+    class="bg-background text-foreground p-8 min-h-screen flex flex-col items-center select-none"
+  >
+    <div
+      class="w-full max-w-xl mt-10 bg-surface rounded-xl border border-border p-6 shadow-surface"
+    >
+      <div class="flex flex-col mb-6">
+        <div class="flex items-center gap-2">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 22 22"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="text-accent"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 11h3l2.5-7 3 14 2.5-9L15 11h5"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <h1 class="text-2xl font-bold text-accent">Lifemeter</h1>
+        </div>
+        <p class="text-muted text-sm">
+          Mobilní aplikace pro sledování životních metrik
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <a
+          href="install.html"
+          class="block p-4 border border-border rounded-lg hover:border-accent hover:text-accent transition-colors font-medium"
+          >Návod k instalaci</a
+        >
+        <a
+          href="docs.zip"
+          download
+          class="flex items-center justify-between p-4 border border-border rounded-lg hover:border-accent hover:text-accent transition-colors font-medium"
+        >
+          <span> Elektronická podoba textu ve zdrojovém formátu (.zip) </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1"
+            stroke="currentColor"
+            class="size-4 flex-shrink-0"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25"
+            />
+          </svg>
+        </a>
+        <a
+          href="main.pdf"
+          target="_blank"
+          class="flex items-center justify-between p-4 border border-border rounded-lg hover:border-accent hover:text-accent transition-colors font-medium"
+        >
+          <span>Elektronická podoba textu ve formátu PDF</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1"
+            stroke="currentColor"
+            class="size-4 flex-shrink-0"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+            />
+          </svg>
+        </a>
+        <a
+          href="https://github.com/VokurkaA/LifeMeter/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center justify-between p-4 border border-border rounded-lg hover:border-accent hover:text-accent transition-colors font-medium"
+        >
+          <span>Veřejný repozitář se zdrojovým kódem</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1"
+            stroke="currentColor"
+            class="size-4 flex-shrink-0"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

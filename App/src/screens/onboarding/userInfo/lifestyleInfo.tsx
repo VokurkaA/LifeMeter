@@ -56,14 +56,16 @@ export default function LifestyleInfo({
             onSubmit({activityLevel: selectedLevel});
         });
     }, [onDraftChange, onSubmit, registerOnNext, selectedLevel, setNextEnabled]);
+
     return (<View className="mt-4">
-        <Label>{selectedLevel?.name}</Label>
+        <Label>{selectedLevel?.name || 'Loading activity levels...'}</Label>
         <Slider
             value={activityLevels.length ? selectedIndex + 1 : 1}
             onChange={(val) => setSelectedIndex(Math.max(0, Number(val) - 1))}
             minValue={1}
             maxValue={Math.max(activityLevels.length, 1)}
             step={1}
+            isDisabled={!activityLevels.length}
             className="w-full"
         >
             <Slider.Track>
@@ -71,6 +73,6 @@ export default function LifestyleInfo({
                 <Slider.Thumb className="bg-foreground" />
             </Slider.Track>
         </Slider>
-        <Description>{selectedLevel?.description}</Description>
+        <Description>{selectedLevel?.description || 'Please wait while we fetch the options.'}</Description>
     </View>)
 }
